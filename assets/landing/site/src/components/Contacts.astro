@@ -1,0 +1,174 @@
+---
+/*
+ * «Контакты» — блок связи + карта. Скелет заморожен.
+ * variant задаёт способ показа карты (стандарт заказчика):
+ *   map        — встроенный iframe карты (mapEmbed = src); нет src → placeholder
+ *   screenshot — статичный скриншот карты (mapImage), легче iframe
+ *   none       — без карты, только контактная колонка на всю ширину
+ * Радиус выезда — обязательное поле маркетолога. Заявка — через модалку (CTA), не открытая форма.
+ */
+import { nbsp } from '../lib/typography';
+
+interface Props {
+  title: string;
+  subtitle?: string;
+  phone: string;
+  workHours?: string;
+  address?: string;
+  radius?: string;              // «Выезжаем в радиусе 30 км от МКАД»
+  email?: string;
+  mapEmbed?: string;            // src для iframe (variant=map)
+  mapImage?: string;            // путь к скриншоту карты (variant=screenshot)
+  variant?: 'map' | 'screenshot' | 'none';
+  ctaText?: string;
+  eyebrow?: string;
+  alt?: boolean;
+  id?: string;
+}
+
+const {
+  title, subtitle, phone, workHours, address, radius, email,
+  mapEmbed, mapImage, variant = 'map', ctaText = 'Вызвать мастера',
+  eyebrow = 'Приедете в мой район?', alt = false, id = 'contacts',
+} = Astro.props;
+
+const telHref = 'tel:' + phone.replace(/[^\d+]/g, '');
+const mailHref = email ? 'mailto:' + email : null;
+const hasMap = variant !== 'none';
+
+const PIN = 'M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z';
+---
+
+<section class:list={['section', { 'section--alt': alt }]} id={id}>
+  <div class="container">
+    <div class="section__head" data-animate>
+      <span class="eyebrow">
+        <span class="eyebrow__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d={PIN} /></svg>
+        </span>
+        {eyebrow}
+      </span>
+      <h2 class="section__title">{nbsp(title)}</h2>
+      {subtitle && <p class="section__sub">{nbsp(subtitle)}</p>}
+    </div>
+
+    <div class:list={['contacts', hasMap ? 'contacts--with-map' : 'contacts--solo']} data-animate>
+      <div class="contacts__info">
+        <ul class="contacts__list">
+          <li class="contact">
+            <span class="contact__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.2.2 2.4.6 3.6.1.4 0 .8-.3 1l-2.2 2.2z"/></svg></span>
+            <span class="contact__body">
+              <span class="contact__label">Телефон</span>
+              <a class="contact__value contact__value--strong" href={telHref}>{phone}</a>
+            </span>
+          </li>
+
+          {address && (
+            <li class="contact">
+              <span class="contact__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg></span>
+              <span class="contact__body">
+                <span class="contact__label">Адрес</span>
+                <span class="contact__value">{nbsp(address)}</span>
+              </span>
+            </li>
+          )}
+
+          {workHours && (
+            <li class="contact">
+              <span class="contact__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 10.4 4 2.3-1 1.7-5-2.9V6h2z"/></svg></span>
+              <span class="contact__body">
+                <span class="contact__label">Режим работы</span>
+                <span class="contact__value">{nbsp(workHours)}</span>
+              </span>
+            </li>
+          )}
+
+          {mailHref && (
+            <li class="contact">
+              <span class="contact__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm8 7 8-5H4z"/></svg></span>
+              <span class="contact__body">
+                <span class="contact__label">Почта</span>
+                <a class="contact__value" href={mailHref}>{email}</a>
+              </span>
+            </li>
+          )}
+        </ul>
+
+        {radius && (
+          <p class="contacts__radius">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M18.9 6.6C18.7 6 18.1 5.5 17.4 5.5H6.6c-.7 0-1.3.5-1.5 1.1L3 12v7c0 .6.4 1 1 1h1c.6 0 1-.4 1-1v-1h12v1c0 .6.4 1 1 1h1c.6 0 1-.4 1-1v-7zM6.9 15a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm10.2 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zM5.3 11l1-3.5h11.4l1 3.5z"/></svg>
+            <span>{nbsp(radius)}</span>
+          </p>
+        )}
+
+        <button class="btn btn--primary contacts__cta" type="button" data-open-modal>{ctaText}</button>
+      </div>
+
+      {hasMap && (
+        <div class="contacts__map">
+          {variant === 'map' && mapEmbed && (
+            <iframe class="contacts__frame" src={mapEmbed} title="Карта проезда" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+          )}
+          {variant === 'screenshot' && mapImage && (
+            <img class="contacts__frame" src={mapImage} alt="Карта проезда к сервисному центру" loading="lazy" />
+          )}
+          {((variant === 'map' && !mapEmbed) || (variant === 'screenshot' && !mapImage)) && (
+            <div class="contacts__map-ph" role="img" aria-label="Здесь будет карта проезда">
+              <svg viewBox="0 0 24 24" width="54" height="54" fill="currentColor" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>
+              <span>Карта проезда</span>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  </div>
+</section>
+
+<style>
+  .contacts--with-map { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: clamp(1.5rem, 1rem + 2vw, 3rem); align-items: stretch; }
+  .contacts--solo { max-width: 720px; }
+
+  .contacts__info { display: flex; flex-direction: column; }
+  .contacts__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.15rem; }
+  .contact { display: flex; gap: 0.85rem; align-items: flex-start; }
+  .contact__icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px; flex: none;
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+    color: var(--color-primary);
+  }
+  .contact__body { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .contact__label { font-size: 0.78rem; color: var(--color-text-light); text-transform: uppercase; letter-spacing: 0.04em; }
+  .contact__value { font-weight: 500; word-break: break-word; }
+  .contact__value--strong { font-weight: 800; font-size: 1.15rem; }
+
+  .contacts__radius {
+    margin-top: 1.5rem;
+    display: flex; gap: 0.6rem; align-items: flex-start;
+    padding: 0.9rem 1.1rem;
+    background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+    border-radius: var(--radius-sm);
+    font-size: 0.95rem; color: var(--color-text);
+  }
+  .contacts__radius svg { color: var(--color-accent-dark); flex: none; margin-top: 0.1rem; }
+  .contacts__cta { margin-top: 1.75rem; align-self: flex-start; }
+
+  .contacts__map { position: relative; min-height: 320px; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--color-border); }
+  .contacts__frame { width: 100%; height: 100%; min-height: 320px; border: 0; display: block; object-fit: cover; }
+  .contacts__map-ph {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.6rem;
+    color: color-mix(in srgb, var(--color-primary) 45%, var(--color-bg));
+    background: linear-gradient(135deg,
+      color-mix(in srgb, var(--color-primary) 8%, var(--color-bg)),
+      color-mix(in srgb, var(--color-accent) 8%, var(--color-bg)));
+    font-weight: 600;
+  }
+
+  @media (max-width: 820px) {
+    .contacts--with-map { grid-template-columns: 1fr; }
+    .contacts__map { order: -1; min-height: 260px; }   /* карта над контактами на мобилке */
+    .contacts__frame, .contacts__map-ph { min-height: 260px; }
+  }
+</style>

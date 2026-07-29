@@ -1,0 +1,222 @@
+---
+/*
+ * «Кейсы / работы / до-после» — proof-блок с примерами выполненных работ.
+ * ВАЖНО: сюда идут ТОЛЬКО реальные фото клиента. Генерировать «работы» и «объекты»
+ * нельзя (landing-spec, пул блоков) — без фото секция честно показывает placeholder,
+ * а не выдуманную картинку. Нет материала → секцию лучше не ставить вовсе.
+ * Скелет заморожен, LLM даёт items/variant.
+ *   grid        — карточки фото + описание (→ карусель на мобилке)
+ *   beforeafter — пары «до / после» в одной карточке, подписи фиксированы
+ *   list        — фото слева, текст справа; для развёрнутых описаний
+ */
+import { nbsp } from '../lib/typography';
+
+interface CaseItem {
+  title: string;
+  desc?: string;
+  /** Итог работы одной строкой: «починили за 40 минут», «сэкономили 12 000 ₽». */
+  result?: string;
+  /** Метка сверху фото: тип работы, модель, район. */
+  tag?: string;
+  image?: string;
+  imageAlt?: string;
+  /** Только для variant="beforeafter": второе фото — состояние «после». */
+  imageAfter?: string;
+  imageAfterAlt?: string;
+}
+
+interface Props {
+  title: string;
+  subtitle?: string;
+  items: CaseItem[];
+  variant?: 'grid' | 'beforeafter' | 'list';
+  eyebrow?: string;
+  alt?: boolean;
+  id?: string;
+}
+
+const {
+  title,
+  subtitle,
+  items,
+  variant = 'grid',
+  eyebrow = 'Что мы уже сделали',
+  alt = false,
+  id = 'cases',
+} = Astro.props;
+
+const CASE_D = 'M20 6h-4V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zm-10-2h4v2h-4zm10 15H4V8h16z';
+const PHOTO_D = 'M19 5h-2.2l-1.4-1.7A2 2 0 0 0 13.9 2h-3.8a2 2 0 0 0-1.5.7L7.2 5H5a3 3 0 0 0-3 3v9a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3V8a3 3 0 0 0-3-3zm-7 12a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z';
+const CHECK_D = 'M9.6 16.2 5.4 12l-1.4 1.4 5.6 5.6 12-12L20.2 5.6z';
+---
+
+<section class:list={['section', { 'section--alt': alt }]} id={id}>
+  <div class="container">
+    <div class="section__head" data-animate>
+      <span class="eyebrow">
+        <span class="eyebrow__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d={CASE_D} /></svg>
+        </span>
+        {eyebrow}
+      </span>
+      <h2 class="section__title">{nbsp(title)}</h2>
+      {subtitle && <p class="section__sub">{nbsp(subtitle)}</p>}
+    </div>
+
+    <div class:list={['cases', `cases--${variant}`]} data-animate>
+      {items.map((c) => (
+        <article class="case">
+          {variant === 'beforeafter' ? (
+            <div class="case__pair">
+              <figure class="case__shot">
+                <div class="case__photo">
+                  {c.image
+                    ? <img src={c.image} alt={c.imageAlt ?? `${c.title} — до работы`} loading="lazy" />
+                    : <span class="case__placeholder" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="40" height="40" fill="currentColor"><path d={PHOTO_D} /></svg>
+                      </span>}
+                </div>
+                <figcaption class="case__cap case__cap--before">До</figcaption>
+              </figure>
+              <figure class="case__shot">
+                <div class="case__photo">
+                  {c.imageAfter
+                    ? <img src={c.imageAfter} alt={c.imageAfterAlt ?? `${c.title} — после работы`} loading="lazy" />
+                    : <span class="case__placeholder" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="40" height="40" fill="currentColor"><path d={PHOTO_D} /></svg>
+                      </span>}
+                </div>
+                <figcaption class="case__cap case__cap--after">После</figcaption>
+              </figure>
+            </div>
+          ) : (
+            <div class="case__photo">
+              {c.image
+                ? <img src={c.image} alt={c.imageAlt ?? c.title} loading="lazy" />
+                : <span class="case__placeholder" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="44" height="44" fill="currentColor"><path d={PHOTO_D} /></svg>
+                  </span>}
+              {c.tag && <span class="case__tag">{nbsp(c.tag)}</span>}
+            </div>
+          )}
+
+          <div class="case__body">
+            {variant === 'beforeafter' && c.tag && <span class="case__tag case__tag--inline">{nbsp(c.tag)}</span>}
+            <h3 class="case__title">{nbsp(c.title)}</h3>
+            {c.desc && <p class="case__desc">{nbsp(c.desc)}</p>}
+            {c.result && (
+              <p class="case__result">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d={CHECK_D} /></svg>
+                <span>{nbsp(c.result)}</span>
+              </p>
+            )}
+          </div>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .cases--grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+  .cases--beforeafter { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+  .cases--list { display: grid; gap: 1.25rem; }
+
+  .case {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* Фото: контейнер держит пропорцию сам (анти-CLS), img только заполняет его. */
+  .case__photo {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    background: color-mix(in srgb, var(--color-accent-warm) 14%, var(--color-bg-section));
+  }
+  .case__photo img { width: 100%; height: 100%; object-fit: cover; }
+  .case__placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: color-mix(in srgb, var(--color-accent-warm-dark) 55%, transparent);
+  }
+  .case__tag {
+    position: absolute;
+    top: 0.7rem;
+    left: 0.7rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--color-bg) 92%, transparent);
+    color: var(--color-text);
+    font-size: 0.78rem;
+    font-weight: 700;
+    box-shadow: var(--shadow-sm);
+  }
+  .case__tag--inline { position: static; display: inline-block; margin-bottom: 0.5rem; box-shadow: none; background: color-mix(in srgb, var(--color-primary) 10%, transparent); color: var(--color-primary); }
+
+  .case__body { padding: 1.1rem 1.25rem 1.35rem; min-width: 0; }
+  /* .case__title — h3, размер/вес от тега (см. tokens.css) */
+  .case__desc { margin-top: 0.35rem; color: var(--color-text-light); font-size: 0.95rem; line-height: 1.5; }
+  .case__result {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-top: 0.7rem;
+    padding-top: 0.7rem;
+    border-top: 1px dashed var(--color-border);
+    color: var(--color-accent-dark);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    font-weight: 600;
+  }
+  .case__result svg { flex: none; margin-top: 0.15rem; }
+
+  /* ---------- variant: beforeafter ---------- */
+  .case__pair { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: var(--color-border); }
+  .case__shot { margin: 0; position: relative; }
+  .case__cap {
+    position: absolute;
+    bottom: 0.6rem;
+    left: 0.6rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--radius-pill);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  /* «До» — нейтральная плашка, «После» — фирменная: разница читается без чтения подписи */
+  .case__cap--before { background: color-mix(in srgb, var(--color-overlay) 72%, transparent); color: var(--color-on-overlay); }
+  .case__cap--after { background: var(--color-accent-dark); color: var(--color-on-accent); }
+
+  /* ---------- variant: list ---------- */
+  .cases--list .case { display: grid; grid-template-columns: 300px 1fr; align-items: stretch; }
+  .cases--list .case__photo { aspect-ratio: auto; height: 100%; min-height: 200px; }
+  .cases--list .case__body { padding: 1.5rem 1.75rem; align-self: center; }
+
+  @media (max-width: 900px) {
+    .cases--grid { grid-template-columns: repeat(2, 1fr); }
+    .cases--beforeafter { grid-template-columns: 1fr; }
+    .cases--list .case { grid-template-columns: 1fr; }
+    .cases--list .case__photo { aspect-ratio: 16 / 9; min-height: 0; }
+  }
+
+  @media (max-width: 640px) {
+    .cases--grid {
+      grid-auto-flow: column;
+      grid-template-columns: none;
+      grid-auto-columns: 82%;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      margin-inline: calc(var(--gutter) * -1);
+      padding-inline: var(--gutter);
+      padding-bottom: 0.75rem;
+    }
+    .cases--grid .case { scroll-snap-align: center; }
+  }
+</style>

@@ -1,0 +1,77 @@
+---
+/*
+ * Модалка с лид-формой. ОДНА на страницу (в BaseLayout) — все CTA-кнопки с атрибутом
+ * [data-open-modal] её открывают. Так на странице нет открытых форм (Google не любит
+ * форм-спам), но контракт заявок доступен по клику. Внутри — sacred LeadForm (popup).
+ */
+import LeadForm from './LeadForm.astro';
+
+interface Props {
+  title?: string;
+  subtitle?: string;
+  submitText?: string;
+  policyHref?: string;
+}
+
+const {
+  title = 'Оставьте заявку',
+  subtitle = 'Перезвоним за 5 минут и назовём цену',
+  submitText = 'Отправить заявку',
+  policyHref = '/privacy',
+} = Astro.props;
+---
+
+<dialog class="lead-modal" id="lead-modal" aria-label={title}>
+  <div class="lead-modal__box">
+    <button class="lead-modal__close" type="button" aria-label="Закрыть" data-close-modal>&times;</button>
+    <h2 class="lead-modal__title">{title}</h2>
+    <p class="lead-modal__sub">{subtitle}</p>
+    <LeadForm dataForm="popup" submitText={submitText} policyHref={policyHref} layout="stacked" />
+  </div>
+</dialog>
+
+<script is:inline>
+  (function () {
+    var dlg = document.getElementById('lead-modal');
+    if (!dlg) return;
+    document.querySelectorAll('[data-open-modal]').forEach(function (b) {
+      b.addEventListener('click', function () { if (dlg.showModal) dlg.showModal(); });
+    });
+    dlg.querySelectorAll('[data-close-modal]').forEach(function (b) {
+      b.addEventListener('click', function () { dlg.close(); });
+    });
+    // клик по подложке закрывает
+    dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
+    // после успешной заявки — автозакрытие (событие от lead-form.js)
+    document.addEventListener('lead-form:success', function () {
+      setTimeout(function () { dlg.close(); }, 1600);
+    });
+  })();
+</script>
+
+<style>
+  .lead-modal {
+    border: none;
+    border-radius: var(--radius);
+    padding: 0;
+    max-width: 440px;
+    width: calc(100% - 2rem);
+    background: var(--color-bg);
+    color: var(--color-text);
+    box-shadow: var(--shadow-lg);
+  }
+  .lead-modal::backdrop { background: color-mix(in srgb, var(--color-overlay) 50%, transparent); backdrop-filter: blur(2px); }
+  .lead-modal__box { position: relative; padding: clamp(1.5rem, 1rem + 2vw, 2.25rem); }
+  .lead-modal__close {
+    position: absolute; top: 0.6rem; right: 0.6rem;
+    width: 40px; height: 40px;
+    border: 0; background: transparent;
+    font-size: 1.7rem; line-height: 1;
+    color: var(--color-text-light); cursor: pointer;
+    border-radius: var(--radius-sm);
+  }
+  .lead-modal__close:hover { background: var(--color-bg-section); color: var(--color-text); }
+  /* h2-тег для семантики, но компактная модалка — размер и вес намеренно свои, не h2-дефолт */
+  .lead-modal__title { font-size: var(--fs-h3); font-weight: 800; }
+  .lead-modal__sub { margin: 0.4rem 0 1.1rem; color: var(--color-text-light); font-size: 0.95rem; }
+</style>

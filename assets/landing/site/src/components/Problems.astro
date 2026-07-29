@@ -1,0 +1,164 @@
+---
+/*
+ * «Боли ЦА» — узнаваемые ситуации клиента ДО обращения (пул блоков landing-spec).
+ * Профиль trust: посетитель должен узнать свою ситуацию раньше, чем увидит цену.
+ * В urgency-профиле секция почти никогда не нужна — боль и так горит.
+ * Скелет заморожен, LLM даёт items/variant.
+ *   cards  — карточки «проблема + следствие» (→ карусель на мобилке)
+ *   list   — плотный список строками, без карточек
+ *   split  — пары «боль → как решаем»: два столбца, контраст читается сразу
+ * icon — ключ из встроенного набора; нет ключа → восклицательный знак.
+ */
+import { nbsp } from '../lib/typography';
+
+interface Problem {
+  title: string;
+  desc?: string;
+  /** Только для variant="split": что мы с этой болью делаем. */
+  solution?: string;
+  icon?: string;
+}
+
+interface Props {
+  title: string;
+  subtitle?: string;
+  items: Problem[];
+  variant?: 'cards' | 'list' | 'split';
+  eyebrow?: string;
+  alt?: boolean;
+  id?: string;
+}
+
+const {
+  title,
+  subtitle,
+  items,
+  variant = 'cards',
+  eyebrow = 'Знакомая ситуация?',
+  alt = false,
+  id = 'problems',
+} = Astro.props;
+
+// 24×24 filled-path, как в остальных секциях библиотеки.
+const ICONS: Record<string, string> = {
+  alert: 'M12 2 1 21h22zm0 6 6.9 11.9H5.1zm-1 4v4h2v-4zm0 5.5V19h2v-1.5z',
+  clock: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 10.4 4 2.3-1 1.7-5-2.9V6h2z',
+  money: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm.6 15.6v1.4h-1.2v-1.4c-1.6-.2-2.8-1.1-3-2.6h1.8c.1.7.8 1.2 1.9 1.2 1.1 0 1.8-.5 1.8-1.2 0-.6-.4-1-1.7-1.3l-1.2-.3c-1.7-.4-2.5-1.2-2.5-2.5 0-1.4 1.1-2.4 2.9-2.6V7h1.2v1.3c1.6.2 2.7 1.1 2.8 2.5h-1.8c-.1-.7-.7-1.1-1.7-1.1s-1.6.4-1.6 1.1c0 .6.4.9 1.6 1.2l1.2.3c1.8.4 2.6 1.2 2.6 2.5 0 1.5-1.1 2.5-3.1 2.8z',
+  repeat: 'M12 4V1L8 5l4 4V6a6 6 0 0 1 6 6c0 1.1-.3 2.1-.8 3l1.5 1.5A7.9 7.9 0 0 0 20 12a8 8 0 0 0-8-8zm0 14a6 6 0 0 1-6-6c0-1.1.3-2.1.8-3L5.3 7.5A7.9 7.9 0 0 0 4 12a8 8 0 0 0 8 8v3l4-4-4-4z',
+  doc: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zm-1 7V3.5L18.5 9zM8 13h8v2H8zm0 4h8v2H8z',
+  phone: 'M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.2.2 2.4.6 3.6.1.4 0 .8-.3 1l-2.2 2.2z',
+};
+const CHECK = 'M9.6 16.2 5.4 12l-1.4 1.4 5.6 5.6 12-12L20.2 5.6z';
+const iconPath = (key?: string) => ICONS[key ?? 'alert'] ?? ICONS.alert;
+---
+
+<section class:list={['section', { 'section--alt': alt }]} id={id}>
+  <div class="container">
+    <div class="section__head" data-animate>
+      <span class="eyebrow">
+        <span class="eyebrow__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d={ICONS.alert} /></svg>
+        </span>
+        {eyebrow}
+      </span>
+      <h2 class="section__title">{nbsp(title)}</h2>
+      {subtitle && <p class="section__sub">{nbsp(subtitle)}</p>}
+    </div>
+
+    <div class:list={['problems', `problems--${variant}`]} data-animate>
+      {items.map((p) => (
+        <article class="problem">
+          <span class="problem__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d={iconPath(p.icon)} /></svg>
+          </span>
+          <div class="problem__body">
+            <h3 class="problem__title">{nbsp(p.title)}</h3>
+            {p.desc && <p class="problem__desc">{nbsp(p.desc)}</p>}
+            {variant === 'split' && p.solution && (
+              <p class="problem__solution">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d={CHECK} /></svg>
+                <span>{nbsp(p.solution)}</span>
+              </p>
+            )}
+          </div>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .problems--cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+  .problems--list { display: grid; gap: 0.85rem; }
+  .problems--split { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem; }
+
+  .problem { display: flex; gap: 1rem; align-items: flex-start; }
+  /* Иконка боли — тёплый вторичный акцент, а не основной зелёный: проблема не должна
+     выглядеть как ещё одно преимущество. */
+  .problem__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    flex: none;
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--color-accent-warm) 22%, transparent);
+    color: var(--color-accent-warm-dark);
+  }
+  .problem__body { min-width: 0; }
+  /* .problem__title — h3, размер/вес от тега (см. tokens.css) */
+  .problem__desc { margin-top: 0.35rem; color: var(--color-text-light); font-size: 0.95rem; line-height: 1.5; }
+  /* Решение — единственное место в секции, где включается основной акцент:
+     взгляд идёт «проблема (тёплая) → ответ (фирменный)». */
+  .problem__solution {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-top: 0.7rem;
+    padding-top: 0.7rem;
+    border-top: 1px dashed var(--color-border);
+    color: var(--color-accent-dark);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    font-weight: 600;
+  }
+  .problem__solution svg { flex: none; margin-top: 0.15rem; }
+
+  /* cards / split — карточка с рамкой */
+  .problems--cards .problem,
+  .problems--split .problem {
+    flex-direction: column;
+    gap: 0.9rem;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: 1.6rem;
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* list — плотные строки без карточек, разделены линией */
+  .problems--list .problem { padding-bottom: 0.85rem; border-bottom: 1px solid var(--color-border); }
+  .problems--list .problem:last-child { border-bottom: 0; padding-bottom: 0; }
+  .problems--list .problem__icon { width: 40px; height: 40px; }
+
+  @media (max-width: 900px) {
+    .problems--cards { grid-template-columns: repeat(2, 1fr); }
+    .problems--split { grid-template-columns: 1fr; }
+  }
+
+  /* карусель на мобилке для карточных вариантов; list стекается сам */
+  @media (max-width: 640px) {
+    .problems--cards {
+      grid-auto-flow: column;
+      grid-template-columns: none;
+      grid-auto-columns: 80%;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      margin-inline: calc(var(--gutter) * -1);
+      padding-inline: var(--gutter);
+      padding-bottom: 0.75rem;
+    }
+    .problems--cards .problem { scroll-snap-align: center; }
+  }
+</style>

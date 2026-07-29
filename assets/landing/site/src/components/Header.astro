@@ -1,0 +1,227 @@
+---
+interface NavItem { label: string; href: string; }
+
+interface Props {
+  logo: string;
+  phone: string;
+  workHours: string;            // «Пн–Вс 7:00–23:00»
+  ctaText?: string;             // «Заказать звонок»
+  nav?: NavItem[];
+  /** Раскладка шапки. Скелет один — меняется только композиция. */
+  variant?: 'classic' | 'centered' | 'minimal';
+  /** Тематическая иконка в фирменной обёртке слева от текста — балансирует цвет с CTA. */
+  logoIcon?: boolean;
+}
+
+const {
+  logo,
+  phone,
+  workHours,
+  ctaText = 'Заказать звонок',
+  nav = [],
+  variant = 'classic',
+  logoIcon = false,
+} = Astro.props;
+
+const telHref = 'tel:' + phone.replace(/[^\d+]/g, '');
+// Максимум 4 пункта: больше — переполнение контейнера и визуальный шум, конкуренция с лого.
+const navItems = nav.slice(0, 4);
+
+/*
+ * Активный пункт меню. Якоря (#issues) активными не бывают — это скролл внутри
+ * страницы, а не переход; подсвечиваем только ссылки на страницы. Нужно для
+ * многостраничника: без этого посетитель не понимает, где находится.
+ */
+const here = Astro.url.pathname.replace(/\/+$/, '') || '/';
+const isCurrent = (href: string) => {
+  if (href.startsWith('#') || /^https?:/.test(href)) return false;
+  const target = href.split(/[?#]/)[0].replace(/\/+$/, '') || '/';
+  return target === here;
+};
+---
+
+<header class:list={['site-header', `site-header--${variant}`]}>
+  <div class="container site-header__inner">
+    <a class="site-header__logo" href="/" aria-label={`${logo} — на главную`}>
+      {logoIcon && (
+        <span class="site-header__logo-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.4-.4.4-1 .1-1.4z"/></svg>
+        </span>
+      )}
+      <span class="site-header__logo-text">{logo}</span>
+    </a>
+
+    {navItems.length > 0 && (
+      <nav class="site-header__nav" aria-label="Разделы">
+        {navItems.map((item) => (
+          <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>{item.label}</a>
+        ))}
+      </nav>
+    )}
+
+    <div class="site-header__aside">
+      <a class="site-header__phone-icon" href={telHref} aria-label={`Позвонить ${phone}`}>
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true">
+          <path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.2.2 2.4.6 3.6.1.4 0 .8-.3 1l-2.2 2.2z"/>
+        </svg>
+      </a>
+      <div class="site-header__contact">
+        <a class="site-header__phone" href={telHref}>{phone}</a>
+        <span class="site-header__hours">{workHours}</span>
+      </div>
+      <button class="btn btn--primary site-header__cta" type="button" data-open-modal>{ctaText}</button>
+    </div>
+
+    {navItems.length > 0 && (
+      <button
+        class="site-header__burger"
+        type="button"
+        aria-label="Меню"
+        aria-expanded="false"
+        aria-controls="site-mobile-nav"
+        data-burger
+      >
+        <span></span><span></span><span></span>
+      </button>
+    )}
+  </div>
+
+  {navItems.length > 0 && (
+    <nav class="site-header__mobile-nav" id="site-mobile-nav" aria-label="Разделы (моб.)" data-mobile-nav>
+      {navItems.map((item) => (
+        <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined} data-mnav-link>{item.label}</a>
+      ))}
+    </nav>
+  )}
+</header>
+<span id="top"></span>
+
+<script is:inline>
+  (function () {
+    var burger = document.querySelector('[data-burger]');
+    var menu = document.querySelector('[data-mobile-nav]');
+    if (burger && menu) {
+      function setOpen(open) {
+        menu.classList.toggle('is-open', open);
+        burger.setAttribute('aria-expanded', String(open));
+      }
+      burger.addEventListener('click', function () {
+        setOpen(!menu.classList.contains('is-open'));
+      });
+      menu.querySelectorAll('[data-mnav-link]').forEach(function (l) {
+        l.addEventListener('click', function () { setOpen(false); });
+      });
+      // Escape закрывает меню и возвращает фокус на кнопку — иначе с клавиатуры
+      // из открытого меню не выбраться.
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && menu.classList.contains('is-open')) {
+          setOpen(false);
+          burger.focus();
+        }
+      });
+    }
+  })();
+</script>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: color-mix(in srgb, var(--color-bg) 88%, transparent);
+    backdrop-filter: saturate(140%) blur(8px);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .site-header__inner {
+    min-height: var(--header-h);
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  .site-header__logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-weight: 800;
+    font-size: 1.25rem;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+  }
+  .site-header__logo-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    flex: none;
+    border-radius: var(--radius-sm);
+    background: var(--color-accent);      /* в цвет кнопок */
+    color: var(--color-on-accent);
+  }
+  .site-header__logo-text { color: var(--color-text); }   /* лого всегда тёмный в светлой теме */
+  .site-header__nav {
+    display: flex;
+    flex: 1;                         /* забирает середину → пункты по центру, не липнут к лого */
+    justify-content: center;
+    gap: 1.35rem;
+    flex-wrap: nowrap;
+  }
+  .site-header__nav a {
+    font-size: 0.9rem;               /* меньше лого — не конкурируют */
+    font-weight: 500;
+    color: var(--color-text-light);
+    white-space: nowrap;
+    padding: 0.25rem 0;
+    border-bottom: 2px solid transparent;
+    transition: color var(--transition), border-color var(--transition);
+  }
+  .site-header__nav a:hover { color: var(--color-accent); border-color: var(--color-accent); }
+  /* Текущая страница многостраничника — подчёркнута постоянно, а не только по hover */
+  .site-header__nav a[aria-current='page'] { color: var(--color-text); font-weight: 700; border-color: var(--color-accent); }
+  .site-header__mobile-nav a[aria-current='page'] { color: var(--color-accent-dark); }
+  .site-header__aside { display: flex; align-items: center; gap: 1.25rem; margin-left: auto; min-width: 0; }
+  .site-header__contact { display: flex; flex-direction: column; line-height: 1.2; text-align: right; }
+  .site-header__phone { font-weight: 800; font-size: 1.05rem; white-space: nowrap; }
+  .site-header__hours { font-size: 0.78rem; color: var(--color-text-light); }
+  .site-header__cta { min-height: 44px; padding-inline: 1.1rem; }
+
+  /* Иконка-телефон: скрыта на десктопе, заменяет текстовый номер на мобилке */
+  .site-header__phone-icon {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex: none;
+    border-radius: var(--radius-pill);
+    color: var(--color-primary);
+    border: 1.5px solid var(--color-border);
+    transition: border-color var(--transition), background var(--transition);
+  }
+  .site-header__phone-icon:hover { border-color: var(--color-primary); }
+  .site-header__phone-icon:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 2px; }
+
+  .site-header__burger { display: none; flex-direction: column; gap: 5px; background: none; border: 0; padding: 8px; cursor: pointer; }
+  .site-header__burger span { width: 24px; height: 2px; background: var(--color-text); border-radius: 2px; }
+  .site-header__mobile-nav { display: none; flex-direction: column; padding: 0 var(--gutter); background: var(--color-bg); border-bottom: 1px solid var(--color-border); }
+  .site-header__mobile-nav.is-open { display: flex; }
+  .site-header__mobile-nav a { padding: 0.9rem 0; border-bottom: 1px solid var(--color-border); font-weight: 600; }
+
+  /* variant: centered — лого по центру, nav отдельным рядом ниже */
+  .site-header--centered .site-header__inner { flex-wrap: wrap; justify-content: center; text-align: center; row-gap: 0.5rem; }
+  .site-header--centered .site-header__logo { margin-inline: auto; order: 1; }
+  .site-header--centered .site-header__aside { order: 2; margin-left: 0; }
+  .site-header--centered .site-header__nav { order: 3; flex-basis: 100%; justify-content: center; }
+
+  /* variant: minimal — nav прячется в бургер уже на десктопе */
+  .site-header--minimal .site-header__nav { display: none; }
+
+  @media (max-width: 900px) {
+    .site-header__inner { gap: 0.75rem; }
+    .site-header__nav { display: none; }
+    .site-header__burger { display: flex; }
+    .site-header__contact { display: none; }    /* текстовый номер+часы → компактная иконка */
+    .site-header__phone-icon { display: inline-flex; }
+    .site-header__cta { display: none; }         /* звонок через иконку/FAB */
+  }
+</style>

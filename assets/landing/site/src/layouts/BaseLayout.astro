@@ -1,0 +1,127 @@
+---
+/*
+ * Общий layout всех страниц сайта: <head>, мета, шрифты, модалка заявки, скрипты.
+ * Работает и для одностраничного лендинга, и для многостраничника — во втором
+ * случае canonical у каждой страницы свой, иначе поисковик склеит страницы.
+ *
+ * Порядок стилей важен: tokens.css задаёт КОНТРАКТ (имена + нейтральные дефолты),
+ * theme.css перекрывает ЗНАЧЕНИЯ под проект. Менять местами нельзя.
+ */
+import '../styles/tokens.css';
+import '../styles/theme.css';
+import LeadModal from '../components/LeadModal.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  /** Канонический URL страницы. Для многостраничника обязателен на КАЖДОЙ странице. */
+  canonical?: string;
+  /** Картинка для ссылки в мессенджерах и соцсетях. Обычно hero страницы. */
+  ogImage?: string;
+  /** Тип страницы для OG: главная лендинга — website, статья/услуга — article. */
+  ogType?: 'website' | 'article';
+  /** Google Fonts href под шрифтовую пару из theme.css. Пусто → системный стек. */
+  fontsHref?: string;
+  /** Цвет строки браузера на мобиле. Держи равным --color-primary текущей темы:
+   *  CSS-переменную сюда подставить нельзя, meta читается до стилей. */
+  themeColor?: string;
+  /** Анимации reveal-on-scroll. OFF по умолчанию — включает только маркетолог. */
+  animations?: boolean;
+  /** Закрыть страницу от индексации (черновик, служебная страница, полигон). */
+  noindex?: boolean;
+}
+
+const {
+  title,
+  description = '',
+  canonical,
+  ogImage,
+  ogType = 'website',
+  // Пара из демо-темы: Onest (заголовки) + Golos Text (текст), оба с кириллицей.
+  fontsHref = 'https://fonts.googleapis.com/css2?family=Onest:wght@700;800&family=Golos+Text:wght@400;600;700&display=swap',
+  // Демо-тема: держи в паре с --color-primary из theme.css.
+  themeColor = '#0f5c42',
+  animations = false,
+  noindex = false,
+} = Astro.props;
+
+// Абсолютный URL страницы: Astro.site задаётся в astro.config (нужен для canonical и OG).
+const pageUrl = canonical ?? (Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined);
+const ogImageUrl = ogImage && Astro.site ? new URL(ogImage, Astro.site).href : ogImage;
+---
+
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+    <meta name="robots" content={noindex ? 'noindex, nofollow' : 'index, follow'} />
+    {pageUrl && <link rel="canonical" href={pageUrl} />}
+
+    <!-- Ссылка в мессенджерах: без OG там будет голый URL -->
+    <meta property="og:type" content={ogType} />
+    <meta property="og:title" content={title} />
+    {description && <meta property="og:description" content={description} />}
+    {pageUrl && <meta property="og:url" content={pageUrl} />}
+    {ogImageUrl && <meta property="og:image" content={ogImageUrl} />}
+    <meta property="og:locale" content="ru_RU" />
+    <meta name="twitter:card" content={ogImageUrl ? 'summary_large_image' : 'summary'} />
+
+    <meta name="theme-color" content={themeColor} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    {fontsHref && (
+      <>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link rel="stylesheet" href={fontsHref} />
+      </>
+    )}
+  </head>
+  <body class={animations ? 'has-anim' : ''}>
+    <slot />
+
+    <!-- Одна модалка с лид-формой на страницу; открывают CTA c [data-open-modal]. -->
+    <LeadModal />
+
+    <!-- Подмена заголовка по URL-параметру ?h= (контекстная реклама под запрос).
+         Меняем и H1, и <title>: заголовок вкладки тоже виден пользователю. -->
+    <script is:inline>
+      (function () {
+        function swapH1() {
+          var h = new URLSearchParams(location.search).get('h');
+          if (!h || !h.trim()) return;
+          var heading = h.trim();
+          document.querySelectorAll('h1').forEach(function (el) {
+            el.textContent = heading;
+          });
+          var sep = document.title.indexOf(' — ');
+          document.title = sep > -1 ? heading + document.title.slice(sep) : heading;
+        }
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', swapH1);
+        } else {
+          swapH1();
+        }
+      })();
+    </script>
+
+    <!-- Лид-форма: sacred-контракт заявок. ?v= обязателен, менять при каждом изменении файла. -->
+    <script src="/assets/lead-form.js?v=20260713a" is:inline defer></script>
+
+    <!-- Reveal-on-scroll: работает только если body.has-anim (флаг маркетолога) -->
+    <script is:inline>
+      if (document.body.classList.contains('has-anim') &&
+          !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (e) {
+            if (e.isIntersecting) { e.target.classList.add('is-visible'); io.unobserve(e.target); }
+          });
+        }, { threshold: 0.12 });
+        document.querySelectorAll('[data-animate]').forEach(function (el) { io.observe(el); });
+      }
+    </script>
+  </body>
+</html>

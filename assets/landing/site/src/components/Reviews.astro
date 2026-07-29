@@ -1,0 +1,102 @@
+---
+interface Review { name: string; text: string; rating?: number; meta?: string; }
+
+interface Props {
+  title: string;
+  subtitle?: string;
+  items: Review[];              // стандарт заказчика: не менее 5
+  /** grid = сетка/карусель-на-мобилке · slider = карусель везде · compact = плотные карточки */
+  variant?: 'grid' | 'slider' | 'compact';
+  eyebrow?: string;
+  id?: string;
+}
+
+import { nbsp } from '../lib/typography';
+
+const { title, subtitle, items, variant = 'grid', eyebrow = 'Можно ли доверять отзывам?', id = 'reviews' } = Astro.props;
+const stars = (n = 5) => '★★★★★☆☆☆☆☆'.slice(5 - n, 10 - n);
+
+const STAR = 'M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8-6.2-3.3-6.2 3.3 1.2-6.8-5-4.9 6.9-1z';
+---
+
+<section class="section section--alt" id={id}>
+  <div class="container">
+    <div class="section__head" data-animate>
+      <span class="eyebrow">
+        <span class="eyebrow__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d={STAR} /></svg>
+        </span>
+        {eyebrow}
+      </span>
+      <h2 class="section__title">{nbsp(title)}</h2>
+      {subtitle && <p class="section__sub">{nbsp(subtitle)}</p>}
+    </div>
+
+    <div class:list={['reviews', `reviews--${variant}`]} data-animate>
+      {items.map((r) => (
+        <article class="review">
+          {r.rating && <div class="review__stars" aria-label={`Оценка ${r.rating} из 5`}>{stars(r.rating)}</div>}
+          <p class="review__text">{nbsp(r.text)}</p>
+          <footer class="review__foot">
+            <span class="review__name">{r.name}</span>
+            {r.meta && <span class="review__meta">{r.meta}</span>}
+          </footer>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  /* grid: адаптивная сетка на десктопе */
+  .reviews--grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+  .reviews--compact { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+
+  .review {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    transition: transform var(--transition), box-shadow var(--transition);
+  }
+  .review:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+  .review__stars { color: #f5b301; letter-spacing: 2px; }
+  .review__text { color: var(--color-text); }
+  .review__foot { margin-top: auto; display: flex; flex-direction: column; }
+  .review__name { font-weight: 700; }
+  .review__meta { font-size: 0.82rem; color: var(--color-text-light); }
+  .reviews--compact .review { padding: 1.15rem; }
+
+  /* slider: карусель везде (scroll-snap) */
+  .reviews--slider {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(300px, 1fr);
+    gap: 1.25rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 0.5rem;
+    scrollbar-width: thin;
+  }
+  .reviews--slider .review { scroll-snap-align: start; }
+
+  /* КАРУСЕЛЬ НА МОБИЛКЕ — стандарт заказчика (отзывы/мастера/сертификаты).
+     Сетка превращается в горизонтальный scroll-snap на узких экранах. */
+  @media (max-width: 768px) {
+    .reviews--grid, .reviews--compact {
+      grid-auto-flow: column;
+      grid-template-columns: none;
+      grid-auto-columns: 82%;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      margin-inline: calc(var(--gutter) * -1);
+      padding-inline: var(--gutter);
+      padding-bottom: 0.5rem;
+    }
+    .reviews--grid .review, .reviews--compact .review { scroll-snap-align: center; }
+  }
+</style>

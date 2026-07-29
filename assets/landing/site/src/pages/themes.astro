@@ -1,0 +1,147 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/Hero.astro';
+import Benefits from '../components/Benefits.astro';
+import { demo } from '../data/demo';
+import { themes, themeStyle, themesFontsHref } from '../data/themes';
+
+/*
+ * СТОП-ТОЧКА ВЫБОРА ТЕМЫ (шаг арт-дирекшна во флоу).
+ * Показываем кандидатов не абстрактными свотчами, а на РЕАЛЬНЫХ секциях библиотеки:
+ * пользователь видит то, чем станет его сайт, а не палитру в вакууме.
+ *
+ * Как это работает: токены темы вешаются инлайном на контейнер тайла. CSS-переменные
+ * наследуются, поэтому все вложенные секции подхватывают тему без единой правки
+ * в самих секциях. Выбранная тема потом переезжает в styles/theme.css.
+ *
+ * Служебная страница: noindex, удаляется перед сдачей клиенту.
+ */
+const heroBullets = demo.hero.bullets.slice(0, 2);
+const benefitItems = demo.benefits.items.slice(0, 3);
+---
+
+<BaseLayout
+  title={`Выбор темы — ${demo.brand}`}
+  description="Три темы оформления на реальных секциях библиотеки"
+  fontsHref={themesFontsHref(themes)}
+  noindex={true}
+  animations={false}
+>
+  <header class="picker-head">
+    <div class="container">
+      <h1>Выберите оформление</h1>
+      <p>
+        Три темы на настоящих секциях сайта. Разметка у всех одна — различаются палитра,
+        шрифты и скругления. Можно смешивать: «вторая, но палитра из третьей».
+      </p>
+    </div>
+  </header>
+
+  {themes.map((t, i) => (
+    <section class="tile" aria-label={`Тема ${i + 1}: ${t.name}`}>
+      <div class="container tile__head">
+        <div class="tile__meta">
+          <span class="tile__num">Тема {i + 1}</span>
+          <h2>{t.name}</h2>
+          <p class="tile__mood">{t.mood}</p>
+          <p class="tile__note">{t.note}</p>
+          <p class="tile__fonts">
+            Шрифты: <strong>{t.fonts.heading}</strong> (заголовки) + <strong>{t.fonts.body}</strong> (текст)
+          </p>
+        </div>
+        <div class="tile__swatches">
+          {['--color-primary', '--color-accent', '--color-accent-warm'].map((key) => (
+            <span class="swatch">
+              <span class="swatch__chip" style={`background:${t.tokens[key]}`}></span>
+              <span class="swatch__hex">{t.tokens[key]}</span>
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Тема скоупится сюда — секции внутри наследуют её переменные как есть */}
+      <div class="tile__preview" style={themeStyle(t)}>
+        <Hero
+          title="Ремонт принтеров в Москве"
+          subtitle="С гарантией до 3 лет на все услуги и комплектующие"
+          status={demo.hero.status}
+          bullets={heroBullets}
+          promo={demo.hero.promo}
+          rating={demo.hero.rating}
+          phone={demo.phone}
+          variant="centered"
+        />
+        <Benefits
+          title="Почему выбирают нас"
+          items={benefitItems}
+          variant="cards"
+          alt={true}
+        />
+      </div>
+    </section>
+  ))}
+
+  <footer class="picker-foot">
+    <div class="container">
+      <p>
+        Выбрали? Скажите номер темы — перенесу её значения в <code>src/styles/theme.css</code>,
+        и весь сайт поедет на ней. Эта страница перед сдачей удаляется.
+      </p>
+    </div>
+  </footer>
+</BaseLayout>
+
+<style>
+  /* Обвязка страницы (заголовки тайлов, свотчи) намеренно бесцветная — читает
+     только --color-text/-light и --color-border. Тайлы должны сравниваться друг
+     с другом, а не с оформлением страницы вокруг них.
+     Учти: сама страница всё же тянет theme.css из BaseLayout, поэтому тема,
+     совпадающая с текущей темой проекта, смотрится чуть «роднее» остальных. */
+  .picker-head { padding-block: clamp(2rem, 1.5rem + 2vw, 3.5rem) 1.5rem; }
+  .picker-head p { margin-top: 0.75rem; max-width: 60ch; color: var(--color-text-light); }
+
+  .tile { border-top: 1px solid var(--color-border); padding-top: 2rem; margin-top: 2rem; }
+  .tile__head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem 2rem;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+  }
+  .tile__meta { max-width: 52ch; }
+  .tile__num {
+    display: inline-block;
+    margin-bottom: 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-light);
+  }
+  .tile__mood { margin-top: 0.3rem; font-weight: 600; }
+  .tile__note,
+  .tile__fonts { margin-top: 0.5rem; color: var(--color-text-light); font-size: 0.92rem; }
+
+  .tile__swatches { display: flex; gap: 1rem; }
+  .swatch { display: flex; flex-direction: column; gap: 0.35rem; align-items: center; }
+  .swatch__chip {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+  }
+  .swatch__hex { font-size: 0.72rem; color: var(--color-text-light); font-variant-numeric: tabular-nums; }
+
+  /* Рамка вокруг превью — чтобы тайл читался как образец, а не как часть страницы */
+  .tile__preview {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-inline: var(--gutter);
+  }
+
+  .picker-foot { padding-block: 2.5rem 3.5rem; margin-top: 2.5rem; border-top: 1px solid var(--color-border); }
+  .picker-foot p { max-width: 70ch; color: var(--color-text-light); }
+  .picker-foot code { background: var(--color-bg-section); padding: 0.1rem 0.4rem; border-radius: var(--radius-sm); }
+</style>

@@ -1,0 +1,252 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Hero from '../components/Hero.astro';
+import WhatWeRepair from '../components/WhatWeRepair.astro';
+import IssuesPricePackages from '../components/IssuesPricePackages.astro';
+import PriceList from '../components/PriceList.astro';
+import Promotions from '../components/Promotions.astro';
+import LeadFormSection from '../components/LeadFormSection.astro';
+import Benefits from '../components/Benefits.astro';
+import Problems from '../components/Problems.astro';
+import Steps from '../components/Steps.astro';
+import Cases from '../components/Cases.astro';
+import About from '../components/About.astro';
+import Masters from '../components/Masters.astro';
+import Certificates from '../components/Certificates.astro';
+import Guarantee from '../components/Guarantee.astro';
+import Reviews from '../components/Reviews.astro';
+import FAQ from '../components/FAQ.astro';
+import Contacts from '../components/Contacts.astro';
+import Footer from '../components/Footer.astro';
+import { demo } from '../data/demo';
+
+// ПОЛИГОН библиотеки: ВСЕ секции подряд, у некоторых по несколько variant'ов.
+// Это витрина для обкатки и выбора секций, а НЕ шаблон страницы — боевая главная
+// живёт в index.astro и берёт только нужное. В прод не идёт: noindex + удалять
+// перед сдачей клиенту.
+---
+
+<BaseLayout
+  title={`Полигон секций — ${demo.brand}`}
+  description="Витрина всех секций библиотеки для обкатки вариантов"
+  noindex={true}
+  animations={false}
+>
+  <Header
+    logo={demo.brand}
+    phone={demo.phone}
+    workHours={demo.workHours}
+    nav={demo.nav}
+    variant="classic"
+    logoIcon={true}
+  />
+
+  <Hero
+    title={demo.hero.title}
+    subtitle={demo.hero.subtitle}
+    status={demo.hero.status}
+    statusOffline={demo.hero.statusOffline}
+    bullets={demo.hero.bullets}
+    promo={demo.hero.promo}
+    workHours={demo.workHours}
+    rating={demo.hero.rating}
+    phone={demo.phone}
+    image={demo.hero.image}
+    imageAlt={demo.hero.imageAlt}
+    variant="split"
+  />
+
+  {/* Шаблон 2: что ремонтируем + бренды */}
+  <WhatWeRepair
+    id="repair"
+    alt={true}
+    variant="split"
+    title={demo.whatWeRepair.title}
+    subtitle={demo.whatWeRepair.subtitle}
+    items={demo.whatWeRepair.items}
+    brands={demo.whatWeRepair.brands}
+    image="/assets/img/whatwerepair-split.webp"
+    imageAlt="Мастер осматривает картридж принтера"
+  />
+
+  {/* Слот «/»: три variant'а подряд — для обкатки, в боевом шаблоне слот один */}
+  <IssuesPricePackages
+    id="issues"
+    variant="issues"
+    issuesLayout="split"
+    title={demo.issues.title}
+    subtitle={demo.issues.subtitle}
+    issues={demo.issues.items}
+    image="/assets/img/issues-split.webp"
+    imageAlt="Мастер устраняет замятие бумаги в принтере"
+    note="Цены указаны «от»: это ориентир по стоимости похожих работ. Точную сумму мастер назовёт на месте, когда осмотрит технику и найдёт причину поломки."
+  />
+
+  <IssuesPricePackages
+    id="prices"
+    alt={true}
+    variant="prices"
+    title={demo.prices.title}
+    subtitle={demo.prices.subtitle}
+    prices={demo.prices.items}
+  />
+
+  <IssuesPricePackages
+    id="packages"
+    variant="packages"
+    title={demo.packages.title}
+    subtitle={demo.packages.subtitle}
+    packages={demo.packages.items}
+  />
+
+  {/* Шаблон 2: полный прайс-лист с группами */}
+  <PriceList
+    id="pricelist"
+    alt={true}
+    variant="columns"
+    title={demo.priceList.title}
+    subtitle={demo.priceList.subtitle}
+    groups={demo.priceList.groups}
+    note={demo.priceList.note}
+  />
+
+  {/* Шаблон 3: акции — фирменная заливка (section--brand), третий фон ритма */}
+  <Promotions
+    id="promotions"
+    variant="cards"
+    brand={true}
+    title={demo.promotions.title}
+    subtitle={demo.promotions.subtitle}
+    items={demo.promotions.items}
+  />
+
+  {/* Шаблон 1: лид-форма(акция) — открытая форма на странице (решение Андрея) */}
+  <LeadFormSection
+    id="lead"
+    variant="split"
+    title="Оставьте заявку, и мы перезвоним с точной ценой"
+    subtitle="Мастер приедет в течение часа. Диагностика и выезд ничего не стоят"
+    promo={demo.hero.promo}
+    phone={demo.phone}
+    dataForm="section"
+  />
+
+  <Benefits
+    id="benefits"
+    title={demo.benefits.title}
+    subtitle={demo.benefits.subtitle}
+    items={demo.benefits.items}
+    variant="cards"
+  />
+
+  {/* Боли ЦА — trust-профиль; variant split показывает пару «боль → решение» */}
+  <Problems
+    id="problems"
+    variant="split"
+    title={demo.problems.title}
+    subtitle={demo.problems.subtitle}
+    items={demo.problems.items}
+  />
+
+  {/* Как работает — шаги процесса, нумерация автоматическая */}
+  <Steps
+    id="steps"
+    alt={true}
+    variant="timeline"
+    title={demo.steps.title}
+    subtitle={demo.steps.subtitle}
+    items={demo.steps.items}
+  />
+
+  {/* Кейсы — только реальные фото; в демо фото нет, показывает placeholder */}
+  <Cases
+    id="cases"
+    variant="grid"
+    title={demo.cases.title}
+    subtitle={demo.cases.subtitle}
+    items={demo.cases.items}
+  />
+
+  {/* Шаблон 3: о компании (текст + цифры) */}
+  <About
+    id="about"
+    alt={true}
+    variant="stats"
+    title={demo.about.title}
+    subtitle={demo.about.subtitle}
+    paragraphs={demo.about.paragraphs}
+    stats={demo.about.stats}
+  />
+
+  {/* Шаблон 2: мастера — карусель на мобилке (стандарт заказчика) */}
+  <Masters
+    id="masters"
+    variant="cards"
+    title={demo.masters.title}
+    subtitle={demo.masters.subtitle}
+    items={demo.masters.items}
+  />
+
+  {/* Шаблон 3: сертификаты — карусель на мобилке (стандарт заказчика) */}
+  <Certificates
+    id="certificates"
+    alt={true}
+    variant="grid"
+    title={demo.certificates.title}
+    subtitle={demo.certificates.subtitle}
+    items={demo.certificates.items}
+  />
+
+  {/* Гарантия — акцентная панель доверия */}
+  <Guarantee
+    id="guarantee"
+    variant="banner"
+    title={demo.guarantee.title}
+    badge={demo.guarantee.badge}
+    text={demo.guarantee.text}
+    items={demo.guarantee.items}
+  />
+
+  <Reviews
+    id="reviews"
+    title={demo.reviews.title}
+    subtitle={demo.reviews.subtitle}
+    items={demo.reviews.items}
+    variant="grid"
+  />
+
+  {/* Шаблон 2: FAQ — нативный <details>-аккордеон, 0 JS */}
+  <FAQ
+    id="faq"
+    variant="split"
+    title={demo.faq.title}
+    subtitle={demo.faq.subtitle}
+    items={demo.faq.items}
+  />
+
+  <Contacts
+    id="contacts"
+    alt={true}
+    title={demo.contacts.title}
+    subtitle={demo.contacts.subtitle}
+    phone={demo.phone}
+    workHours={demo.workHours}
+    address={demo.contacts.address}
+    radius={demo.contacts.radius}
+    email={demo.contacts.email}
+    variant="map"
+  />
+
+  <Footer
+    brand={demo.brand}
+    phone={demo.phone}
+    workHours={demo.workHours}
+    address={demo.contacts.address}
+    nav={demo.nav}
+    requisites={demo.requisites}
+    tagline="Ремонт принтеров и МФУ в Москве с выездом мастера. Гарантия до 3 лет."
+    variant="columns"
+    logoIcon={true}
+  />
+</BaseLayout>

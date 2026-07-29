@@ -1,0 +1,199 @@
+/*
+ * ТОКЕН-КОНТРАКТ — замороженные ИМЕНА и нейтральные дефолты.
+ * На эти имена завязан валидатор (WCAG-контраст) и все секции библиотеки.
+ * Секции читают ТОЛЬКО переменные — никаких хардкод-цветов в компонентах.
+ *
+ * ЗНАЧЕНИЯ под конкретный проект живут в theme.css, который подключается ПОСЛЕ
+ * этого файла и перекрывает :root. Правь тему — не трогай контракт: добавление
+ * имени сюда = правка всех секций сразу, это осознанное решение, а не мелочь.
+ */
+:root {
+  /* --- Цвета. Дефолты нейтральные (сине-серые): без темы сайт выглядит прилично,
+         но по нему сразу видно, что тему ещё не задали. --- */
+  --color-primary: #24405c;
+  --color-primary-dark: #182b3e;
+  --color-accent: #2f6690;
+  --color-accent-dark: #244f6f;
+  /* Тёплый вторичный акцент — только для декоративных подложек и плейсхолдеров
+     (не для текста и кнопок: сам по себе слишком светлый для WCAG).
+     Разбавляет монотонность основного цвета. */
+  --color-accent-warm: #e69b77;
+  --color-accent-warm-dark: #96654d;
+  --color-bg: #ffffff;
+  --color-bg-section: #f5f7fa;
+  --color-bg-brand: var(--color-primary);
+  --color-text: #111827;
+  --color-text-light: #5b6472;
+  --color-border: #e5e9f0;
+  --color-on-primary: #ffffff;
+  --color-on-accent: #ffffff;
+  /* Статусы форм — единственные «светофорные» цвета контракта. Держим их здесь,
+     а не в LeadForm: тема может увести палитру в тёплую или холодную гамму,
+     и красный/зелёный должны ехать вместе с ней. */
+  --color-error: #e23b3b;
+  --color-success: #1faa55;
+  /* Затемняющая подложка под светлый текст: backdrop модалки, оверлей hero--image-bg.
+     Прозрачность задаёт место применения через color-mix, сам токен — непрозрачный. */
+  --color-overlay: #091128;
+  --color-on-overlay: #ffffff;
+
+  /* --- Типографика. Два семейства: заголовки и текст (правило «ровно 2 шрифта»).
+         Дефолт — системный стек, чтобы библиотека работала без Google Fonts. --- */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-heading: var(--font-sans);
+  --fs-h1: clamp(2rem, 1.4rem + 3vw, 3.25rem);
+  --fs-h2: clamp(1.6rem, 1.2rem + 2vw, 2.5rem);
+  --fs-h3: clamp(1.15rem, 1rem + 0.6vw, 1.4rem);
+  --fs-h4: clamp(1.05rem, 0.98rem + 0.35vw, 1.2rem);
+  --fs-body: clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
+  --lh-tight: 1.15;
+  --lh-body: 1.6;
+
+  /* Сетка / ритм */
+  --container: 1200px;
+  --gutter: clamp(1rem, 0.5rem + 2.5vw, 2rem);
+  --section-y: clamp(3rem, 2rem + 4vw, 5.5rem);
+  --radius: 14px;
+  --radius-sm: 8px;
+  --radius-pill: 999px;
+
+  /* --- Тени: многослойные и ТОНИРОВАННЫЕ под палитру.
+         Дальний слой красится через --shadow-tint, поэтому тени едут вместе с темой
+         сами — переопределять сами --shadow-* в теме обычно не нужно. --- */
+  --shadow-tint: var(--color-accent);
+  --shadow-sm:
+    0 1px 2px color-mix(in srgb, var(--color-text) 6%, transparent),
+    0 1px 3px color-mix(in srgb, var(--color-text) 8%, transparent);
+  --shadow-md:
+    0 4px 12px color-mix(in srgb, var(--color-text) 8%, transparent),
+    0 12px 28px color-mix(in srgb, var(--shadow-tint) 12%, transparent);
+  --shadow-lg:
+    0 10px 30px color-mix(in srgb, var(--color-text) 10%, transparent),
+    0 24px 60px color-mix(in srgb, var(--shadow-tint) 16%, transparent);
+
+  --header-h: 68px;
+  --transition: 200ms ease;
+}
+
+/* Reset / база */
+*, *::before, *::after { box-sizing: border-box; }
+html {
+  scroll-behavior: smooth;
+  /* якорный скролл не заезжает под sticky-шапку */
+  scroll-padding-top: calc(var(--header-h) + 12px);
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  color: var(--color-text);
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+}
+/* Заголовки — ЕДИНАЯ система по тегам: размер/вес/цвет/интерлиньяж заданы ОДИН раз здесь,
+   а не в каждом компоненте по отдельности. Секции читают эти теги как есть; свой класс
+   на заголовке (.section__title, .device__title и т.п.) — только для контекстных вещей
+   (max-width, доп. отступ), НЕ для font-size/weight — те уже пришли от тега.
+   Цвет — явный, не унаследованный: секция с цветным/тёмным фоном переопределяет точечно
+   (см. .section--brand ниже, .hero--image-bg, .lead-sec--split/--centered в
+   LeadFormSection) — так «поменять цвет/размер/вес всех H2» = одна строка тут. */
+h1, h2, h3, h4 { font-family: var(--font-heading); line-height: var(--lh-tight); margin: 0; color: var(--color-text); font-weight: 700; }
+h1 { font-size: var(--fs-h1); font-weight: 800; letter-spacing: -0.02em; }
+h2 { font-size: var(--fs-h2); }
+h3 { font-size: var(--fs-h3); }
+h4 { font-size: var(--fs-h4); }
+p { margin: 0; }
+a { color: inherit; text-decoration: none; }
+img { max-width: 100%; height: auto; display: block; }
+
+.container {
+  width: 100%;
+  max-width: var(--container);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+.section { padding-block: var(--section-y); }
+.section--alt { background: var(--color-bg-section); }
+
+/* Третий фон ритма — сплошная заливка фирменным цветом (акции, промо-блоки).
+   Текст/eyebrow берут currentColor, а не фиксированный accent-dark — на тёмной
+   подложке зафиксированный цвет теряет контраст. */
+.section--brand { background: var(--color-bg-brand); color: var(--color-on-primary); }
+.section--brand .eyebrow { color: inherit; opacity: 0.85; }
+.section--brand .eyebrow__icon { background: color-mix(in srgb, currentColor 20%, transparent); color: inherit; }
+.section--brand .section__title { color: inherit; }
+.section--brand .section__sub { color: color-mix(in srgb, var(--color-on-primary) 82%, transparent); }
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: clamp(0.7rem, 0.5rem + 0.8vw, 1rem);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-accent-dark);
+}
+/* Тематическая иконка слева — отвечает на вопрос «о чём секция», а не просто рамка заголовка */
+.eyebrow__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-accent) 16%, transparent);
+  color: var(--color-accent-dark);
+}
+.section__head { max-width: 640px; margin-bottom: clamp(1.5rem, 1rem + 2vw, 2.75rem); }
+/* .section__title — размер/вес приходят от тега h2 (см. базовое правило выше),
+   класс остаётся как именованный хук для точечных переопределений (.section--brand и т.п.) */
+.section__sub { margin-top: clamp(0.6rem, 0.4rem + 0.8vw, 0.85rem); color: var(--color-text-light); }
+
+/* Инфо-заметка: иконка + мелкий пояснительный текст — переиспользуемый паттерн
+   для дисклеймеров под секциями («цены от», «сроки ориентировочные» и т.п.).
+   Отступ снаружи задаёт место использования, не сам класс. */
+.info-note { display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.85rem; line-height: 1.5; color: var(--color-text-light); }
+.info-note__icon { flex: none; width: 18px; height: 18px; margin-top: 0.15rem; color: var(--color-text-light); }
+
+/* Кнопки */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 52px;
+  padding: 0 1.5rem;
+  border: 0;
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
+}
+.btn:active { transform: translateY(1px); }
+.btn--primary {
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-dark));
+  color: var(--color-on-accent);
+  box-shadow: var(--shadow-sm);
+}
+.btn--primary:hover { filter: brightness(1.06); box-shadow: var(--shadow-md); }
+.btn--ghost { background: transparent; color: var(--color-text); border: 1.5px solid var(--color-border); }
+.btn--ghost:hover { border-color: var(--color-accent); color: var(--color-accent); }
+.btn:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 2px; }
+
+/* Анимации reveal — OFF по умолчанию, включаются флагом маркетолога
+   (body.has-anim добавляет BaseLayout только если animations=true). */
+[data-animate] { opacity: 1; }
+body.has-anim [data-animate] {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 500ms ease, transform 500ms ease;
+}
+body.has-anim [data-animate].is-visible { opacity: 1; transform: none; }

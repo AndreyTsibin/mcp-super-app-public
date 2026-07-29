@@ -1,0 +1,180 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Hero from '../../components/Hero.astro';
+import Problems from '../../components/Problems.astro';
+import Steps from '../../components/Steps.astro';
+import PriceList from '../../components/PriceList.astro';
+import Cases from '../../components/Cases.astro';
+import Guarantee from '../../components/Guarantee.astro';
+import FAQ from '../../components/FAQ.astro';
+import LeadFormSection from '../../components/LeadFormSection.astro';
+import Contacts from '../../components/Contacts.astro';
+import Footer from '../../components/Footer.astro';
+import { demo } from '../../data/demo';
+
+/*
+ * ВНУТРЕННЯЯ СТРАНИЦА УСЛУГИ — образец многостраничника.
+ * Тот же layout, та же библиотека, свой набор секций и свои тексты под конкретный
+ * запрос («ремонт лазерных принтеров»), а не общий оффер главной.
+ *
+ * Что обязательно своё на каждой такой странице: <h1>, title, description
+ * и canonical — иначе поисковик склеит страницы как дубли.
+ *
+ * Прайс здесь сужен до профильных групп: страница услуги не повторяет весь прайс
+ * сайта, а показывает то, за чем на неё пришли.
+ */
+const laserGroups = demo.priceList.groups.filter((g) =>
+  ['Диагностика и выезд', 'Лазерные принтеры и МФУ', 'Картриджи и расходники'].includes(g.name),
+);
+
+const laserFaq = {
+  title: 'Что чаще всего спрашивают про лазерные принтеры',
+  items: [
+    {
+      q: 'Почему принтер печатает бледно или с полосами?',
+      a: 'Чаще всего изношен фотобарабан или заканчивается тонер. Реже — разрушена термоплёнка в печке. Определяем на диагностике за 10–15 минут, меняем деталь на месте.',
+    },
+    {
+      q: 'Сколько живёт термоплёнка и когда её менять?',
+      a: 'В среднем 30–60 тысяч отпечатков в зависимости от модели и режима печати. Признак износа: смазанный тонер, который стирается пальцем с готового листа.',
+    },
+    {
+      q: 'Можно ли заправлять картридж или лучше покупать новый?',
+      a: 'Лазерный картридж выдерживает 3–5 заправок с заменой чипа, дальше изнашивается фотовал. Заправка дешевле нового в 4–6 раз, поэтому почти всегда выгоднее.',
+    },
+    {
+      q: 'Ремонтируете ли принтеры, снятые с производства?',
+      a: 'Да. Держим склад запчастей и работаем с поставщиками восстановленных узлов, поэтому чиним модели старше 10 лет — если ремонт невыгоден, скажем об этом честно.',
+    },
+  ],
+};
+---
+
+<BaseLayout
+  title="Ремонт лазерных принтеров в Москве — выезд мастера за 40 минут"
+  description="Ремонт лазерных принтеров и МФУ с выездом по Москве. Замена термоплёнки, фотобарабана, ремонт печки. Диагностика бесплатно, гарантия до 3 лет."
+  ogImage="/assets/img/hero-repair.webp"
+  animations={false}
+>
+  <Header
+    logo={demo.brand}
+    phone={demo.phone}
+    workHours={demo.workHours}
+    nav={demo.nav}
+    variant="classic"
+    logoIcon={true}
+  />
+
+  <Hero
+    title="Ремонт лазерных принтеров с выездом мастера"
+    subtitle="Меняем термоплёнку, фотобарабан и узел закрепления на месте за 30–40 минут"
+    status={demo.hero.status}
+    statusOffline={demo.hero.statusOffline}
+    bullets={[
+      { icon: 'speed', label: 'Выезд за', value: '40 минут' },
+      { icon: 'tool', label: 'Ремонт за', value: '30 минут' },
+      { icon: 'check', label: 'Диагностика', value: 'бесплатно' },
+      { icon: 'shield', label: 'Гарантия', value: 'до 3 лет' },
+    ]}
+    promo={demo.hero.promo}
+    workHours={demo.workHours}
+    rating={demo.hero.rating}
+    phone={demo.phone}
+    image={demo.hero.image}
+    imageAlt="Мастер разбирает лазерный принтер"
+    variant="split"
+  />
+
+  <Problems
+    id="problems"
+    alt={true}
+    variant="cards"
+    title="С какими поломками лазерных принтеров к нам приходят"
+    subtitle="Если узнали свою, звоните: почти всё это чиним в день обращения"
+    items={[
+      { icon: 'alert', title: 'Полосы и пятна на листе', desc: 'Изношен фотобарабан или повреждён вал переноса заряда' },
+      { icon: 'repeat', title: 'Тонер стирается с бумаги', desc: 'Разрушена термоплёнка или неисправен нагревательный элемент печки' },
+      { icon: 'clock', title: 'Зажёвывает и мнёт бумагу', desc: 'Стёрт ролик захвата, разбит узел подачи или попал посторонний предмет' },
+      { icon: 'doc', title: 'Ошибка картриджа на дисплее', desc: 'Отработал чип, окислились контакты или закончился ресурс тонера' },
+    ]}
+  />
+
+  <Steps
+    id="steps"
+    variant="timeline"
+    title="Как проходит ремонт лазерного принтера"
+    subtitle="Без предоплат: платите после того, как принтер напечатает пробную страницу"
+    items={demo.steps.items}
+  />
+
+  <PriceList
+    id="prices"
+    alt={true}
+    variant="columns"
+    title="Сколько стоит ремонт лазерного принтера"
+    subtitle="Цены на профильные работы. Точную сумму мастер назовёт после бесплатной диагностики"
+    groups={laserGroups}
+    note={demo.priceList.note}
+  />
+
+  <Cases
+    id="cases"
+    variant="grid"
+    title="Недавние ремонты лазерной техники"
+    subtitle="Что было на входе и с чем уехал мастер"
+    items={demo.cases.items}
+  />
+
+  <LeadFormSection
+    id="lead"
+    variant="split"
+    title="Опишите поломку — назовём цену по телефону"
+    subtitle="Перезваниваем за 5 минут и говорим, во сколько обойдётся ремонт вашей модели"
+    promo={demo.hero.promo}
+    phone={demo.phone}
+    dataForm="service-laser"
+  />
+
+  <Guarantee
+    id="guarantee"
+    alt={true}
+    variant="banner"
+    title={demo.guarantee.title}
+    badge={demo.guarantee.badge}
+    text={demo.guarantee.text}
+    items={demo.guarantee.items}
+  />
+
+  <FAQ
+    id="faq"
+    variant="split"
+    title={laserFaq.title}
+    items={laserFaq.items}
+  />
+
+  <Contacts
+    id="contacts"
+    alt={true}
+    title={demo.contacts.title}
+    subtitle={demo.contacts.subtitle}
+    phone={demo.phone}
+    workHours={demo.workHours}
+    address={demo.contacts.address}
+    radius={demo.contacts.radius}
+    email={demo.contacts.email}
+    variant="map"
+  />
+
+  <Footer
+    brand={demo.brand}
+    phone={demo.phone}
+    workHours={demo.workHours}
+    address={demo.contacts.address}
+    nav={demo.nav}
+    requisites={demo.requisites}
+    tagline="Ремонт принтеров и МФУ в Москве с выездом мастера. Гарантия до 3 лет."
+    variant="columns"
+    logoIcon={true}
+  />
+</BaseLayout>

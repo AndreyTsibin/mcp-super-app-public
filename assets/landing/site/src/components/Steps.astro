@@ -1,0 +1,208 @@
+---
+/*
+ * «Как работает» — шаги процесса от заявки до результата (пул блоков landing-spec).
+ * Нужна обоим профилям: в urgency снимает «а что дальше?», в trust показывает
+ * прозрачность процесса. Количество шагов задаёт контент — «ровно 4» не требуется.
+ * Скелет заморожен, LLM даёт items/variant.
+ *   timeline — номера на горизонтальной линии (→ вертикаль на мобилке)
+ *   cards    — нумерованные карточки в сетке (→ карусель на мобилке)
+ *   vertical — вертикальный список с соединяющей линией, для длинных описаний
+ * Номер шага считается автоматически по порядку в items.
+ */
+import { nbsp } from '../lib/typography';
+
+interface Step {
+  title: string;
+  desc?: string;
+  /** Подпись под шагом: срок, цена, условие — «30 минут», «бесплатно». */
+  note?: string;
+}
+
+interface Props {
+  title: string;
+  subtitle?: string;
+  items: Step[];
+  variant?: 'timeline' | 'cards' | 'vertical';
+  eyebrow?: string;
+  alt?: boolean;
+  id?: string;
+}
+
+const {
+  title,
+  subtitle,
+  items,
+  variant = 'timeline',
+  eyebrow = 'Как всё будет?',
+  alt = false,
+  id = 'steps',
+} = Astro.props;
+
+const ROUTE_D = 'M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z';
+---
+
+<section class:list={['section', { 'section--alt': alt }]} id={id}>
+  <div class="container">
+    <div class="section__head" data-animate>
+      <span class="eyebrow">
+        <span class="eyebrow__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d={ROUTE_D} /></svg>
+        </span>
+        {eyebrow}
+      </span>
+      <h2 class="section__title">{nbsp(title)}</h2>
+      {subtitle && <p class="section__sub">{nbsp(subtitle)}</p>}
+    </div>
+
+    <ol class:list={['steps', `steps--${variant}`]} style={`--steps-count:${items.length}`} data-animate>
+      {items.map((s, i) => (
+        <li class="step">
+          <span class="step__num" aria-hidden="true">{i + 1}</span>
+          <div class="step__body">
+            <h3 class="step__title">{nbsp(s.title)}</h3>
+            {s.desc && <p class="step__desc">{nbsp(s.desc)}</p>}
+            {s.note && <span class="step__note">{nbsp(s.note)}</span>}
+          </div>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>
+
+<style>
+  .steps { list-style: none; margin: 0; padding: 0; counter-reset: step; }
+
+  .step__num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    flex: none;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-accent), var(--color-accent-dark));
+    color: var(--color-on-accent);
+    font-weight: 800;
+    font-size: 1.25rem;
+    font-variant-numeric: tabular-nums;
+    box-shadow: var(--shadow-sm);
+  }
+  .step__body { min-width: 0; }
+  /* .step__title — h3, размер/вес от тега (см. tokens.css) */
+  .step__desc { margin-top: 0.35rem; color: var(--color-text-light); font-size: 0.95rem; line-height: 1.5; }
+  .step__note {
+    display: inline-block;
+    margin-top: 0.6rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+    color: var(--color-primary);
+    font-weight: 700;
+    font-size: 0.82rem;
+    white-space: nowrap;
+  }
+
+  /* ---------- variant: timeline ---------- */
+  /* Линия рисуется на контейнере, а не на каждом шаге: так она не торчит
+     за первым и последним номером. */
+  .steps--timeline {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    gap: 1.5rem;
+    position: relative;
+  }
+  .steps--timeline::before {
+    content: '';
+    position: absolute;
+    top: 26px;
+    left: calc(50% / var(--steps-count, 4));
+    right: calc(50% / var(--steps-count, 4));
+    height: 2px;
+    background: var(--color-border);
+  }
+  .steps--timeline .step {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.9rem;
+  }
+
+  /* ---------- variant: cards ---------- */
+  .steps--cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; }
+  .steps--cards .step {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: 1.6rem;
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--transition), box-shadow var(--transition);
+  }
+  .steps--cards .step:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+
+  /* ---------- variant: vertical ---------- */
+  .steps--vertical { display: grid; gap: 0; max-width: 720px; }
+  .steps--vertical .step {
+    display: flex;
+    gap: 1.25rem;
+    align-items: flex-start;
+    position: relative;
+    padding-bottom: 1.75rem;
+  }
+  /* соединяющая линия — от номера вниз до следующего шага; у последнего не рисуется */
+  .steps--vertical .step:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 25px;
+    top: 58px;
+    bottom: 0;
+    width: 2px;
+    background: var(--color-border);
+  }
+  .steps--vertical .step:last-child { padding-bottom: 0; }
+
+  @media (max-width: 900px) {
+    .steps--cards { grid-template-columns: repeat(2, 1fr); }
+    /* timeline на планшете и уже — вертикальный список: горизонтальная линия
+       из 4+ колонок нечитаема */
+    .steps--timeline { grid-auto-flow: row; gap: 0; }
+    .steps--timeline::before { display: none; }
+    .steps--timeline .step {
+      flex-direction: row;
+      align-items: flex-start;
+      text-align: left;
+      gap: 1.25rem;
+      padding-bottom: 1.75rem;
+    }
+    .steps--timeline .step:not(:last-child)::before {
+      content: '';
+      position: absolute;
+      left: 25px;
+      top: 58px;
+      bottom: 0;
+      width: 2px;
+      background: var(--color-border);
+    }
+    .steps--timeline .step:last-child { padding-bottom: 0; }
+  }
+
+  @media (max-width: 640px) {
+    .steps--cards {
+      grid-auto-flow: column;
+      grid-template-columns: none;
+      grid-auto-columns: 80%;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      margin-inline: calc(var(--gutter) * -1);
+      padding-inline: var(--gutter);
+      padding-bottom: 0.75rem;
+    }
+    .steps--cards .step { scroll-snap-align: center; }
+  }
+</style>

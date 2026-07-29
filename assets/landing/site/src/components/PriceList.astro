@@ -1,0 +1,123 @@
+---
+/*
+ * «Прайс-лист» — полный прайс, сгруппированный по категориям услуг (Шаблон 2).
+ * Отличие от IssuesPricePackages(prices): там короткая витрина, здесь — полный
+ * список с группами. Скелет заморожен, LLM даёт groups/variant.
+ *   columns — группы в 2 колонки (стек на мобилке)
+ *   stacked — одна колонка, группы подряд (акцент на чтение сверху вниз)
+ *   cards   — каждая группа в карточке с рамкой
+ */
+import { nbsp } from '../lib/typography';
+
+interface PriceRow { service: string; price: string; note?: string; }
+interface PriceGroup { name: string; items: PriceRow[]; }
+
+interface Props {
+  title: string;
+  subtitle?: string;
+  groups: PriceGroup[];
+  ctaText?: string;
+  note?: string;             // дисклеймер под прайсом («точная цена после диагностики»)
+  variant?: 'columns' | 'stacked' | 'cards';
+  eyebrow?: string;
+  alt?: boolean;
+  id?: string;
+}
+
+const {
+  title,
+  subtitle,
+  groups,
+  ctaText = 'Рассчитать стоимость ремонта',
+  note,
+  variant = 'columns',
+  eyebrow = 'Хочу сам посмотреть все цены',
+  alt = false,
+  id = 'pricelist',
+} = Astro.props;
+
+const TAG = 'M21.4 11.6 12.4 2.6A2 2 0 0 0 11 2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 .6 1.4l9 9a2 2 0 0 0 2.8 0l7-7a2 2 0 0 0 0-2.8zM6.5 8A1.5 1.5 0 1 1 8 6.5 1.5 1.5 0 0 1 6.5 8z';
+---
+
+<section class:list={['section', { 'section--alt': alt }]} id={id}>
+  <div class="container">
+    <div class="section__head" data-animate>
+      <span class="eyebrow">
+        <span class="eyebrow__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d={TAG} /></svg>
+        </span>
+        {eyebrow}
+      </span>
+      <h2 class="section__title">{nbsp(title)}</h2>
+      {subtitle && <p class="section__sub">{nbsp(subtitle)}</p>}
+    </div>
+
+    <div class:list={['pricelist', `pricelist--${variant}`]} data-animate>
+      {groups.map((g) => (
+        <div class="group">
+          <h3 class="group__name">{nbsp(g.name)}</h3>
+          <ul class="group__list">
+            {g.items.map((row) => (
+              <li class="price-row">
+                <span class="price-row__name">
+                  {nbsp(row.service)}
+                  {row.note && <span class="price-row__note">{nbsp(row.note)}</span>}
+                </span>
+                <span class="price-row__dots" aria-hidden="true"></span>
+                <span class="price-row__value">{nbsp(row.price)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+
+    <div class="pricelist__foot" data-animate>
+      <button class="btn btn--primary" type="button" data-open-modal>{ctaText}</button>
+      {note && <p class="pricelist__note">{nbsp(note)}</p>}
+    </div>
+  </div>
+</section>
+
+<style>
+  .pricelist--columns { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem 3rem; align-items: start; }
+  .pricelist--stacked { max-width: 760px; display: flex; flex-direction: column; gap: 2rem; }
+  .pricelist--cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem; align-items: start; }
+  .pricelist--cards .group {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .group { min-width: 0; }
+  /* .group__name — h3, размер/вес от тега (см. tokens.css) */
+  .group__name {
+    padding-bottom: 0.6rem;
+    border-bottom: 2px solid color-mix(in srgb, var(--color-primary) 45%, var(--color-border));
+  }
+  .group__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+
+  .price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .price-row:last-child { border-bottom: 0; }
+  .price-row__name { display: flex; flex-direction: column; min-width: 0; }
+  .price-row__note { font-size: 0.8rem; color: var(--color-text-light); }
+  .price-row__dots { flex: 1; border-bottom: 1px dotted var(--color-border); transform: translateY(-4px); min-width: 1.5rem; }
+  .price-row__value { flex: none; font-weight: 800; color: var(--color-primary); white-space: nowrap; }
+
+  .pricelist__foot { margin-top: 2rem; display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; }
+  .pricelist__note { font-size: 0.85rem; color: var(--color-text-light); max-width: 46ch; }
+
+  /* прайс — таблица: на мобилке группы стекаются, карусель не нужна */
+  @media (max-width: 768px) {
+    .pricelist--columns, .pricelist--cards { grid-template-columns: 1fr; }
+    .pricelist__foot { flex-direction: column; align-items: flex-start; }
+  }
+</style>

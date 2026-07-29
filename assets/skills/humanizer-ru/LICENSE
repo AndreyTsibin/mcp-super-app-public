@@ -1,0 +1,42 @@
+This skill (v3.0.0) was rewritten in 2026 to target Russian text. It is a hybrid of
+two upstream MIT-licensed skills, both adapted and reworked:
+
+  - blader/humanizer            (https://github.com/blader/humanizer)
+                                methodology: pattern catalog + before/after examples
+  - SergeNS-mne/humanizer-ru    (https://github.com/SergeNS-mne/humanizer-ru)
+                                Russian phrase-pattern catalog (canceljarit, genitive
+                                chains, «является», calques, RU typography), adapted
+
+The pattern selection, the tire-as-connector rule (aligned with this project's own
+copywriting principles, not the upstream glyph-swap rule), the false-positive and
+"signs of human writing" sections, and this SKILL.md's structure are original work.
+Removed from the humanizer-ru source: the voice-passport / .humanizer/voice.json
+layer, genre presets, --rough deliberate-imperfection mechanics, and the
+"perfect grammar as an AI tell" section — out of scope for commercial landing copy.
+
+Both upstream projects and this adaptation are MIT-licensed.
+
+---
+
+MIT License
+
+Copyright (c) 2024-2026 blader (github.com/blader/humanizer)
+Copyright (c) 2026 Sergey Starikov (github.com/SergeNS-mne/humanizer-ru)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

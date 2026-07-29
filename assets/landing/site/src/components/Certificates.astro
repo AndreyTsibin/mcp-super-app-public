@@ -1,0 +1,130 @@
+---
+/*
+ * «Сертификаты» (Шаблон 3). Скелет заморожен, LLM даёт items/variant.
+ *   grid    — карточки-документы 3:4 с подписью (→ карусель на мобилке — стандарт заказчика)
+ *   slider  — карусель везде (scroll-snap)
+ *   compact — мелкие миниатюры, только название
+ * Нет скана → placeholder-документ (реальные сканы придут от заказчика или из пайплайна).
+ */
+import { nbsp } from '../lib/typography';
+
+interface Cert { title: string; desc?: string; image?: string; imageAlt?: string; }
+
+interface Props {
+  title: string;
+  subtitle?: string;
+  items: Cert[];
+  variant?: 'grid' | 'slider' | 'compact';
+  eyebrow?: string;
+  alt?: boolean;
+  id?: string;
+}
+
+const { title, subtitle, items, variant = 'grid', eyebrow = 'Не потеряю гарантию производителя?', alt = false, id = 'certificates' } = Astro.props;
+
+const DIPLOMA = 'M6 2h9l5 5v15H6zm8 8H9v2h5zm2 4H9v2h7zm-1 6.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z';
+---
+
+<section class:list={['section', { 'section--alt': alt }]} id={id}>
+  <div class="container">
+    <div class="section__head" data-animate>
+      <span class="eyebrow">
+        <span class="eyebrow__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d={DIPLOMA} /></svg>
+        </span>
+        {eyebrow}
+      </span>
+      <h2 class="section__title">{nbsp(title)}</h2>
+      {subtitle && <p class="section__sub">{nbsp(subtitle)}</p>}
+    </div>
+
+    <div class:list={['certs', `certs--${variant}`]} data-animate>
+      {items.map((c) => (
+        <figure class="cert">
+          <div class="cert__doc">
+            {c.image
+              ? <img src={c.image} alt={c.imageAlt ?? c.title} loading="lazy" />
+              : <span class="cert__placeholder" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="42" height="42" fill="currentColor"><path d={DIPLOMA} /></svg>
+                </span>}
+          </div>
+          <figcaption class="cert__caption">
+            <span class="cert__title">{nbsp(c.title)}</span>
+            {c.desc && variant !== 'compact' && <span class="cert__desc">{nbsp(c.desc)}</span>}
+          </figcaption>
+        </figure>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .certs--grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; }
+  .certs--compact { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; }
+
+  /* slider: карусель везде */
+  .certs--slider {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(240px, 280px);
+    gap: 1.25rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 0.5rem;
+    scrollbar-width: thin;
+  }
+  .certs--slider .cert { scroll-snap-align: start; }
+
+  .cert {
+    margin: 0;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--transition), box-shadow var(--transition);
+  }
+  .cert:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+
+  .cert__doc {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    background: color-mix(in srgb, var(--color-accent-warm) 14%, var(--color-bg-section));
+    border-bottom: 1px solid var(--color-border);
+  }
+  .certs--compact .cert__doc { aspect-ratio: 4 / 3; }
+  .cert__doc img { width: 100%; height: 100%; object-fit: cover; }
+  .cert__placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: color-mix(in srgb, var(--color-accent-warm-dark) 55%, transparent);
+  }
+
+  .cert__caption { display: flex; flex-direction: column; gap: 0.2rem; padding: 0.9rem 1rem 1.1rem; }
+  .cert__title { font-weight: 700; font-size: 0.92rem; line-height: 1.35; }
+  .cert__desc { font-size: 0.82rem; color: var(--color-text-light); line-height: 1.4; }
+  .certs--compact .cert__title { font-size: 0.85rem; }
+
+  @media (max-width: 900px) {
+    .certs--grid { grid-template-columns: repeat(3, 1fr); }
+    .certs--compact { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  /* КАРУСЕЛЬ НА МОБИЛКЕ — стандарт заказчика (отзывы/мастера/сертификаты) */
+  @media (max-width: 768px) {
+    .certs--grid, .certs--compact {
+      grid-auto-flow: column;
+      grid-template-columns: none;
+      grid-auto-columns: 62%;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      margin-inline: calc(var(--gutter) * -1);
+      padding-inline: var(--gutter);
+      padding-bottom: 0.75rem;
+    }
+    .certs--grid .cert, .certs--compact .cert { scroll-snap-align: center; }
+  }
+</style>

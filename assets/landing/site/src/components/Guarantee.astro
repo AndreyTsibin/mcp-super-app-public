@@ -1,0 +1,238 @@
+---
+/*
+ * «Гарантия» — блок доверия (стандарты работ заказчика). Скелет заморожен,
+ * LLM даёт badge/text/items/variant.
+ *   banner — акцентная панель: срок крупно слева, текст и пункты справа
+ *   cards  — заголовок секции + пункты гарантии карточками (→ карусель на мобилке)
+ *   split  — срок на primary-плашке слева, чек-список справа
+ */
+import { nbsp } from '../lib/typography';
+
+interface GuaranteeItem { title: string; desc?: string; }
+
+interface Props {
+  title: string;
+  subtitle?: string;
+  badge?: string;            // срок крупно: «до 3 лет»
+  badgeLabel?: string;       // подпись под сроком: «гарантия на работы и запчасти»
+  text?: string;
+  items?: GuaranteeItem[];
+  ctaText?: string;
+  variant?: 'banner' | 'cards' | 'split';
+  eyebrow?: string;
+  alt?: boolean;
+  id?: string;
+}
+
+const {
+  title,
+  subtitle,
+  badge,
+  badgeLabel = 'гарантия на работы и запчасти',
+  text,
+  items = [],
+  ctaText,
+  variant = 'banner',
+  eyebrow = 'А если сломается снова?',
+  alt = false,
+  id = 'guarantee',
+} = Astro.props;
+
+const SHIELD = 'M12 2 4 5v6c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V5zm-1.2 12.9-3.3-3.3 1.4-1.4 1.9 1.9 4.3-4.3 1.4 1.4z';
+---
+
+<section class:list={['section', { 'section--alt': alt }]} id={id}>
+  <div class="container">
+    {variant === 'cards' && (
+      <div class="section__head" data-animate>
+        <span class="eyebrow">
+          <span class="eyebrow__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d={SHIELD} /></svg>
+          </span>
+          {eyebrow}
+        </span>
+        <h2 class="section__title">{nbsp(title)}</h2>
+        {subtitle && <p class="section__sub">{nbsp(subtitle)}</p>}
+      </div>
+    )}
+
+    {variant === 'banner' && (
+      <div class="g-banner" data-animate>
+        <div class="g-banner__badge">
+          <svg viewBox="0 0 24 24" width="34" height="34" fill="currentColor" aria-hidden="true"><path d={SHIELD} /></svg>
+          {badge && <span class="g-banner__term">{nbsp(badge)}</span>}
+          <span class="g-banner__label">{nbsp(badgeLabel)}</span>
+        </div>
+        <div class="g-banner__body">
+          <h2 class="g-banner__title">{nbsp(title)}</h2>
+          {text && <p class="g-banner__text">{nbsp(text)}</p>}
+          {items.length > 0 && (
+            <ul class="g-banner__list">
+              {items.map((it) => (
+                <li>
+                  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M9.6 16.2 5.4 12l-1.4 1.4 5.6 5.6 12-12L20.2 5.6z"/></svg>
+                  <span>{nbsp(it.title)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+          {ctaText && <button class="btn btn--primary g-banner__cta" type="button" data-open-modal>{ctaText}</button>}
+        </div>
+      </div>
+    )}
+
+    {variant === 'cards' && (
+      <div class="g-cards" data-animate>
+        {items.map((it) => (
+          <article class="g-card">
+            <span class="g-card__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d={SHIELD} /></svg>
+            </span>
+            <h3 class="g-card__title">{nbsp(it.title)}</h3>
+            {it.desc && <p class="g-card__desc">{nbsp(it.desc)}</p>}
+          </article>
+        ))}
+      </div>
+    )}
+
+    {variant === 'split' && (
+      <div class="g-split" data-animate>
+        <div class="g-split__badge">
+          <svg viewBox="0 0 24 24" width="40" height="40" fill="currentColor" aria-hidden="true"><path d={SHIELD} /></svg>
+          {badge && <span class="g-split__term">{nbsp(badge)}</span>}
+          <span class="g-split__label">{nbsp(badgeLabel)}</span>
+        </div>
+        <div class="g-split__body">
+          <h2 class="section__title">{nbsp(title)}</h2>
+          {text && <p class="g-split__text">{nbsp(text)}</p>}
+          {items.length > 0 && (
+            <ul class="g-split__list">
+              {items.map((it) => (
+                <li>
+                  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M9.6 16.2 5.4 12l-1.4 1.4 5.6 5.6 12-12L20.2 5.6z"/></svg>
+                  <div>
+                    <span class="g-split__item-title">{nbsp(it.title)}</span>
+                    {it.desc && <p class="g-split__item-desc">{nbsp(it.desc)}</p>}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+          {ctaText && <button class="btn btn--primary" type="button" data-open-modal>{ctaText}</button>}
+        </div>
+      </div>
+    )}
+  </div>
+</section>
+
+<style>
+  /* ---------- variant: banner ---------- */
+  .g-banner {
+    display: flex;
+    gap: clamp(1.5rem, 1rem + 2vw, 2.75rem);
+    align-items: flex-start;
+    background: color-mix(in srgb, var(--color-primary) 6%, var(--color-bg));
+    border: 1px solid color-mix(in srgb, var(--color-primary) 25%, var(--color-border));
+    border-radius: var(--radius);
+    padding: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+  }
+  .g-banner__badge {
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.4rem;
+    padding: 1.4rem 1.5rem;
+    min-width: 180px;
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+  }
+  .g-banner__term { font-size: clamp(1.7rem, 1.4rem + 1.5vw, 2.3rem); font-weight: 800; line-height: var(--lh-tight); }
+  .g-banner__label { font-size: 0.8rem; opacity: 0.9; max-width: 18ch; }
+  .g-banner__body { min-width: 0; display: flex; flex-direction: column; gap: 0.9rem; align-items: flex-start; }
+  /* .g-banner__title — h2, размер/вес от тега (см. tokens.css) */
+  .g-banner__text { color: var(--color-text-light); max-width: 58ch; }
+  .g-banner__list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.6rem 1.5rem; }
+  .g-banner__list li { display: flex; align-items: flex-start; gap: 0.55rem; font-size: 0.95rem; }
+  .g-banner__list svg { color: var(--color-primary); flex: none; margin-top: 0.15rem; }
+  .g-banner__cta { margin-top: 0.5rem; }
+
+  /* ---------- variant: cards ---------- */
+  .g-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+  .g-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: 1.6rem 1.5rem;
+    box-shadow: var(--shadow-sm);
+  }
+  .g-card__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+    color: var(--color-primary);
+  }
+  /* .g-card__title — h3, размер/вес от тега (см. tokens.css) */
+  .g-card__desc { color: var(--color-text-light); font-size: 0.92rem; line-height: 1.5; }
+
+  /* ---------- variant: split ---------- */
+  .g-split { display: grid; grid-template-columns: 280px 1fr; gap: clamp(1.5rem, 1rem + 2vw, 3rem); align-items: start; }
+  .g-split__badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.5rem;
+    padding: 2rem 1.5rem;
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    position: sticky;
+    top: calc(var(--header-h) + 16px);
+  }
+  .g-split__term { font-size: clamp(1.8rem, 1.5rem + 1.5vw, 2.5rem); font-weight: 800; line-height: var(--lh-tight); }
+  .g-split__label { font-size: 0.82rem; opacity: 0.9; max-width: 20ch; }
+  .g-split__body { min-width: 0; display: flex; flex-direction: column; gap: 1rem; align-items: flex-start; }
+  .g-split__text { color: var(--color-text-light); max-width: 60ch; }
+  .g-split__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.9rem; }
+  .g-split__list li { display: flex; align-items: flex-start; gap: 0.6rem; }
+  .g-split__list svg { color: var(--color-primary); flex: none; margin-top: 0.2rem; }
+  .g-split__item-title { font-weight: 700; }
+  .g-split__item-desc { font-size: 0.9rem; color: var(--color-text-light); margin-top: 0.15rem; }
+
+  /* ---------- адаптив ---------- */
+  @media (max-width: 900px) {
+    .g-banner { flex-direction: column; }
+    .g-banner__badge { align-self: stretch; }
+    .g-cards { grid-template-columns: repeat(2, 1fr); }
+    .g-split { grid-template-columns: 1fr; }
+    .g-split__badge { position: static; }
+  }
+
+  @media (max-width: 640px) {
+    .g-banner__list { grid-template-columns: 1fr; }
+    /* карусель на мобилке для карточек гарантии */
+    .g-cards {
+      grid-auto-flow: column;
+      grid-template-columns: none;
+      grid-auto-columns: 80%;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      margin-inline: calc(var(--gutter) * -1);
+      padding-inline: var(--gutter);
+      padding-bottom: 0.75rem;
+    }
+    .g-card { scroll-snap-align: center; }
+  }
+</style>

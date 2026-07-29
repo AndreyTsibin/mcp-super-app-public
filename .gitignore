@@ -1,0 +1,31 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+
+# Claude Code personal
+.claude/settings.local.json
+CLAUDE.local.md
+.claude/skills/
+
+# Tools
+.codegraph/
+
+# Node / TypeScript
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+npm-debug.log*
+
+# Generated images (local artifacts, not source)
+/generated/

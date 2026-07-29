@@ -1,0 +1,102 @@
+---
+/*
+ * Лид-форма — sacred-контракт заявок (ЗАЯВКИ-инструкция-для-Claude.md).
+ * НЕЛЬЗЯ менять: name-регистр (Phone/consent/website), data-form, data-form-status,
+ * honeypot. Механику (маска, валидация, отправка на send.php, трекинг) даёт
+ * подключённый lead-form.js — он цепляется за name/data-атрибуты, НЕ за классы,
+ * поэтому CSS свободно темизируем под дизайн (инструкция это разрешает).
+ * Заказчик: поле «Имя» НЕ используем — только телефон + чекбокс согласия (checked).
+ */
+interface Props {
+  dataForm: string;                 // уникальный id формы: 'hero' | 'footer' | 'popup' → уходит как form_id
+  submitText?: string;
+  policyHref?: string;
+  layout?: 'stacked' | 'row';       // stacked — в узкой карточке; row — телефон+кнопка в строку
+}
+
+const {
+  dataForm,
+  submitText = 'Оставить заявку',
+  policyHref = '/privacy',
+  layout = 'stacked',
+} = Astro.props;
+---
+
+<form class:list={['lead-form', `lead-form--${layout}`]} data-form={dataForm} novalidate>
+  <input class="lead-form__hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" />
+
+  <div class="lead-form__row">
+    <input
+      class="lead-form__input"
+      name="Phone"
+      type="tel"
+      inputmode="tel"
+      autocomplete="tel"
+      placeholder="+7 (___) ___-__-__"
+      required
+    />
+    <button class="lead-form__btn btn btn--primary" type="submit">{submitText}</button>
+  </div>
+
+  <label class="lead-form__consent">
+    <input type="checkbox" name="consent" required checked />
+    <span>Согласен с обработкой персональных данных
+      <a href={policyHref} target="_blank" rel="noopener">политика конфиденциальности</a>
+    </span>
+  </label>
+
+  <p class="lead-form__status" data-form-status aria-live="polite"></p>
+</form>
+
+<style>
+  .lead-form { width: 100%; }
+  /* honeypot — скрыть ОБЯЗАТЕЛЬНО (контракт) */
+  .lead-form__hp {
+    position: absolute !important;
+    left: -9999px !important;
+    width: 1px !important; height: 1px !important;
+    opacity: 0 !important; pointer-events: none !important;
+  }
+
+  .lead-form__row { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: stretch; }
+  .lead-form__input {
+    flex: 1 1 200px;
+    min-width: 0;                    /* без этого длинный placeholder распирает строку → переполнение */
+    height: 52px;
+    padding: 0 1rem;
+    font: inherit;
+    color: var(--color-text);
+    background: var(--color-bg);
+    border: 1.5px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    transition: border-color var(--transition);
+  }
+  .lead-form__input::placeholder { color: var(--color-text-light); }
+  .lead-form__input:focus-visible { outline: none; border-color: var(--color-primary); }
+  .lead-form__btn { flex: 0 0 auto; white-space: nowrap; }
+
+  .lead-form__consent {
+    display: flex; align-items: flex-start; gap: 0.5rem;
+    margin-top: 0.85rem;
+    font-size: 0.75rem; line-height: 1.4; color: var(--color-text-light); cursor: pointer;
+  }
+  .lead-form__consent input { flex: none; width: 16px; height: 16px; margin-top: 0.15rem; accent-color: var(--color-primary); cursor: pointer; }
+  .lead-form__consent a { color: var(--color-primary); text-decoration: underline; }
+
+  .lead-form__status { margin: 0.6rem 0 0; min-height: 18px; font-size: 0.85rem; line-height: 1.4; }
+  .lead-form__status[data-state="error"] { color: var(--color-error); }
+  .lead-form__status[data-state="ok"] { color: var(--color-success); }
+
+  /* stacked — телефон и кнопка друг под другом (узкая карточка).
+     flex:0 0 auto ОБЯЗАТЕЛЕН: иначе flex-basis 200px в колонке становится ВЫСОТОЙ поля. */
+  .lead-form--stacked .lead-form__row { flex-direction: column; }
+  .lead-form--stacked .lead-form__input,
+  .lead-form--stacked .lead-form__btn { width: 100%; flex: 0 0 auto; }
+
+  /* row — на мобилке всё равно в столбик, чтобы не переполнять */
+  @media (max-width: 560px) {
+    .lead-form--row .lead-form__row { flex-direction: column; }
+    .lead-form--row .lead-form__input,
+    .lead-form--row .lead-form__btn { width: 100%; flex: 0 0 auto; }
+  }
+</style>

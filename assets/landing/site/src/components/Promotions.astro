@@ -1,0 +1,183 @@
+---
+/*
+ * «Акции» (Шаблон 3, поле маркетолога «Акции»). Скелет заморожен, LLM даёт items/variant.
+ *   cards  — карточки акций с бейджем (→ карусель на мобилке)
+ *   banner — широкие горизонтальные полосы: бейдж · текст · CTA (стек на мобилке)
+ *   strip  — компактные строки без CTA-кнопок (весь ряд кликабелен → модалка)
+ * CTA открывают модалку заявки.
+ */
+import { nbsp } from '../lib/typography';
+
+interface Promo {
+  title: string;
+  desc?: string;
+  badge?: string;            // «-15%», «0 ₽»
+  deadline?: string;         // «до 31 июля»
+  ctaText?: string;
+}
+
+interface Props {
+  title: string;
+  subtitle?: string;
+  items: Promo[];
+  variant?: 'cards' | 'banner' | 'strip';
+  eyebrow?: string;
+  alt?: boolean;
+  brand?: boolean;          // section--brand — сплошная заливка фирменным цветом вместо alt/обычного фона
+  id?: string;
+}
+
+const {
+  title, subtitle, items, variant = 'cards', eyebrow = 'Не хочу переплачивать',
+  alt = false, brand = false, id = 'promotions',
+} = Astro.props;
+
+const PERCENT = 'M18.5 5.5 5.5 18.5l1.4 1.4L19.9 6.9zM7.5 5A2.5 2.5 0 1 0 7.5 10 2.5 2.5 0 0 0 7.5 5zm9 9A2.5 2.5 0 1 0 16.5 19 2.5 2.5 0 0 0 16.5 14z';
+---
+
+<section class:list={['section', { 'section--alt': alt, 'section--brand': brand }]} id={id}>
+  <div class="container">
+    <div class="section__head" data-animate>
+      <span class="eyebrow">
+        <span class="eyebrow__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d={PERCENT} /></svg>
+        </span>
+        {eyebrow}
+      </span>
+      <h2 class="section__title">{nbsp(title)}</h2>
+      {subtitle && <p class="section__sub">{nbsp(subtitle)}</p>}
+    </div>
+
+    <div class:list={['promos', `promos--${variant}`]} data-animate>
+      {items.map((p) => variant === 'strip' ? (
+        <button class="promo promo--btn" type="button" data-open-modal>
+          {p.badge && <span class="promo__badge">{nbsp(p.badge)}</span>}
+          <span class="promo__body">
+            <span class="promo__title">{nbsp(p.title)}</span>
+            {p.deadline && <span class="promo__deadline">{nbsp(p.deadline)}</span>}
+          </span>
+          <span class="promo__arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M9.4 6 8 7.4l4.6 4.6L8 16.6 9.4 18l6-6z"/></svg>
+          </span>
+        </button>
+      ) : (
+        <article class="promo">
+          {p.badge && <span class="promo__badge">{nbsp(p.badge)}</span>}
+          <div class="promo__body">
+            <h3 class="promo__title">{nbsp(p.title)}</h3>
+            {p.desc && <p class="promo__desc">{nbsp(p.desc)}</p>}
+            {p.deadline && <span class="promo__deadline">{nbsp(p.deadline)}</span>}
+          </div>
+          <button class="btn btn--primary promo__cta" type="button" data-open-modal>{p.ctaText ?? 'Получить'}</button>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  /* ---------- variant: cards ---------- */
+  .promos--cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; align-items: stretch; }
+  .promos--cards .promo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    background: var(--color-bg);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: 1.6rem 1.5rem;
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--transition), box-shadow var(--transition);
+  }
+  .promos--cards .promo:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+  .promos--cards .promo__cta { margin-top: auto; align-self: flex-start; }
+
+  /* ---------- variant: banner ---------- */
+  .promos--banner { display: flex; flex-direction: column; gap: 1rem; }
+  .promos--banner .promo {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    background: var(--color-bg);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    border-left: 4px solid var(--color-accent);
+    border-radius: var(--radius);
+    padding: 1.4rem 1.75rem;
+    box-shadow: var(--shadow-sm);
+  }
+  .promos--banner .promo__cta { margin-left: auto; flex: none; }
+
+  /* ---------- variant: strip ---------- */
+  .promos--strip { display: flex; flex-direction: column; gap: 0.75rem; max-width: 760px; }
+  .promo--btn {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    text-align: left;
+    font: inherit;
+    cursor: pointer;
+    background: var(--color-bg);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+  }
+  .promo--btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: color-mix(in srgb, var(--color-accent) 45%, var(--color-border)); }
+  .promo--btn:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 2px; }
+  .promo__arrow { margin-left: auto; color: var(--color-text-light); flex: none; }
+
+  /* ---------- общее ---------- */
+  .promo__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    align-self: flex-start;
+    min-width: 3.4rem;
+    padding: 0.35rem 0.7rem;
+    border-radius: var(--radius-pill);
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+    font-weight: 800;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    flex: none;
+  }
+  .promos--banner .promo__badge, .promo--btn .promo__badge { align-self: center; }
+  .promo__body { min-width: 0; flex: 1 1 auto; display: flex; flex-direction: column; gap: 0.3rem; align-items: flex-start; }
+  /* .promo__title — h3, размер/вес от тега (см. tokens.css) */
+  .promo--btn .promo__title { font-size: 1rem; }  /* компактный strip — намеренно меньше стандартного h3 */
+  .promo__desc { color: var(--color-text-light); font-size: 0.92rem; line-height: 1.5; }
+  .promo__deadline {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-accent-dark);
+  }
+
+  /* ---------- адаптив ---------- */
+  @media (max-width: 900px) {
+    .promos--cards { grid-template-columns: repeat(2, 1fr); }
+    .promos--banner .promo { flex-wrap: wrap; }
+    .promos--banner .promo__cta { margin-left: 0; }
+  }
+
+  /* карусель на мобилке для карточек; banner/strip стекаются */
+  @media (max-width: 640px) {
+    .promos--cards {
+      grid-auto-flow: column;
+      grid-template-columns: none;
+      grid-auto-columns: 82%;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      margin-inline: calc(var(--gutter) * -1);
+      padding-inline: var(--gutter);
+      padding-bottom: 0.75rem;
+    }
+    .promos--cards .promo { scroll-snap-align: center; }
+    .promos--banner .promo { flex-direction: column; align-items: flex-start; gap: 0.9rem; }
+    .promos--banner .promo__badge { align-self: flex-start; }
+  }
+</style>
