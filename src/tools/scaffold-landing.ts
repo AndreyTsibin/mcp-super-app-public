@@ -4,7 +4,7 @@ import { promisify } from "node:util";
 import { z } from "zod";
 
 import { Scaffold, assetPath, assertProjectDir } from "../lib/scaffold.js";
-import { runInstall } from "../lib/skills-install.js";
+import { failedSkillsSteps, runInstall } from "../lib/skills-install.js";
 import { renderHandoffStub } from "../lib/templates/claude-md.js";
 import {
   SESSION_PROTOCOL_MARKER,
@@ -24,10 +24,16 @@ const execFileP = promisify(execFile);
  *   autoreplace. Russian only — landings are RU by design; an English landing
  *   would reach for the upstream blader/humanizer instead.
  * - image: model-specific prompts for create_image (landing imagery step)
- * Motion (emil-design-skills) is intentionally left out — install on demand for
- * landings that actually need animation.
+ * - emil-design-skills: motion — animation timing, movement physics, Apple
+ *   principles. Complements ui-ux-pro-max rather than overlapping it.
  */
-const LANDING_SKILLS = ["ui-ux-pro-max", "frontend-design", "humanizer-ru", "image"] as const;
+const LANDING_SKILLS = [
+  "ui-ux-pro-max",
+  "frontend-design",
+  "humanizer-ru",
+  "image",
+  "emil-design-skills",
+] as const;
 
 /**
  * Model: one project = one site. We materialize an Astro project (section
@@ -104,9 +110,10 @@ function renderLaunchJson(name?: string): string {
 const FLOW_DOC = "docs/landing-flow.md";
 const TRACKER_DOC = "docs/_dev/tracker.md";
 
-function buildNextSteps(): string[] {
+function buildNextSteps(skillsFailed: { skill: string; error: string }[]): string[] {
   return [
-    "СТОП: скиллы поставлены, но подхватятся только при старте новой сессии. Попроси пользователя перезапустить приложение/сессию Claude Code и продолжай уже в новой сессии.",
+    ...failedSkillsSteps(skillsFailed),
+    "СТОП: установленные скиллы подхватятся только при старте новой сессии. Попроси пользователя перезапустить приложение/сессию Claude Code и продолжай уже в новой сессии.",
     `В новой сессии открой ${TRACKER_DOC} и возьми задачу 1 — бриф и план сайта. Только её.`,
     `Общая картина флоу — ${FLOW_DOC}; стандарт под текущую задачу указан в её строке трекера, остальные не грузи.`,
     "Задача 1: собери бриф одним блоком (город, телефон, компания/мастер, домен) и определи профиль ниши, карту страниц и набор секций — запиши план в трекер.",
@@ -199,7 +206,7 @@ export async function runScaffoldLanding(
     ...(deps_error ? { deps_error } : {}),
     skills_installed,
     skills_failed,
-    next_steps: buildNextSteps(),
+    next_steps: buildNextSteps(skills_failed),
   };
 }
 

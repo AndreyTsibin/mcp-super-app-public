@@ -135,3 +135,24 @@ export async function runInstall(
   const gitignored = await ensureIgnored(projectPath, skill.ignore);
   return { ...base, gitignored };
 }
+
+/**
+ * Lead line for a scaffolder's next_steps when some skills did not install.
+ *
+ * Installs are best-effort on purpose — a proxied installer that could not
+ * reach the network must not sink a finished scaffold. The cost is that the
+ * tool reports success anyway, so without this the agent reads "Создано: 56"
+ * and walks into the first tracker task missing the skills that task leans on.
+ * Returns an empty array when everything installed, so callers can spread it.
+ */
+export function failedSkillsSteps(failed: { skill: string; error: string }[]): string[] {
+  if (failed.length === 0) return [];
+  const ids = failed.map((f) => f.skill).join(", ");
+  return [
+    `СНАЧАЛА ПОЧИНИ: не установились скиллы — ${ids}. Флоу на них опирается (палитра ` +
+      "и типографика темы, продакшен-UI, чистка русского текста, промпты картинок, " +
+      "анимация), без них задачи трекера поедут вслепую. Поставь каждый вручную: " +
+      "install_skill (skill: <id>, project_path: корень проекта). Не вышло и вручную — " +
+      "скажи пользователю, какой скилл и почему, и не начинай задачу 1.",
+  ];
+}

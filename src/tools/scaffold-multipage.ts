@@ -2,7 +2,7 @@ import path from "node:path";
 import { z } from "zod";
 
 import { Scaffold, assetPath, assertProjectDir } from "../lib/scaffold.js";
-import { runInstall } from "../lib/skills-install.js";
+import { failedSkillsSteps, runInstall } from "../lib/skills-install.js";
 import { renderHandoffStub } from "../lib/templates/claude-md.js";
 import {
   SESSION_PROTOCOL_MARKER,
@@ -20,10 +20,16 @@ import {
  * once we know what we are rebuilding.
  */
 
-/** Skills the redesign flow leans on — same rationale as the landing flow:
- *  palette/typography raw material, production UI, Russian copy cleanup,
- *  model-specific image prompts. */
-const REDESIGN_SKILLS = ["ui-ux-pro-max", "frontend-design", "humanizer-ru", "image"] as const;
+/** Skills the redesign flow leans on — same set and same rationale as the
+ *  landing flow: palette/typography raw material, production UI, Russian copy
+ *  cleanup, model-specific image prompts, motion. */
+const REDESIGN_SKILLS = [
+  "ui-ux-pro-max",
+  "frontend-design",
+  "humanizer-ru",
+  "image",
+  "emil-design-skills",
+] as const;
 
 /** Astro dev port. Fixed on purpose: Astro hops to a free port when one is
  *  busy, and the previewer then points at the wrong server. */
@@ -77,8 +83,9 @@ function renderLaunchJson(name?: string): string {
   return `${JSON.stringify(config, null, 2)}\n`;
 }
 
-function buildNextSteps(): string[] {
+function buildNextSteps(skillsFailed: { skill: string; error: string }[]): string[] {
   return [
+    ...failedSkillsSteps(skillsFailed),
     "СТОП: скиллы подхватятся только при старте новой сессии. Попроси пользователя перезапустить приложение/сессию Claude Code — работу над сайтом начинай уже в новой сессии.",
     `В новой сессии открой ${TRACKER_DOC} и возьми задачу 1 — разведку донора. Только её.`,
     `Метод — ${PLAYBOOK_DOC}: под задачу 1 читаются разделы §0–§2 и §13, остальное не грузи.`,
@@ -133,7 +140,7 @@ export async function runScaffoldMultipage(
     preview_port: PREVIEW_PORT,
     skills_installed,
     skills_failed,
-    next_steps: buildNextSteps(),
+    next_steps: buildNextSteps(skills_failed),
   };
 }
 
