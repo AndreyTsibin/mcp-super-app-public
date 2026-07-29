@@ -4,7 +4,7 @@ Reusable prompt templates for fashion campaigns, lookbooks, and editorial shoots
 
 Prompts are written as connected prose — subject and action first, then environment, style, color, light, composition. Comma-separated tags and labelled slots degrade Seedream output; keep the sentences.
 
-Default model is `bytedance-seed/seedream-4.5` (pass `aspect_ratio`, never `size`). Each pattern lists the model it actually wants and the exact `generate_image` args.
+Default model is `bytedance-seed/seedream-4.5` (pass `aspect_ratio`, never `size`). Each pattern lists the model it actually wants and the exact `create_image` args.
 
 ---
 

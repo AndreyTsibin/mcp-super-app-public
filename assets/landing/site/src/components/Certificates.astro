@@ -20,7 +20,7 @@ interface Props {
   id?: string;
 }
 
-const { title, subtitle, items, variant = 'grid', eyebrow = 'Не потеряю гарантию производителя?', alt = false, id = 'certificates' } = Astro.props;
+const { title, subtitle, items, variant = 'grid', eyebrow, alt = false, id = 'certificates' } = Astro.props;
 
 const DIPLOMA = 'M6 2h9l5 5v15H6zm8 8H9v2h5zm2 4H9v2h7zm-1 6.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z';
 ---
@@ -28,12 +28,14 @@ const DIPLOMA = 'M6 2h9l5 5v15H6zm8 8H9v2h5zm2 4H9v2h7zm-1 6.5a2.5 2.5 0 1 1 0-5
 <section class:list={['section', { 'section--alt': alt }]} id={id}>
   <div class="container">
     <div class="section__head" data-animate>
-      <span class="eyebrow">
-        <span class="eyebrow__icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d={DIPLOMA} /></svg>
+      {eyebrow && (
+        <span class="eyebrow">
+          <span class="eyebrow__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d={DIPLOMA} /></svg>
+          </span>
+          {eyebrow}
         </span>
-        {eyebrow}
-      </span>
+      )}
       <h2 class="section__title">{nbsp(title)}</h2>
       {subtitle && <p class="section__sub">{nbsp(subtitle)}</p>}
     </div>
@@ -113,7 +115,7 @@ const DIPLOMA = 'M6 2h9l5 5v15H6zm8 8H9v2h5zm2 4H9v2h7zm-1 6.5a2.5 2.5 0 1 1 0-5
     .certs--compact { grid-template-columns: repeat(3, 1fr); }
   }
 
-  /* КАРУСЕЛЬ НА МОБИЛКЕ — стандарт заказчика (отзывы/мастера/сертификаты) */
+  /* КАРУСЕЛЬ НА МОБИЛКЕ — стандарт заказчика (отзывы/команда/сертификаты) */
   @media (max-width: 768px) {
     .certs--grid, .certs--compact {
       grid-auto-flow: column;

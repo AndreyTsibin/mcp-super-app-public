@@ -1,0 +1,170 @@
+---
+/*
+ * «Команда» — люди, которые выполняют работу (Шаблон 2). Скелет заморожен,
+ * LLM даёт items/variant.
+ *   cards      — фото сверху, карточки в ряд (→ карусель на мобилке — стандарт заказчика)
+ *   horizontal — фото слева, 2 колонки (→ карусель на мобилке)
+ *   compact    — круглые аватары, плотный ряд (→ карусель на мобилке)
+ * Нет фото → placeholder-силуэт (реальное фото придёт из image-пайплайна).
+ */
+import { nbsp } from '../lib/typography';
+
+interface Member {
+  name: string;
+  role?: string;             // специализация одной строкой
+  experience?: string;       // «стаж 12 лет»
+  note?: string;             // доп. факт о человеке
+  photo?: string;
+  photoAlt?: string;
+}
+
+interface Props {
+  title: string;
+  subtitle?: string;
+  items: Member[];
+  variant?: 'cards' | 'horizontal' | 'compact';
+  eyebrow?: string;
+  alt?: boolean;
+  id?: string;
+}
+
+const { title, subtitle, items, variant = 'cards', eyebrow, alt = false, id = 'team' } = Astro.props;
+
+const PERSON = 'M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-5 0-9 2.5-9 6v2h18v-2c0-3.5-4-6-9-6z';
+---
+
+<section class:list={['section', { 'section--alt': alt }]} id={id}>
+  <div class="container">
+    <div class="section__head" data-animate>
+      {eyebrow && (
+        <span class="eyebrow">
+          <span class="eyebrow__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d={PERSON} /></svg>
+          </span>
+          {eyebrow}
+        </span>
+      )}
+      <h2 class="section__title">{nbsp(title)}</h2>
+      {subtitle && <p class="section__sub">{nbsp(subtitle)}</p>}
+    </div>
+
+    <div class:list={['team', `team--${variant}`]} data-animate>
+      {items.map((p) => (
+        <article class="member">
+          <div class="member__photo">
+            {p.photo
+              ? <img src={p.photo} alt={p.photoAlt ?? p.name} loading="lazy" />
+              : <span class="member__placeholder" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor"><path d={PERSON} /></svg>
+                </span>}
+          </div>
+          <div class="member__body">
+            <h3 class="member__name">{nbsp(p.name)}</h3>
+            {p.role && <p class="member__role">{nbsp(p.role)}</p>}
+            {p.experience && <span class="member__exp">{nbsp(p.experience)}</span>}
+            {p.note && <p class="member__note">{nbsp(p.note)}</p>}
+          </div>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  /* ---------- variant: cards ---------- */
+  .team--cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; }
+  .team--cards .member {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--transition), box-shadow var(--transition);
+  }
+  .team--cards .member:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+  .team--cards .member__photo { aspect-ratio: 1 / 1; }
+  .team--cards .member__body { padding: 1.1rem 1.25rem 1.35rem; }
+
+  /* ---------- variant: horizontal ---------- */
+  .team--horizontal { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem; }
+  .team--horizontal .member {
+    display: flex;
+    gap: 1.1rem;
+    align-items: flex-start;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    box-shadow: var(--shadow-sm);
+  }
+  .team--horizontal .member__photo {
+    width: 96px;
+    aspect-ratio: 1 / 1;
+    flex: none;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+
+  /* ---------- variant: compact ---------- */
+  .team--compact { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; }
+  .team--compact .member { display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .team--compact .member__photo {
+    width: 110px;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-bottom: 0.9rem;
+  }
+  .team--compact .member__exp { align-self: center; }
+
+  /* ---------- общее ---------- */
+  .member__photo { position: relative; background: color-mix(in srgb, var(--color-accent-warm) 16%, var(--color-bg-section)); }
+  .member__photo img { width: 100%; height: 100%; object-fit: cover; }
+  .member__placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: color-mix(in srgb, var(--color-accent-warm-dark) 55%, transparent);
+  }
+  .member__body { min-width: 0; flex: 1 1 auto; display: flex; flex-direction: column; gap: 0.3rem; align-items: flex-start; }
+  /* .member__name — h3, размер/вес от тега (см. tokens.css) */
+  .member__role { color: var(--color-text-light); font-size: 0.9rem; line-height: 1.45; }
+  .member__exp {
+    margin-top: 0.35rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+    font-weight: 700;
+    font-size: 0.82rem;
+    color: var(--color-primary);
+    white-space: nowrap;
+  }
+  .member__note { font-size: 0.85rem; color: var(--color-text-light); }
+  .team--compact .member__body { align-items: center; }
+
+  /* ---------- адаптив ---------- */
+  @media (max-width: 900px) {
+    .team--cards, .team--compact { grid-template-columns: repeat(2, 1fr); }
+    .team--horizontal { grid-template-columns: 1fr; }
+  }
+
+  /* КАРУСЕЛЬ НА МОБИЛКЕ — стандарт заказчика (отзывы/команда/сертификаты) */
+  @media (max-width: 768px) {
+    .team--cards, .team--compact, .team--horizontal {
+      display: grid;
+      grid-auto-flow: column;
+      grid-template-columns: none;
+      grid-auto-columns: 78%;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      margin-inline: calc(var(--gutter) * -1);
+      padding-inline: var(--gutter);
+      padding-bottom: 0.75rem;
+    }
+    .member { scroll-snap-align: center; }
+    .team--horizontal .member { flex-direction: column; }
+    .team--horizontal .member__photo { width: 100%; }
+  }
+</style>

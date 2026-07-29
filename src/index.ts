@@ -6,14 +6,14 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 
 import { registerBootstrapProject } from "./tools/bootstrap-project.js";
 import { registerInstallSkill } from "./tools/install-skill.js";
-import { registerScaffoldLanding } from "./tools/scaffold-landing.js";
+import { registerCreateWebsite } from "./tools/create-website.js";
 import { registerInstallGuard } from "./tools/install-guard.js";
-import { registerGenerateImage } from "./tools/generate-image.js";
+import { registerCreateImage } from "./tools/create-image.js";
 import { registerOptimizeImages } from "./tools/optimize-images.js";
 import { registerSearchIcons } from "./tools/search-icons.js";
 import { registerGetIcon } from "./tools/get-icon.js";
 
-// Load OPENROUTER_API_KEY from the package-root .env (best-effort; generate_image
+// Load OPENROUTER_API_KEY from the package-root .env (best-effort; create_image
 // surfaces an actionable error if the key is missing). dist/index.js → ../.env.
 try {
   const envPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", ".env");
@@ -27,11 +27,18 @@ const SERVER_VERSION = "0.1.0";
 
 const server = new McpServer({ name: SERVER_NAME, version: SERVER_VERSION });
 
+// Three entry points: bootstrap_project (new project), create_website (landing
+// or donor redesign), create_image (image generation). The scaffolders behind
+// create_website and the OpenRouter engine behind create_image are not
+// registered on purpose — routing through one tool per area keeps the mode
+// choice a question to the user, keeps both site flows behind the same
+// one-task-per-session tracker protocol, and keeps generation behind the
+// prompt-skill gate.
 registerBootstrapProject(server);
 registerInstallSkill(server);
-registerScaffoldLanding(server);
+registerCreateWebsite(server);
 registerInstallGuard(server);
-registerGenerateImage(server);
+registerCreateImage(server);
 registerOptimizeImages(server);
 registerSearchIcons(server);
 registerGetIcon(server);

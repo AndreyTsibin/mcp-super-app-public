@@ -14,7 +14,7 @@ interface Props {
   title: string;
   subtitle?: string;
   badge?: string;            // срок крупно: «до 3 лет»
-  badgeLabel?: string;       // подпись под сроком: «гарантия на работы и запчасти»
+  badgeLabel?: string;       // подпись под сроком крупным шрифтом
   text?: string;
   items?: GuaranteeItem[];
   ctaText?: string;
@@ -28,12 +28,12 @@ const {
   title,
   subtitle,
   badge,
-  badgeLabel = 'гарантия на работы и запчасти',
+  badgeLabel,
   text,
   items = [],
   ctaText,
   variant = 'banner',
-  eyebrow = 'А если сломается снова?',
+  eyebrow,
   alt = false,
   id = 'guarantee',
 } = Astro.props;
@@ -45,12 +45,14 @@ const SHIELD = 'M12 2 4 5v6c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V5zm-1.2 12.9-3.3-3
   <div class="container">
     {variant === 'cards' && (
       <div class="section__head" data-animate>
-        <span class="eyebrow">
-          <span class="eyebrow__icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d={SHIELD} /></svg>
+        {eyebrow && (
+          <span class="eyebrow">
+            <span class="eyebrow__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d={SHIELD} /></svg>
+            </span>
+            {eyebrow}
           </span>
-          {eyebrow}
-        </span>
+        )}
         <h2 class="section__title">{nbsp(title)}</h2>
         {subtitle && <p class="section__sub">{nbsp(subtitle)}</p>}
       </div>
@@ -61,7 +63,7 @@ const SHIELD = 'M12 2 4 5v6c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V5zm-1.2 12.9-3.3-3
         <div class="g-banner__badge">
           <svg viewBox="0 0 24 24" width="34" height="34" fill="currentColor" aria-hidden="true"><path d={SHIELD} /></svg>
           {badge && <span class="g-banner__term">{nbsp(badge)}</span>}
-          <span class="g-banner__label">{nbsp(badgeLabel)}</span>
+          {badgeLabel && <span class="g-banner__label">{nbsp(badgeLabel)}</span>}
         </div>
         <div class="g-banner__body">
           <h2 class="g-banner__title">{nbsp(title)}</h2>
@@ -100,7 +102,7 @@ const SHIELD = 'M12 2 4 5v6c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V5zm-1.2 12.9-3.3-3
         <div class="g-split__badge">
           <svg viewBox="0 0 24 24" width="40" height="40" fill="currentColor" aria-hidden="true"><path d={SHIELD} /></svg>
           {badge && <span class="g-split__term">{nbsp(badge)}</span>}
-          <span class="g-split__label">{nbsp(badgeLabel)}</span>
+          {badgeLabel && <span class="g-split__label">{nbsp(badgeLabel)}</span>}
         </div>
         <div class="g-split__body">
           <h2 class="section__title">{nbsp(title)}</h2>

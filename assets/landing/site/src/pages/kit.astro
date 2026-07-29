@@ -2,7 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Hero from '../components/Hero.astro';
-import WhatWeRepair from '../components/WhatWeRepair.astro';
+import Services from '../components/Services.astro';
 import IssuesPricePackages from '../components/IssuesPricePackages.astro';
 import PriceList from '../components/PriceList.astro';
 import Promotions from '../components/Promotions.astro';
@@ -12,14 +12,14 @@ import Problems from '../components/Problems.astro';
 import Steps from '../components/Steps.astro';
 import Cases from '../components/Cases.astro';
 import About from '../components/About.astro';
-import Masters from '../components/Masters.astro';
+import Team from '../components/Team.astro';
 import Certificates from '../components/Certificates.astro';
 import Guarantee from '../components/Guarantee.astro';
 import Reviews from '../components/Reviews.astro';
 import FAQ from '../components/FAQ.astro';
 import Contacts from '../components/Contacts.astro';
 import Footer from '../components/Footer.astro';
-import { demo } from '../data/demo';
+import { placeholder as c } from '../data/placeholder';
 
 // ПОЛИГОН библиотеки: ВСЕ секции подряд, у некоторых по несколько variant'ов.
 // Это витрина для обкатки и выбора секций, а НЕ шаблон страницы — боевая главная
@@ -28,46 +28,47 @@ import { demo } from '../data/demo';
 ---
 
 <BaseLayout
-  title={`Полигон секций — ${demo.brand}`}
+  title={`Полигон секций — ${c.brand}`}
   description="Витрина всех секций библиотеки для обкатки вариантов"
   noindex={true}
   animations={false}
 >
   <Header
-    logo={demo.brand}
-    phone={demo.phone}
-    workHours={demo.workHours}
-    nav={demo.nav}
+    logo={c.brand}
+    phone={c.phone}
+    workHours={c.workHours}
+    nav={c.nav}
     variant="classic"
     logoIcon={true}
   />
 
   <Hero
-    title={demo.hero.title}
-    subtitle={demo.hero.subtitle}
-    status={demo.hero.status}
-    statusOffline={demo.hero.statusOffline}
-    bullets={demo.hero.bullets}
-    promo={demo.hero.promo}
-    workHours={demo.workHours}
-    rating={demo.hero.rating}
-    phone={demo.phone}
-    image={demo.hero.image}
-    imageAlt={demo.hero.imageAlt}
+    title={c.hero.title}
+    subtitle={c.hero.subtitle}
+    status={c.hero.status}
+    statusOffline={c.hero.statusOffline}
+    bullets={c.hero.bullets}
+    promo={c.hero.promo}
+    workHours={c.workHours}
+    rating={c.hero.rating}
+    phone={c.phone}
+    image={c.hero.image}
+    imageAlt={c.hero.imageAlt}
     variant="split"
   />
 
-  {/* Шаблон 2: что ремонтируем + бренды */}
-  <WhatWeRepair
-    id="repair"
+  {/* Шаблон 2: перечень услуг + лента брендов */}
+  <Services
+    id="services"
     alt={true}
     variant="split"
-    title={demo.whatWeRepair.title}
-    subtitle={demo.whatWeRepair.subtitle}
-    items={demo.whatWeRepair.items}
-    brands={demo.whatWeRepair.brands}
-    image="/assets/img/whatwerepair-split.webp"
-    imageAlt="Мастер осматривает картридж принтера"
+    eyebrow="[[Микро-вопрос клиента]]"
+    title={c.services.title}
+    subtitle={c.services.subtitle}
+    items={c.services.items}
+    brands={c.services.brands}
+    image="/assets/img/placeholder-split.svg"
+    imageAlt="[[Alt: что на кадре]]"
   />
 
   {/* Слот «/»: три variant'а подряд — для обкатки, в боевом шаблоне слот один */}
@@ -75,29 +76,29 @@ import { demo } from '../data/demo';
     id="issues"
     variant="issues"
     issuesLayout="split"
-    title={demo.issues.title}
-    subtitle={demo.issues.subtitle}
-    issues={demo.issues.items}
-    image="/assets/img/issues-split.webp"
-    imageAlt="Мастер устраняет замятие бумаги в принтере"
-    note="Цены указаны «от»: это ориентир по стоимости похожих работ. Точную сумму мастер назовёт на месте, когда осмотрит технику и найдёт причину поломки."
+    title={c.issues.title}
+    subtitle={c.issues.subtitle}
+    issues={c.issues.items}
+    image="/assets/img/placeholder-split.svg"
+    imageAlt="[[Alt: что на кадре]]"
+    note="[[Сноска под списком: что значит «от» в ценах и кто назовёт точную сумму]]"
   />
 
   <IssuesPricePackages
     id="prices"
     alt={true}
     variant="prices"
-    title={demo.prices.title}
-    subtitle={demo.prices.subtitle}
-    prices={demo.prices.items}
+    title={c.prices.title}
+    subtitle={c.prices.subtitle}
+    prices={c.prices.items}
   />
 
   <IssuesPricePackages
     id="packages"
     variant="packages"
-    title={demo.packages.title}
-    subtitle={demo.packages.subtitle}
-    packages={demo.packages.items}
+    title={c.packages.title}
+    subtitle={c.packages.subtitle}
+    packages={c.packages.items}
   />
 
   {/* Шаблон 2: полный прайс-лист с группами */}
@@ -105,10 +106,10 @@ import { demo } from '../data/demo';
     id="pricelist"
     alt={true}
     variant="columns"
-    title={demo.priceList.title}
-    subtitle={demo.priceList.subtitle}
-    groups={demo.priceList.groups}
-    note={demo.priceList.note}
+    title={c.priceList.title}
+    subtitle={c.priceList.subtitle}
+    groups={c.priceList.groups}
+    note={c.priceList.note}
   />
 
   {/* Шаблон 3: акции — фирменная заливка (section--brand), третий фон ритма */}
@@ -116,27 +117,28 @@ import { demo } from '../data/demo';
     id="promotions"
     variant="cards"
     brand={true}
-    title={demo.promotions.title}
-    subtitle={demo.promotions.subtitle}
-    items={demo.promotions.items}
+    title={c.promotions.title}
+    subtitle={c.promotions.subtitle}
+    items={c.promotions.items}
   />
 
   {/* Шаблон 1: лид-форма(акция) — открытая форма на странице (решение Андрея) */}
   <LeadFormSection
     id="lead"
     variant="split"
-    title="Оставьте заявку, и мы перезвоним с точной ценой"
-    subtitle="Мастер приедет в течение часа. Диагностика и выезд ничего не стоят"
-    promo={demo.hero.promo}
-    phone={demo.phone}
+    title="[[H2 у формы: что получит клиент, оставив заявку, 6–10 слов]]"
+    subtitle="[[Подзаголовок: срок ответа и что будет дальше, 8–14 слов]]"
+    note="[[Мелкий текст у формы: обещание по срокам]]"
+    promo={c.hero.promo}
+    phone={c.phone}
     dataForm="section"
   />
 
   <Benefits
     id="benefits"
-    title={demo.benefits.title}
-    subtitle={demo.benefits.subtitle}
-    items={demo.benefits.items}
+    title={c.benefits.title}
+    subtitle={c.benefits.subtitle}
+    items={c.benefits.items}
     variant="cards"
   />
 
@@ -144,9 +146,9 @@ import { demo } from '../data/demo';
   <Problems
     id="problems"
     variant="split"
-    title={demo.problems.title}
-    subtitle={demo.problems.subtitle}
-    items={demo.problems.items}
+    title={c.problems.title}
+    subtitle={c.problems.subtitle}
+    items={c.problems.items}
   />
 
   {/* Как работает — шаги процесса, нумерация автоматическая */}
@@ -154,18 +156,18 @@ import { demo } from '../data/demo';
     id="steps"
     alt={true}
     variant="timeline"
-    title={demo.steps.title}
-    subtitle={demo.steps.subtitle}
-    items={demo.steps.items}
+    title={c.steps.title}
+    subtitle={c.steps.subtitle}
+    items={c.steps.items}
   />
 
   {/* Кейсы — только реальные фото; в демо фото нет, показывает placeholder */}
   <Cases
     id="cases"
     variant="grid"
-    title={demo.cases.title}
-    subtitle={demo.cases.subtitle}
-    items={demo.cases.items}
+    title={c.cases.title}
+    subtitle={c.cases.subtitle}
+    items={c.cases.items}
   />
 
   {/* Шаблон 3: о компании (текст + цифры) */}
@@ -173,19 +175,20 @@ import { demo } from '../data/demo';
     id="about"
     alt={true}
     variant="stats"
-    title={demo.about.title}
-    subtitle={demo.about.subtitle}
-    paragraphs={demo.about.paragraphs}
-    stats={demo.about.stats}
+    title={c.about.title}
+    subtitle={c.about.subtitle}
+    paragraphs={c.about.paragraphs}
+    stats={c.about.stats}
   />
 
-  {/* Шаблон 2: мастера — карусель на мобилке (стандарт заказчика) */}
-  <Masters
-    id="masters"
+  {/* Шаблон 2: команда — карусель на мобилке (стандарт заказчика) */}
+  <Team
+    id="team"
     variant="cards"
-    title={demo.masters.title}
-    subtitle={demo.masters.subtitle}
-    items={demo.masters.items}
+    eyebrow="[[Микро-вопрос клиента]]"
+    title={c.team.title}
+    subtitle={c.team.subtitle}
+    items={c.team.items}
   />
 
   {/* Шаблон 3: сертификаты — карусель на мобилке (стандарт заказчика) */}
@@ -193,26 +196,26 @@ import { demo } from '../data/demo';
     id="certificates"
     alt={true}
     variant="grid"
-    title={demo.certificates.title}
-    subtitle={demo.certificates.subtitle}
-    items={demo.certificates.items}
+    title={c.certificates.title}
+    subtitle={c.certificates.subtitle}
+    items={c.certificates.items}
   />
 
   {/* Гарантия — акцентная панель доверия */}
   <Guarantee
     id="guarantee"
     variant="banner"
-    title={demo.guarantee.title}
-    badge={demo.guarantee.badge}
-    text={demo.guarantee.text}
-    items={demo.guarantee.items}
+    title={c.guarantee.title}
+    badge={c.guarantee.badge}
+    text={c.guarantee.text}
+    items={c.guarantee.items}
   />
 
   <Reviews
     id="reviews"
-    title={demo.reviews.title}
-    subtitle={demo.reviews.subtitle}
-    items={demo.reviews.items}
+    title={c.reviews.title}
+    subtitle={c.reviews.subtitle}
+    items={c.reviews.items}
     variant="grid"
   />
 
@@ -220,32 +223,32 @@ import { demo } from '../data/demo';
   <FAQ
     id="faq"
     variant="split"
-    title={demo.faq.title}
-    subtitle={demo.faq.subtitle}
-    items={demo.faq.items}
+    title={c.faq.title}
+    subtitle={c.faq.subtitle}
+    items={c.faq.items}
   />
 
   <Contacts
     id="contacts"
     alt={true}
-    title={demo.contacts.title}
-    subtitle={demo.contacts.subtitle}
-    phone={demo.phone}
-    workHours={demo.workHours}
-    address={demo.contacts.address}
-    radius={demo.contacts.radius}
-    email={demo.contacts.email}
+    title={c.contacts.title}
+    subtitle={c.contacts.subtitle}
+    phone={c.phone}
+    workHours={c.workHours}
+    address={c.contacts.address}
+    radius={c.contacts.radius}
+    email={c.contacts.email}
     variant="map"
   />
 
   <Footer
-    brand={demo.brand}
-    phone={demo.phone}
-    workHours={demo.workHours}
-    address={demo.contacts.address}
-    nav={demo.nav}
-    requisites={demo.requisites}
-    tagline="Ремонт принтеров и МФУ в Москве с выездом мастера. Гарантия до 3 лет."
+    brand={c.brand}
+    phone={c.phone}
+    workHours={c.workHours}
+    address={c.contacts.address}
+    nav={c.nav}
+    requisites={c.requisites}
+    tagline="[[Строка в подвале: чем занимаетесь и где, 6–12 слов]]"
     variant="columns"
     logoIcon={true}
   />

@@ -40,7 +40,7 @@ const {
   subtitle,
   items,
   variant = 'grid',
-  eyebrow = 'Что мы уже сделали',
+  eyebrow,
   alt = false,
   id = 'cases',
 } = Astro.props;
@@ -53,12 +53,14 @@ const CHECK_D = 'M9.6 16.2 5.4 12l-1.4 1.4 5.6 5.6 12-12L20.2 5.6z';
 <section class:list={['section', { 'section--alt': alt }]} id={id}>
   <div class="container">
     <div class="section__head" data-animate>
-      <span class="eyebrow">
-        <span class="eyebrow__icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d={CASE_D} /></svg>
+      {eyebrow && (
+        <span class="eyebrow">
+          <span class="eyebrow__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d={CASE_D} /></svg>
+          </span>
+          {eyebrow}
         </span>
-        {eyebrow}
-      </span>
+      )}
       <h2 class="section__title">{nbsp(title)}</h2>
       {subtitle && <p class="section__sub">{nbsp(subtitle)}</p>}
     </div>

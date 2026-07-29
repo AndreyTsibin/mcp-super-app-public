@@ -1,9 +1,9 @@
 ---
 name: image
 description: >
-  Image prompting skill for Seedream 4.5 and Gemini 3 (Nano Banana 2 / Pro)
-  via generate_image.
-  Writes ready-to-use prompts plus the model and sizing arguments to pass to the tool.
+  Image prompting skill for Seedream 4.5 and Gemini 3 (Nano Banana 2 / Pro), generated
+  through the create_image tool.
+  Writes ready-to-use prompts plus the model and sizing arguments to pass with them.
   Use when: "нарисуй", "сгенерируй картинку", "image prompt", "промпт для картинки", hero
   covers, blog covers, slides, posters, product shots, UI mockups, storyboards, character
   sheets, edit/colorize, style transfer, image-to-image, seedream, nano banana, nb2.
@@ -12,7 +12,7 @@ description: >
 
 # Image Prompting — Seedream 4.5 · Gemini 3
 
-This skill writes image prompts. It does not generate images — `generate_image` does.
+This skill writes image prompts. It does not generate images — `create_image` does.
 Your output is: **model + sizing arguments + the prompt text**.
 
 Each model has its own prompt syntax and its own way of being asked for a size. Getting the
@@ -41,6 +41,7 @@ asks for a specific model, that wins — don't argue the table at them.
 
 **Seedream is the default and usually right.** \$0.04 flat, 7.5 MP, best prompt adherence,
 best editing consistency, and by a distance the best price per pixel.
+
 
 **7.5 MP already exceeds any web or screen need**, so resolution is almost never a reason to
 leave seedream. The default is the default because it wins, not because it is cheap.
@@ -117,6 +118,7 @@ comma-separated tags as an anti-pattern, while a prompt tuned for one reads as m
 - **Gemini 3 (flash / pro)** → [gemini.md](references/gemini.md)
   Google's official templates, positive-framing rule, camera control, step-by-step for
   complex scenes.
+
 ---
 
 # Step 4 — task-shaped reading (load only what applies)

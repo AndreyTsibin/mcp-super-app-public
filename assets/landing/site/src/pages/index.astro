@@ -2,155 +2,95 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Hero from '../components/Hero.astro';
-import WhatWeRepair from '../components/WhatWeRepair.astro';
-import IssuesPricePackages from '../components/IssuesPricePackages.astro';
-import Steps from '../components/Steps.astro';
-import Benefits from '../components/Benefits.astro';
 import LeadFormSection from '../components/LeadFormSection.astro';
-import Guarantee from '../components/Guarantee.astro';
-import Reviews from '../components/Reviews.astro';
-import FAQ from '../components/FAQ.astro';
 import Contacts from '../components/Contacts.astro';
 import Footer from '../components/Footer.astro';
-import { demo } from '../data/demo';
+import { placeholder as c } from '../data/placeholder';
 
 /*
- * БОЕВАЯ ГЛАВНАЯ — пример собранной страницы, а не витрина.
- * Профиль ниши urgency («горит, звонит первому»): короткая страница, телефон
- * и форма выше фолда, доказательства компактно, без лирики до CTA.
- * Полный список секций библиотеки со всеми variant'ами — на /kit.
+ * КАРКАС ГЛАВНОЙ — здесь только обязательный минимум: точка входа, целевое
+ * действие, контакты. Это НЕ шаблон страницы и НЕ пример ниши: набор секций
+ * между Hero и LeadFormSection ты набираешь сам под профиль ниши.
+ *
+ * Как собрать страницу:
+ *   1. Профиль ниши и набор секций — docs/landing-spec.md.
+ *   2. Все секции со всеми variant'ами вживую — страница /kit в превью.
+ *   3. Контент — свой `src/data/<проект>.ts` со структурой из `placeholder.ts`.
+ *      Здесь заменить импорт на него; сам placeholder.ts НЕ редактировать —
+ *      на нём держатся /kit и /themes.
+ *   4. Порядок секций чередует фон: alt={true} у каждой второй.
+ *
+ * Пока в пропсах видны маркеры `[[…]]` — страница не готова: валидатор
+ * (.claude/check-landing.mjs) роняет проверку, если хоть один доехал до сборки.
  */
 ---
 
 <BaseLayout
-  title={`${demo.hero.title} — ${demo.brand}`}
-  description={demo.hero.subtitle}
-  ogImage={demo.hero.image}
+  title={`${c.hero.title} — ${c.brand}`}
+  description={c.hero.subtitle}
+  ogImage={c.hero.image}
   animations={false}
 >
   <Header
-    logo={demo.brand}
-    phone={demo.phone}
-    workHours={demo.workHours}
-    nav={demo.nav}
+    logo={c.brand}
+    phone={c.phone}
+    workHours={c.workHours}
+    nav={c.nav}
     variant="classic"
     logoIcon={true}
   />
 
   <Hero
-    title={demo.hero.title}
-    subtitle={demo.hero.subtitle}
-    status={demo.hero.status}
-    statusOffline={demo.hero.statusOffline}
-    bullets={demo.hero.bullets}
-    promo={demo.hero.promo}
-    workHours={demo.workHours}
-    rating={demo.hero.rating}
-    phone={demo.phone}
-    image={demo.hero.image}
-    imageAlt={demo.hero.imageAlt}
+    title={c.hero.title}
+    subtitle={c.hero.subtitle}
+    status={c.hero.status}
+    statusOffline={c.hero.statusOffline}
+    bullets={c.hero.bullets}
+    promo={c.hero.promo}
+    workHours={c.workHours}
+    rating={c.hero.rating}
+    phone={c.phone}
+    image={c.hero.image}
+    imageAlt={c.hero.imageAlt}
     variant="split"
   />
 
-  <WhatWeRepair
-    id="repair"
-    alt={true}
-    variant="split"
-    title={demo.whatWeRepair.title}
-    subtitle={demo.whatWeRepair.subtitle}
-    items={demo.whatWeRepair.items}
-    brands={demo.whatWeRepair.brands}
-    image="/assets/img/whatwerepair-split.webp"
-    imageAlt="Мастер осматривает картридж принтера"
-  />
+  {/*
+    ↓ ЗДЕСЬ ТЕЛО СТРАНИЦЫ. Добери секции из библиотеки под свою нишу и её профиль
+    (docs/landing-spec.md → «пул блоков»). Ничего не наследуй по инерции: набор
+    для срочной услуги и для дорогой экспертной услуги разный.
+  */}
 
-  <IssuesPricePackages
-    id="prices"
-    variant="issues"
-    issuesLayout="split"
-    title={demo.issues.title}
-    subtitle={demo.issues.subtitle}
-    issues={demo.issues.items}
-    image="/assets/img/issues-split.webp"
-    imageAlt="Мастер устраняет замятие бумаги в принтере"
-    note="Цены указаны «от»: это ориентир по стоимости похожих работ. Точную сумму мастер назовёт на месте, когда осмотрит технику и найдёт причину поломки."
-  />
-
-  <Steps
-    id="steps"
-    alt={true}
-    variant="timeline"
-    title={demo.steps.title}
-    subtitle={demo.steps.subtitle}
-    items={demo.steps.items}
-  />
-
-  {/* Повторный CTA в середине страницы — другой угол подачи, не копия hero */}
   <LeadFormSection
     id="lead"
     variant="split"
-    title="Оставьте заявку, и мы перезвоним с точной ценой"
-    subtitle="Мастер приедет в течение часа. Диагностика и выезд ничего не стоят"
-    promo={demo.hero.promo}
-    phone={demo.phone}
+    title="[[H2 у формы: что получит клиент, оставив заявку, 6–10 слов]]"
+    subtitle="[[Подзаголовок: срок ответа и что будет дальше, 8–14 слов]]"
+    promo={c.hero.promo}
+    phone={c.phone}
     dataForm="section"
-  />
-
-  <Benefits
-    id="benefits"
-    title={demo.benefits.title}
-    subtitle={demo.benefits.subtitle}
-    items={demo.benefits.items}
-    variant="cards"
-  />
-
-  <Guarantee
-    id="guarantee"
-    alt={true}
-    variant="banner"
-    title={demo.guarantee.title}
-    badge={demo.guarantee.badge}
-    text={demo.guarantee.text}
-    items={demo.guarantee.items}
-  />
-
-  <Reviews
-    id="reviews"
-    title={demo.reviews.title}
-    subtitle={demo.reviews.subtitle}
-    items={demo.reviews.items}
-    variant="grid"
-  />
-
-  <FAQ
-    id="faq"
-    alt={true}
-    variant="split"
-    title={demo.faq.title}
-    subtitle={demo.faq.subtitle}
-    items={demo.faq.items}
   />
 
   <Contacts
     id="contacts"
-    title={demo.contacts.title}
-    subtitle={demo.contacts.subtitle}
-    phone={demo.phone}
-    workHours={demo.workHours}
-    address={demo.contacts.address}
-    radius={demo.contacts.radius}
-    email={demo.contacts.email}
+    title={c.contacts.title}
+    subtitle={c.contacts.subtitle}
+    phone={c.phone}
+    workHours={c.workHours}
+    address={c.contacts.address}
+    radius={c.contacts.radius}
+    email={c.contacts.email}
     variant="map"
   />
 
   <Footer
-    brand={demo.brand}
-    phone={demo.phone}
-    workHours={demo.workHours}
-    address={demo.contacts.address}
-    nav={demo.nav}
-    requisites={demo.requisites}
-    tagline="Ремонт принтеров и МФУ в Москве с выездом мастера. Гарантия до 3 лет."
+    brand={c.brand}
+    phone={c.phone}
+    workHours={c.workHours}
+    address={c.contacts.address}
+    nav={c.nav}
+    requisites={c.requisites}
+    tagline="[[Строка в подвале: чем занимаетесь и где, 6–12 слов]]"
     variant="columns"
     logoIcon={true}
   />

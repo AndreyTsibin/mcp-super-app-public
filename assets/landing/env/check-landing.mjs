@@ -228,6 +228,10 @@ function checkContrast(css) {
 function checkLeftovers(files) {
   const S = "🧹 Остатки";
   const patterns = [
+    // Маркер сетки шаблона: `[[H1 · 4–7 слов]]`. Доехал до сборки — секцию
+    // поставили, а текст под неё не написали.
+    [/\[\[[^\]]{2,120}\]\]/g, "error", "незаполненный маркер шаблона [[…]]"],
+    [/placeholder-(?:hero|split)\.svg/g, "error", "картинка-заглушка шаблона"],
     [/PLACEHOLDER/g, "error", "PLACEHOLDER"],
     [/\blorem\b/gi, "error", "lorem ipsum"],
     [/\bTODO\b/g, "error", "TODO"],
@@ -235,6 +239,9 @@ function checkLeftovers(files) {
     [/\bX{3,}\b/g, "warn", "XXX-заглушка (телефон/цифры?)"],
   ];
   for (const [file, text] of files) {
+    // /kit и /themes — среда сборки: маркеры и заглушки там по проекту.
+    // Что они вообще ещё в сборке — ловит SEO-секция.
+    if (/^(kit|themes)\//.test(file)) continue;
     for (const [re, level, label] of patterns) {
       const count = (text.match(re) ?? []).length;
       if (count > 0) report(S, level, `${file}: ${label} × ${count}.`);
@@ -321,10 +328,10 @@ async function checkBuild(pages) {
     report(S, "warn", "Подмена <h1> через ?h= не найдена — контекстная реклама не сможет подменять заголовок.");
   }
 
-  // Полигон и страница тем ловятся по сборке (SEO); здесь — демо-контент,
-  // которого в dist не видно, но который тянет за собой чужую нишу.
-  if ((await readIfExists(path.join(ROOT, "src/data/demo.ts"))) !== null) {
-    report(S, "warn", "src/data/demo.ts ещё в проекте — заведи свой data-файл и удали демо.");
+  // Полигон и страница тем ловятся по сборке (SEO); здесь — сетка контента,
+  // которая живёт вместе с ними и уезжает из проекта тем же движением.
+  if ((await readIfExists(path.join(ROOT, "src/data/placeholder.ts"))) !== null) {
+    report(S, "warn", "src/data/placeholder.ts ещё в проекте — удали вместе с /kit и /themes перед сдачей.");
   }
 }
 

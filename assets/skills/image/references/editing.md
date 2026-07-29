@@ -1,7 +1,7 @@
 # Editing / image-to-image
 
 Editing works on every model here — pass the source image via `reference_images` on
-`generate_image` plus an instruction in the prompt. There is no separate edit model and no
+`create_image` plus an instruction in the prompt. There is no separate edit model and no
 separate endpoint.
 
 `reference_images` takes **local file paths** (png/jpg/jpeg/webp — absolute, or relative to

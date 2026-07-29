@@ -13,7 +13,7 @@ interface Props {
 
 import { nbsp } from '../lib/typography';
 
-const { title, subtitle, items, variant = 'grid', eyebrow = 'Можно ли доверять отзывам?', id = 'reviews' } = Astro.props;
+const { title, subtitle, items, variant = 'grid', eyebrow, id = 'reviews' } = Astro.props;
 const stars = (n = 5) => '★★★★★☆☆☆☆☆'.slice(5 - n, 10 - n);
 
 const STAR = 'M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8-6.2-3.3-6.2 3.3 1.2-6.8-5-4.9 6.9-1z';
@@ -22,12 +22,14 @@ const STAR = 'M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8-6.2-3.3-6.2 3.3 1.2-6.8-5-4.9 6.
 <section class="section section--alt" id={id}>
   <div class="container">
     <div class="section__head" data-animate>
-      <span class="eyebrow">
-        <span class="eyebrow__icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d={STAR} /></svg>
+      {eyebrow && (
+        <span class="eyebrow">
+          <span class="eyebrow__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d={STAR} /></svg>
+          </span>
+          {eyebrow}
         </span>
-        {eyebrow}
-      </span>
+      )}
       <h2 class="section__title">{nbsp(title)}</h2>
       {subtitle && <p class="section__sub">{nbsp(subtitle)}</p>}
     </div>
@@ -84,7 +86,7 @@ const STAR = 'M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8-6.2-3.3-6.2 3.3 1.2-6.8-5-4.9 6.
   }
   .reviews--slider .review { scroll-snap-align: start; }
 
-  /* КАРУСЕЛЬ НА МОБИЛКЕ — стандарт заказчика (отзывы/мастера/сертификаты).
+  /* КАРУСЕЛЬ НА МОБИЛКЕ — стандарт заказчика (отзывы/команда/сертификаты).
      Сетка превращается в горизонтальный scroll-snap на узких экранах. */
   @media (max-width: 768px) {
     .reviews--grid, .reviews--compact {

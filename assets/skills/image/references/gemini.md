@@ -94,7 +94,7 @@ Google documents six techniques — add/remove, inpainting, style transfer, mult
 composition, detail preservation, sketch refinement. See [editing.md](editing.md).
 
 Multi-turn editing uses `previous_interaction_id` and requires passing **Thought Signatures**
-*(vendor)* — neither is exposed through our `generate_image`, so treat each call as one-shot.
+*(vendor)* — neither is exposed through our `create_image`, so treat each call as one-shot.
 
 ## Limits *(vendor + measured)*
 

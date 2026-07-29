@@ -34,7 +34,7 @@ const {
   subtitle,
   items,
   variant = 'cards',
-  eyebrow = 'Знакомая ситуация?',
+  eyebrow,
   alt = false,
   id = 'problems',
 } = Astro.props;
@@ -55,12 +55,14 @@ const iconPath = (key?: string) => ICONS[key ?? 'alert'] ?? ICONS.alert;
 <section class:list={['section', { 'section--alt': alt }]} id={id}>
   <div class="container">
     <div class="section__head" data-animate>
-      <span class="eyebrow">
-        <span class="eyebrow__icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d={ICONS.alert} /></svg>
+      {eyebrow && (
+        <span class="eyebrow">
+          <span class="eyebrow__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d={ICONS.alert} /></svg>
+          </span>
+          {eyebrow}
         </span>
-        {eyebrow}
-      </span>
+      )}
       <h2 class="section__title">{nbsp(title)}</h2>
       {subtitle && <p class="section__sub">{nbsp(subtitle)}</p>}
     </div>

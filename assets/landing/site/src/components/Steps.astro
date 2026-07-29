@@ -33,7 +33,7 @@ const {
   subtitle,
   items,
   variant = 'timeline',
-  eyebrow = 'Как всё будет?',
+  eyebrow,
   alt = false,
   id = 'steps',
 } = Astro.props;
@@ -44,12 +44,14 @@ const ROUTE_D = 'M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0
 <section class:list={['section', { 'section--alt': alt }]} id={id}>
   <div class="container">
     <div class="section__head" data-animate>
-      <span class="eyebrow">
-        <span class="eyebrow__icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d={ROUTE_D} /></svg>
+      {eyebrow && (
+        <span class="eyebrow">
+          <span class="eyebrow__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d={ROUTE_D} /></svg>
+          </span>
+          {eyebrow}
         </span>
-        {eyebrow}
-      </span>
+      )}
       <h2 class="section__title">{nbsp(title)}</h2>
       {subtitle && <p class="section__sub">{nbsp(subtitle)}</p>}
     </div>

@@ -1,0 +1,94 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Hero from '../../components/Hero.astro';
+import LeadFormSection from '../../components/LeadFormSection.astro';
+import Contacts from '../../components/Contacts.astro';
+import Footer from '../../components/Footer.astro';
+import { placeholder as c } from '../../data/placeholder';
+
+/*
+ * КАРКАС ВНУТРЕННЕЙ СТРАНИЦЫ — показывает, как устроен маршрут, и ничего больше.
+ * Файл в `src/pages/uslugi/` = маршрут `/uslugi/<имя-файла>`; ссылки на него
+ * пишутся от корня (`/uslugi/…`), без `.html` и без относительных путей.
+ *
+ * Что обязательно СВОЁ на каждой такой странице: <h1>, title, description.
+ * Скопируешь их с главной — поисковик склеит страницы как дубли.
+ *
+ * Смысл внутренней страницы: узкий запрос со своим набором секций и своим
+ * прайсом, а не копия главной. Переименуй файл под свой маршрут, набери секции
+ * по docs/landing-spec.md и заведи контент в своём `src/data/<проект>.ts`.
+ * Не нужна многостраничность — удали и файл, и пункт nav в data-файле.
+ */
+---
+
+<BaseLayout
+  title="[[Title внутренней страницы: узкий запрос + город, до 60 символов]]"
+  description="[[Description: чем закрываете запрос этой страницы, 120–160 символов]]"
+  ogImage={c.hero.image}
+  animations={false}
+>
+  <Header
+    logo={c.brand}
+    phone={c.phone}
+    workHours={c.workHours}
+    nav={c.nav}
+    variant="classic"
+    logoIcon={true}
+  />
+
+  <Hero
+    title="[[H1 страницы: узкий запрос, не повторяет H1 главной, 4–7 слов]]"
+    subtitle="[[Подзаголовок: конкретика именно по этому запросу, 6–12 слов]]"
+    status={c.hero.status}
+    statusOffline={c.hero.statusOffline}
+    bullets={c.hero.bullets}
+    promo={c.hero.promo}
+    workHours={c.workHours}
+    rating={c.hero.rating}
+    phone={c.phone}
+    image={c.hero.image}
+    imageAlt={c.hero.imageAlt}
+    variant="split"
+  />
+
+  {/*
+    ↓ ТЕЛО СТРАНИЦЫ: секции под этот конкретный запрос. Прайс сужается до
+    профильных групп, FAQ отвечает на вопросы именно этой услуги.
+  */}
+
+  <LeadFormSection
+    id="lead"
+    variant="split"
+    title="[[H2 у формы под запрос этой страницы, 6–10 слов]]"
+    subtitle="[[Подзаголовок: срок ответа и что будет дальше, 8–14 слов]]"
+    promo={c.hero.promo}
+    phone={c.phone}
+    dataForm="service"
+  />
+
+  <Contacts
+    id="contacts"
+    alt={true}
+    title={c.contacts.title}
+    subtitle={c.contacts.subtitle}
+    phone={c.phone}
+    workHours={c.workHours}
+    address={c.contacts.address}
+    radius={c.contacts.radius}
+    email={c.contacts.email}
+    variant="map"
+  />
+
+  <Footer
+    brand={c.brand}
+    phone={c.phone}
+    workHours={c.workHours}
+    address={c.contacts.address}
+    nav={c.nav}
+    requisites={c.requisites}
+    tagline="[[Строка в подвале: чем занимаетесь и где, 6–12 слов]]"
+    variant="columns"
+    logoIcon={true}
+  />
+</BaseLayout>

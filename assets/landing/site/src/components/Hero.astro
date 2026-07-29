@@ -47,7 +47,7 @@ const {
   image,
   imageAlt = '',
   variant = 'default',
-  ctaText = 'Вызвать мастера',
+  ctaText = 'Оставить заявку',
   phone,
 } = Astro.props;
 
@@ -141,7 +141,7 @@ const closeTime = workTimeMatch?.[workTimeMatch.length - 1] ?? null;
         {image ? (
           <img class="hero__media-img" src={image} alt={imageAlt} width="1200" height="896" fetchpriority="high" />
         ) : (
-          <div class="hero__media-ph" role="img" aria-label="Место для фото мастера или техники">
+          <div class="hero__media-ph" role="img" aria-label="Место для фото">
             <svg viewBox="0 0 24 24" width="72" height="72" fill="currentColor" aria-hidden="true"><path d="M19 8h-1V3H6v5H5a3 3 0 0 0-3 3v6h4v3h12v-3h4v-6a3 3 0 0 0-3-3zM8 5h8v3H8V5zm8 14H8v-4h8v4zm3-5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/></svg>
           </div>
         )}

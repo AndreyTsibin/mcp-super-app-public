@@ -67,7 +67,7 @@ claude mcp add mcp-super-app -s user -- ~/mcp-super-app/launch.sh
 
 ### Шаг 5 — ключ OpenRouter (только если нужна генерация картинок)
 
-Инструмент `generate_image` требует свой ключ OpenRouter. Все остальные
+Инструмент `create_image` требует свой ключ OpenRouter. Все остальные
 инструменты работают без каких-либо ключей.
 
 Спроси пользователя, нужна ли ему генерация картинок.
@@ -95,7 +95,7 @@ claude mcp add mcp-super-app -s user -- ~/mcp-super-app/launch.sh
 без этого новый сервер не подхватится.
 
 После перезапуска инструменты `bootstrap_project`, `install_skill`,
-`scaffold_landing`, `install_guard`, `generate_image`, `optimize_images`,
+`create_website`, `install_guard`, `create_image`, `optimize_images`,
 `search_icons`, `get_icon` должны быть доступны в любом чате.
 
 Проверить список подключённых серверов:
@@ -113,7 +113,7 @@ claude mcp list
 | Инструментов нет в чате | Claude Code не перезапущен. Закрой и открой заново. |
 | `Cannot find module .../dist/index.js` | Не прошёл `npm run build`. Повтори шаг 3. |
 | `command not found: claude` | Claude Code стоит не как CLI. Подключи сервер вручную — см. раздел «Подключение к Claude Code» в [README.md](README.md). |
-| `generate_image` ругается на ключ | Нет `.env` или в нём неверный ключ. См. шаг 5. |
+| `create_image` ругается на ключ | Нет `.env` или в нём неверный ключ. См. шаг 5. |
 | `install_guard` работает, но ничего не блокирует | Не установлен `jq`. Поставь: `brew install jq`. |
 
 ## Обновление до свежей версии

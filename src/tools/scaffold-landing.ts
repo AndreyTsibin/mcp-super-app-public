@@ -1,12 +1,16 @@
 import path from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 
-import { toolError } from "../lib/errors.js";
 import { Scaffold, assetPath, assertProjectDir } from "../lib/scaffold.js";
 import { runInstall } from "../lib/skills-install.js";
+import { renderHandoffStub } from "../lib/templates/claude-md.js";
+import {
+  SESSION_PROTOCOL_MARKER,
+  renderSessionProtocol,
+  renderSessionProtocolHeader,
+} from "../lib/templates/session-protocol.js";
 
 const execFileP = promisify(execFile);
 
@@ -19,7 +23,7 @@ const execFileP = promisify(execFile);
  *   calques, dash-as-connector); apply as an editing checklist, never as blind
  *   autoreplace. Russian only — landings are RU by design; an English landing
  *   would reach for the upstream blader/humanizer instead.
- * - image: model-specific prompts for generate_image (landing imagery step)
+ * - image: model-specific prompts for create_image (landing imagery step)
  * Motion (emil-design-skills) is intentionally left out — install on demand for
  * landings that actually need animation.
  */
@@ -42,27 +46,16 @@ const TEMPLATE_SKIP = ["node_modules", "dist", ".astro"] as const;
 
 const NPM_INSTALL_TIMEOUT_MS = 300_000;
 
-export const scaffoldLandingInputSchema = {
-  project_path: z
-    .string()
-    .min(1)
-    .describe("Absolute path to the target landing project directory (must exist)."),
-  name: z
-    .string()
-    .optional()
-    .describe("Landing name — used in the previewer config label and the report. Optional."),
-  install_deps: z
-    .boolean()
-    .optional()
-    .describe("Run `npm install` after scaffolding (default true). Astro won't start without it."),
-};
-
-export const scaffoldLandingOutputSchema = {
+export const scaffoldLandingOutputShape = {
   created: z.array(z.string()).describe("Paths that were created (relative to project)."),
+  updated: z
+    .array(z.string())
+    .describe("Existing files a block was appended to (.claude/CLAUDE.md)."),
   skipped: z
     .array(z.string())
     .describe("Paths left untouched because they already existed."),
   flow: z.string().describe("Entry point for the build flow to read first."),
+  tracker: z.string().describe("Task tracker: one row = one session."),
   preview_port: z.number().describe("Port the Astro dev server (launch.json) serves on."),
   deps_installed: z.boolean().describe("Whether `npm install` completed successfully."),
   deps_error: z
@@ -75,13 +68,15 @@ export const scaffoldLandingOutputSchema = {
   skills_failed: z
     .array(z.object({ skill: z.string(), error: z.string() }))
     .describe("Skills that failed to install (e.g. proxied CLI offline) — install by hand later."),
-  next_steps: z.array(z.string()).describe("The landing build flow, in order."),
+  next_steps: z.array(z.string()).describe("What happens in the next session — task 1 only."),
 };
 
-type ScaffoldLandingResult = {
+export type ScaffoldLandingResult = {
   created: string[];
+  updated: string[];
   skipped: string[];
   flow: string;
+  tracker: string;
   preview_port: number;
   deps_installed: boolean;
   deps_error?: string;
@@ -107,25 +102,19 @@ function renderLaunchJson(name?: string): string {
 }
 
 const FLOW_DOC = "docs/landing-flow.md";
+const TRACKER_DOC = "docs/_dev/tracker.md";
 
 function buildNextSteps(): string[] {
   return [
     "СТОП: скиллы поставлены, но подхватятся только при старте новой сессии. Попроси пользователя перезапустить приложение/сессию Claude Code и продолжай уже в новой сессии.",
-    `В новой сессии: прочитай ${FLOW_DOC} — это флоу сборки сайта (стандарты в docs/ читаешь по шагам).`,
-    "Скиллы /ui-ux-pro-max, /frontend-design, /humanizer-ru и /image поставлены в проект — используй их по флоу.",
-    "Собери минимум брифа одним блоком: город, телефон, компания/мастер, домен (опц. полный URL вебхука CRM, политика, реальные фото).",
-    "Определи профиль ниши (urgency/trust) и набери секции из каталога — docs/landing-spec.md. Полигон всех секций и вариантов: /kit.",
-    "Тема по docs/design-standard.md: перепиши src/data/themes.ts под нишу (3 контрастные) → покажи /themes в превью → пользователь выбирает (СТОП-точка) → перенеси токены в src/styles/theme.css.",
-    "Контент: заведи src/data/<проект>.ts вместо demo.ts, тексты по docs/landing-spec.md (Hook→…→Action, язык 5–7 класса) + финальный проход /humanizer-ru как чек-лист редактуры. Именно /humanizer-ru, не глобальный /humanizer.",
-    "Собери страницы из секций: src/pages/index.astro (главная) + внутренние по маршрутам. Образцы уже лежат в проекте — перепиши под нишу, чужую не оставляй.",
-    "Картинки по docs/image-standard.md: промпты скиллом /image со стилем выбранной темы, generate_image в public/assets/img (hero первым → reference_images для остальных), AI-людей «под реальных» не делать; в конце optimize_images.",
-    "Заявки: public/send.php и public/assets/lead-form.js уже развёрнуты — подставь WEBHOOK_URL и политику по docs/ЗАЯВКИ-инструкция-для-Claude.md, контракт полей не меняй. В astro.config.mjs подставь боевой домен (site) — иначе canonical и OG соберутся на example.com.",
-    `Критика-луп по docs/critique-standard.md: previewer (порт ${PREVIEW_PORT}), скриншоты 375/768/1440, рубрика с баллами, gate «все оси ≥7, средняя ≥8», max 2 итерации правок.`,
-    "Финальная проверка: npm run build → node .claude/check-landing.mjs (❌ чини до чистого прогона) + живой тест формы; затем zip из dist/ + отчёт — в docs/landing-flow.md.",
+    `В новой сессии открой ${TRACKER_DOC} и возьми задачу 1 — бриф и план сайта. Только её.`,
+    `Общая картина флоу — ${FLOW_DOC}; стандарт под текущую задачу указан в её строке трекера, остальные не грузи.`,
+    "Задача 1: собери бриф одним блоком (город, телефон, компания/мастер, домен) и определи профиль ниши, карту страниц и набор секций — запиши план в трекер.",
+    "Дальше: коммит → отметка в трекере → .claude/HANDOFF.md → СТОП. Задача 2 (тема) — следующая сессия.",
   ];
 }
 
-async function runScaffoldLanding(
+export async function runScaffoldLanding(
   projectPath: string,
   name?: string,
   installDeps = true,
@@ -138,8 +127,22 @@ async function runScaffoldLanding(
   // lead-capture templates (public/send.php + public/assets/lead-form.js).
   await s.copyDir(assetPath("landing", "site"), root, { skip: TEMPLATE_SKIP });
 
-  // Standards + flow guide + maps → docs/
+  // Standards + flow guide + maps + task tracker → docs/
   await s.copyDir(assetPath("landing", "docs"), path.join(root, "docs"));
+
+  // The one-task-per-session rule. Appended, not written: bootstrap_project
+  // already leaves a CLAUDE.md in most projects and it must survive.
+  await s.ensureBlock(
+    path.join(root, ".claude", "CLAUDE.md"),
+    SESSION_PROTOCOL_MARKER,
+    renderSessionProtocol(FLOW_DOC),
+    renderSessionProtocolHeader(),
+  );
+
+  // The protocol tells the agent to rewrite the handoff at the end of every
+  // session — so the file has to exist even when the project didn't come from
+  // bootstrap_project.
+  await s.writeFile(path.join(root, ".claude", "HANDOFF.md"), renderHandoffStub());
 
   // Previewer config (Astro dev server)
   await s.writeFile(path.join(root, ".claude", "launch.json"), renderLaunchJson(name));
@@ -187,8 +190,10 @@ async function runScaffoldLanding(
   const rel = (p: string) => path.relative(root, p);
   return {
     created: s.created.map((e) => rel(e.path)),
+    updated: s.updated.map((e) => rel(e.path)),
     skipped: s.skipped.map((e) => rel(e.path)),
     flow: FLOW_DOC,
+    tracker: TRACKER_DOC,
     preview_port: PREVIEW_PORT,
     deps_installed,
     ...(deps_error ? { deps_error } : {}),
@@ -198,18 +203,26 @@ async function runScaffoldLanding(
   };
 }
 
-function formatReport(r: ScaffoldLandingResult): string {
+export function formatLandingReport(r: ScaffoldLandingResult): string {
   const lines: string[] = [];
   lines.push(
-    `Astro-среда генератора развёрнута. Создано: ${r.created.length}, пропущено: ${r.skipped.length}.`,
+    `Astro-среда генератора развёрнута. Создано: ${r.created.length}, дополнено: ${r.updated.length}, пропущено: ${r.skipped.length}.`,
   );
   if (r.created.length) {
     lines.push("", "Создано:", ...r.created.map((p) => `  + ${p}`));
   }
+  if (r.updated.length) {
+    lines.push("", "Дополнено (блок протокола сессии):", ...r.updated.map((p) => `  ~ ${p}`));
+  }
   if (r.skipped.length) {
     lines.push("", "Пропущено (уже существовало):", ...r.skipped.map((p) => `  · ${p}`));
   }
-  lines.push("", `Точка входа: ${r.flow}`, `Превью: порт ${r.preview_port} (.claude/launch.json)`);
+  lines.push(
+    "",
+    `Трекер: ${r.tracker} — одна строка = одна сессия.`,
+    `Флоу целиком: ${r.flow}`,
+    `Превью: порт ${r.preview_port} (.claude/launch.json)`,
+  );
   lines.push(
     r.deps_installed
       ? "Зависимости: npm install прошёл, `npm run dev` готов к запуску."
@@ -229,34 +242,6 @@ function formatReport(r: ScaffoldLandingResult): string {
       ...r.skills_failed.map((f) => `  ! ${f.skill}: ${f.error}`),
     );
   }
-  lines.push("", "Флоу сборки:", ...r.next_steps.map((s) => `  → ${s}`));
+  lines.push("", "Дальше:", ...r.next_steps.map((s) => `  → ${s}`));
   return lines.join("\n");
-}
-
-export function registerScaffoldLanding(server: McpServer): void {
-  server.registerTool(
-    "scaffold_landing",
-    {
-      title: "Scaffold landing",
-      description:
-        "Materialize the landing-generator environment into a project (one project = one site): an Astro project with a 21-section library (Hero, Problems, Steps, Benefits, Cases, Prices, Reviews, FAQ, Contacts… each with layout variants), a token contract (styles/tokens.css) split from project values (styles/theme.css), a theme-picker page (/themes) and a section playground (/kit), sample pages incl. a multi-page route and a privacy page, the lead-capture templates (public/send.php + public/assets/lead-form.js), docs/ standards (flow guide, section catalog with niche profiles, theme standard, Astro tech standard, image standard, critique rubric, lead-capture contract, TZ template, maps), a previewer config (.claude/launch.json) and a machine validator (.claude/check-landing.mjs). Runs `npm install` (Astro won't start without it) and installs the skills the build flow needs (ui-ux-pro-max, frontend-design, humanizer-ru, image). Idempotent: existing files are never overwritten. IMPORTANT: installed skills load only at session start — after scaffolding, STOP and ask the user to restart the Claude Code app/session; the site is then built in the new session starting from docs/landing-flow.md.",
-      inputSchema: scaffoldLandingInputSchema,
-      outputSchema: scaffoldLandingOutputSchema,
-    },
-    async (args: { project_path: string; name?: string; install_deps?: boolean }) => {
-      try {
-        const result = await runScaffoldLanding(
-          args.project_path,
-          args.name,
-          args.install_deps ?? true,
-        );
-        return {
-          content: [{ type: "text" as const, text: formatReport(result) }],
-          structuredContent: result,
-        };
-      } catch (error) {
-        return toolError(error);
-      }
-    },
-  );
 }

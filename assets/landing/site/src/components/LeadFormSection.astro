@@ -28,9 +28,9 @@ interface Props {
 }
 
 const {
-  title, subtitle, promo, phone, note = 'Перезвоним за 5 минут и назовём цену',
+  title, subtitle, promo, phone, note,
   variant = 'split', submitText = 'Оставить заявку', dataForm = 'section',
-  policyHref = '/privacy', eyebrow = 'Хочу узнать цену без звонка', id = 'lead',
+  policyHref = '/privacy', eyebrow, id = 'lead',
 } = Astro.props;
 
 const telHref = phone ? 'tel:' + phone.replace(/[^\d+]/g, '') : null;
@@ -59,7 +59,7 @@ const PAPER_PLANE = 'M3 11 21 3l-8 18-2.5-6.5L3 11z';
       </div>
 
       <div class="lead-sec__card">
-        <p class="lead-sec__card-note">{nbsp(note)}</p>
+        {note && <p class="lead-sec__card-note">{nbsp(note)}</p>}
         <LeadForm dataForm={dataForm} submitText={submitText} policyHref={policyHref} layout="stacked" />
       </div>
     </div>

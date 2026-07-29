@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1205" width="900" height="1205" role="img" aria-label="Место для вертикального кадра 900 на 1205">
+  <rect width="900" height="1205" fill="#e9eaee"/>
+  <rect x="8" y="8" width="884" height="1189" fill="none" stroke="#b9bcc6" stroke-width="4" stroke-dasharray="24 16"/>
+  <g fill="#8b8fa0" font-family="system-ui, -apple-system, Segoe UI, Roboto, sans-serif" text-anchor="middle">
+    <text x="450" y="570" font-size="52" font-weight="700">900 × 1205</text>
+    <text x="450" y="630" font-size="28">заменить кадром из image-пайплайна</text>
+  </g>
+</svg>

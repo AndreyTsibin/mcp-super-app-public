@@ -30,7 +30,7 @@ const {
   image,
   imageAlt = '',
   variant = 'stats',
-  eyebrow = 'Не окажетесь ли завтра закрыты?',
+  eyebrow,
   alt = false,
   id = 'about',
 } = Astro.props;
@@ -43,12 +43,14 @@ const BUILDING = 'M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16h4v2H2v-2zm4-14h2v2H8z
     <div class:list={['about', `about--${variant}`]}>
       <div class="about__content" data-animate>
         <div class="about__head">
-          <span class="eyebrow">
-            <span class="eyebrow__icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d={BUILDING} /></svg>
+          {eyebrow && (
+            <span class="eyebrow">
+              <span class="eyebrow__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d={BUILDING} /></svg>
+              </span>
+              {eyebrow}
             </span>
-            {eyebrow}
-          </span>
+          )}
           <h2 class="section__title">{nbsp(title)}</h2>
           {subtitle && <p class="section__sub">{nbsp(subtitle)}</p>}
         </div>

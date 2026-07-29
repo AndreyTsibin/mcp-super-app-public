@@ -58,7 +58,7 @@ Cormorant Garamond, Lora, Bitter, IBM Plex Serif, Alegreya.
 `themeColor` (равен `--color-primary` темы — CSS-переменную туда подставить нельзя,
 `<meta>` читается до стилей).
 
-Перед сдачей: `src/pages/themes.astro`, `src/pages/kit.astro` и `src/data/demo.ts`
+Перед сдачей: `src/pages/themes.astro`, `src/pages/kit.astro` и `src/data/placeholder.ts`
 удаляются — это среда сборки, а не сайт клиента.
 
 **Правило whitelist:** с этого момента вёрстка использует только цвета темы и их

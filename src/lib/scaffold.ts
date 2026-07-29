@@ -70,7 +70,8 @@ export async function assertProjectDir(projectPath: string): Promise<void> {
 export interface ScaffoldEntry {
   /** Absolute path of the target. */
   path: string;
-  status: "created" | "skipped";
+  /** `updated` — the file existed and a block was appended to it (ensureBlock). */
+  status: "created" | "skipped" | "updated";
   /** Why it was skipped, when applicable. */
   note?: string;
 }
@@ -151,6 +152,40 @@ export class Scaffold {
     }
   }
 
+  /**
+   * Make sure a marked block is present in a file, without clobbering what the
+   * file already says. Three cases:
+   *   - file absent  → created with `header` + the block;
+   *   - marker found → left alone (skipped), so a hand-edited block survives;
+   *   - otherwise    → the block is appended (updated).
+   *
+   * Needed because a project's `.claude/CLAUDE.md` usually exists already
+   * (bootstrap_project writes one), and write-if-absent would silently drop
+   * the rules the flow depends on.
+   */
+  async ensureBlock(
+    absPath: string,
+    marker: string,
+    block: string,
+    header = "",
+  ): Promise<void> {
+    const body = block.endsWith("\n") ? block : `${block}\n`;
+    if (!(await exists(absPath))) {
+      await fs.mkdir(path.dirname(absPath), { recursive: true });
+      await fs.writeFile(absPath, `${header}${body}`, "utf8");
+      this.entries.push({ path: absPath, status: "created" });
+      return;
+    }
+    const current = await fs.readFile(absPath, "utf8");
+    if (current.includes(marker)) {
+      this.entries.push({ path: absPath, status: "skipped", note: "block already present" });
+      return;
+    }
+    const separator = current.endsWith("\n") ? "\n" : "\n\n";
+    await fs.writeFile(absPath, `${current}${separator}${body}`, "utf8");
+    this.entries.push({ path: absPath, status: "updated", note: "block appended" });
+  }
+
   /** Create a directory (recursively). Reported only when newly created. */
   async ensureDir(absPath: string): Promise<void> {
     if (await exists(absPath)) return;
@@ -164,5 +199,9 @@ export class Scaffold {
 
   get skipped(): ScaffoldEntry[] {
     return this.entries.filter((e) => e.status === "skipped");
+  }
+
+  get updated(): ScaffoldEntry[] {
+    return this.entries.filter((e) => e.status === "updated");
   }
 }

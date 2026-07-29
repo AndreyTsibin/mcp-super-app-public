@@ -17,7 +17,7 @@ interface Props {
   subtitle?: string;
   groups: PriceGroup[];
   ctaText?: string;
-  note?: string;             // дисклеймер под прайсом («точная цена после диагностики»)
+  note?: string;             // дисклеймер под прайсом: от чего зависит итоговая сумма
   variant?: 'columns' | 'stacked' | 'cards';
   eyebrow?: string;
   alt?: boolean;
@@ -28,10 +28,10 @@ const {
   title,
   subtitle,
   groups,
-  ctaText = 'Рассчитать стоимость ремонта',
+  ctaText = 'Рассчитать стоимость',
   note,
   variant = 'columns',
-  eyebrow = 'Хочу сам посмотреть все цены',
+  eyebrow,
   alt = false,
   id = 'pricelist',
 } = Astro.props;
@@ -42,12 +42,14 @@ const TAG = 'M21.4 11.6 12.4 2.6A2 2 0 0 0 11 2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 .6 1
 <section class:list={['section', { 'section--alt': alt }]} id={id}>
   <div class="container">
     <div class="section__head" data-animate>
-      <span class="eyebrow">
-        <span class="eyebrow__icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d={TAG} /></svg>
+      {eyebrow && (
+        <span class="eyebrow">
+          <span class="eyebrow__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d={TAG} /></svg>
+          </span>
+          {eyebrow}
         </span>
-        {eyebrow}
-      </span>
+      )}
       <h2 class="section__title">{nbsp(title)}</h2>
       {subtitle && <p class="section__sub">{nbsp(subtitle)}</p>}
     </div>

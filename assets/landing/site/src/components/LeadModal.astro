@@ -15,7 +15,7 @@ interface Props {
 
 const {
   title = 'Оставьте заявку',
-  subtitle = 'Перезвоним за 5 минут и назовём цену',
+  subtitle,
   submitText = 'Отправить заявку',
   policyHref = '/privacy',
 } = Astro.props;
@@ -25,7 +25,7 @@ const {
   <div class="lead-modal__box">
     <button class="lead-modal__close" type="button" aria-label="Закрыть" data-close-modal>&times;</button>
     <h2 class="lead-modal__title">{title}</h2>
-    <p class="lead-modal__sub">{subtitle}</p>
+    {subtitle && <p class="lead-modal__sub">{subtitle}</p>}
     <LeadForm dataForm="popup" submitText={submitText} policyHref={policyHref} layout="stacked" />
   </div>
 </dialog>

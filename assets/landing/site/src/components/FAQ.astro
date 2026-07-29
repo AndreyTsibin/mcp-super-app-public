@@ -20,7 +20,7 @@ interface Props {
   id?: string;
 }
 
-const { title, subtitle, items, variant = 'list', eyebrow = 'Остались вопросы?', alt = false, id = 'faq' } = Astro.props;
+const { title, subtitle, items, variant = 'list', eyebrow, alt = false, id = 'faq' } = Astro.props;
 
 const QUESTION = 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm.9 15.5h-1.8v-1.8h1.8zm1.9-6.8-.8.9c-.7.7-1.1 1.2-1.1 2.5h-1.8v-.5c0-1 .4-1.7 1.1-2.5l1.1-1.2c.3-.4.5-.8.5-1.3 0-1-.8-1.7-1.9-1.7-1 0-1.8.6-2 1.6l-1.9-.3C7.2 6.2 8.9 5 11 5c2.3 0 4 1.5 4 3.6 0 1-.4 1.7-1.2 2.6z';
 ---
@@ -28,12 +28,14 @@ const QUESTION = 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm.9 15.5h-1.8v-1.8h1.8
 <section class:list={['section', { 'section--alt': alt }]} id={id}>
   <div class:list={['container', 'faq', `faq--${variant}`]}>
     <div class:list={['section__head', 'faq__head']} data-animate>
-      <span class="eyebrow">
-        <span class="eyebrow__icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d={QUESTION} /></svg>
+      {eyebrow && (
+        <span class="eyebrow">
+          <span class="eyebrow__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d={QUESTION} /></svg>
+          </span>
+          {eyebrow}
         </span>
-        {eyebrow}
-      </span>
+      )}
       <h2 class="section__title">{nbsp(title)}</h2>
       {subtitle && <p class="section__sub">{nbsp(subtitle)}</p>}
     </div>

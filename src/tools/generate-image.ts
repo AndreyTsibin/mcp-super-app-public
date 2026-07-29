@@ -1,18 +1,19 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 
-import { ToolError, toolError } from "../lib/errors.js";
-import { PROMPT_SOURCE_DESCRIPTION, assertPromptSkill } from "../lib/image-skill.js";
+import { ToolError } from "../lib/errors.js";
 import {
   DEFAULT_IMAGE_MODEL,
   generateImage,
   type GeneratedImage,
 } from "../lib/openrouter.js";
 
-/** Default output dir (relative to the server's cwd = the project). */
-const DEFAULT_SAVE_DIR = "./generated";
+/**
+ * OpenRouter engine behind the `create_image` router. Not registered as a tool
+ * on its own — the router owns the prompt-skill gate, the provider choice and
+ * the save_dir/filename resolution.
+ */
 
 const MIME_EXT: Record<string, string> = {
   "image/png": "png",
@@ -62,14 +63,8 @@ async function resolveReferences(refs: string[]): Promise<string[]> {
   return out;
 }
 
-export const generateImageInputSchema = {
-  prompt: z
-    .string()
-    .min(1)
-    .describe(
-      "What to generate. ОБЯЗАТЕЛЬНО собери его скиллом 'image' — у каждой модели свой синтаксис промпта. Тул откажет, если скилла нет в проекте или не заполнен prompt_source.",
-    ),
-  prompt_source: z.string().min(1).describe(PROMPT_SOURCE_DESCRIPTION),
+/** Provider-specific half of the router's input schema (provider='openrouter'). */
+export const openrouterInputShape = {
   model: z
     .string()
     .optional()
@@ -127,51 +122,26 @@ Deliberately not listed: OpenAI image models and google/gemini-3.1-flash-lite-im
     .enum(["png", "jpeg", "webp"])
     .optional()
     .describe("Output format. Provider-dependent; default is the model's own."),
-  save_dir: z
-    .string()
-    .optional()
-    .describe(
-      `Where to save (absolute, or relative to the project cwd). Default: ${DEFAULT_SAVE_DIR}.`,
-    ),
-  filename: z
-    .string()
-    .optional()
-    .describe("Base filename (extension added by MIME). Default: slug of the prompt + timestamp."),
-  project_path: z
-    .string()
-    .optional()
-    .describe(
-      "Project root where the 'image' prompt skill is checked/installed. Default: the server cwd.",
-    ),
 };
 
-export const generateImageOutputSchema = {
-  model: z.string(),
-  paths: z.array(z.string()).describe("Absolute paths of the saved image files."),
-  count: z.number(),
-  cost: z.number().optional().describe("Total cost in USD, when reported."),
-  save_dir: z.string(),
+export type OpenrouterArgs = {
+  prompt: string;
+  model?: string;
+  aspect_ratio?: string;
+  resolution?: string;
+  size?: string;
+  n?: number;
+  seed?: number;
+  reference_images?: string[];
+  output_format?: "png" | "jpeg" | "webp";
 };
 
-type GenerateImageToolResult = {
+export type GenerateImageResult = {
   model: string;
   paths: string[];
   count: number;
   cost?: number;
-  save_dir: string;
 };
-
-/** Derive a base filename (no extension) from an explicit name or the prompt. */
-function baseName(filename: string | undefined, prompt: string): string {
-  if (filename?.trim()) return filename.trim().replace(/\.[a-z0-9]+$/i, "");
-  const slug =
-    prompt
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .slice(0, 40) || "image";
-  return `${slug}-${Date.now()}`;
-}
 
 async function saveImages(
   images: GeneratedImage[],
@@ -192,7 +162,7 @@ async function saveImages(
   return paths;
 }
 
-function formatReport(r: GenerateImageToolResult): string {
+export function formatOpenrouterReport(r: GenerateImageResult): string {
   const lines: string[] = [];
   lines.push(`Сгенерировано: ${r.count} (модель ${r.model}).`);
   lines.push("Сохранено:", ...r.paths.map((p) => `  ${p}`));
@@ -200,81 +170,38 @@ function formatReport(r: GenerateImageToolResult): string {
   return lines.join("\n");
 }
 
-export function registerGenerateImage(server: McpServer): void {
-  server.registerTool(
-    "generate_image",
-    {
-      title: "Generate image",
-      description:
-        "Generate or edit image(s) via OpenRouter and save them into the project, returning the image inline in chat plus the saved paths and cost. MANDATORY FIRST STEP: the prompt must be written with the bundled 'image' skill — each model needs its own prompt syntax, and Seedream in particular treats comma-separated tags as an anti-pattern. The tool refuses to generate when the skill is missing from the project (it installs it and tells you to read .claude/skills/image/SKILL.md from disk, then call again) or when `prompt_source` is empty. Default model is Seedream 4.5: $0.04 flat, up to 7.5MP, best prompt adherence — control framing with `aspect_ratio` and do NOT pass `size` (that only lowers the resolution for the same price). Seedream covers essentially every task; read the `model` description before picking anything else, it carries a measured decision table. EDITING: pass the source image via `reference_images` (local paths or URLs) plus an instruction in the prompt ('remove the sign', 'make the background lighter'); every image model here accepts image input. Name what must stay unchanged explicitly ('keeping its pose unchanged') — that is the vendor-documented way to avoid drift. Mask-based inpainting is NOT supported by this endpoint. Sizing is model-specific: Seedream takes `aspect_ratio` alone; Gemini needs `aspect_ratio` + `resolution:'2K'`. Files land in save_dir (default ./generated, relative to the project). AFTER GENERATING: raw output here is full-resolution and the wrong format for production — run `optimize_images` on save_dir before shipping (resize/webp/srcset). For a landing build (scaffold_landing) this is the mandatory last step of the image stage: generate the whole series first (hero → reference_images for the rest, same 'photoshoot'), then one `optimize_images` call on assets/img at the end — never optimize between individual generations. Requires OPENROUTER_API_KEY in the server .env.",
-      inputSchema: generateImageInputSchema,
-      outputSchema: generateImageOutputSchema,
+/**
+ * Generate via OpenRouter and save the frames. The prompt-skill gate lives in
+ * the router, which is the only caller — args arriving here are already checked.
+ */
+export async function runGenerateImage(
+  args: OpenrouterArgs,
+  saveDir: string,
+  base: string,
+): Promise<{ result: GenerateImageResult; images: GeneratedImage[] }> {
+  const generated = await generateImage({
+    prompt: args.prompt,
+    model: args.model,
+    aspect_ratio: args.aspect_ratio,
+    resolution: args.resolution,
+    size: args.size,
+    n: args.n,
+    seed: args.seed,
+    output_format: args.output_format,
+    reference_images: args.reference_images?.length
+      ? await resolveReferences(args.reference_images)
+      : undefined,
+  });
+
+  const paths = await saveImages(generated.images, saveDir, base);
+
+  return {
+    result: {
+      model: generated.model,
+      paths,
+      count: generated.images.length,
+      cost: generated.cost,
     },
-    async (args: {
-      prompt: string;
-      prompt_source: string;
-      model?: string;
-      aspect_ratio?: string;
-      resolution?: string;
-      size?: string;
-      n?: number;
-      seed?: number;
-      reference_images?: string[];
-      output_format?: "png" | "jpeg" | "webp";
-      save_dir?: string;
-      filename?: string;
-      project_path?: string;
-    }) => {
-      try {
-        // Gate first: no frame is generated until the prompt went through the skill.
-        await assertPromptSkill(
-          args.project_path?.trim() || process.cwd(),
-          args.prompt_source,
-        );
-
-        const result = await generateImage({
-          prompt: args.prompt,
-          model: args.model,
-          aspect_ratio: args.aspect_ratio,
-          resolution: args.resolution,
-          size: args.size,
-          n: args.n,
-          seed: args.seed,
-          output_format: args.output_format,
-          reference_images: args.reference_images?.length
-            ? await resolveReferences(args.reference_images)
-            : undefined,
-        });
-
-        const saveDir = args.save_dir?.trim() || DEFAULT_SAVE_DIR;
-        const paths = await saveImages(
-          result.images,
-          saveDir,
-          baseName(args.filename, args.prompt),
-        );
-
-        const structured: GenerateImageToolResult = {
-          model: result.model,
-          paths,
-          count: result.images.length,
-          cost: result.cost,
-          save_dir: saveDir,
-        };
-
-        return {
-          content: [
-            ...result.images.map((img) => ({
-              type: "image" as const,
-              data: img.b64,
-              mimeType: img.mediaType,
-            })),
-            { type: "text" as const, text: formatReport(structured) },
-          ],
-          structuredContent: structured,
-        };
-      } catch (error) {
-        return toolError(error);
-      }
-    },
-  );
+    images: generated.images,
+  };
 }

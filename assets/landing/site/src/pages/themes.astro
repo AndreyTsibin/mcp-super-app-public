@@ -2,7 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/Hero.astro';
 import Benefits from '../components/Benefits.astro';
-import { demo } from '../data/demo';
+import { placeholder as c } from '../data/placeholder';
 import { themes, themeStyle, themesFontsHref } from '../data/themes';
 
 /*
@@ -16,12 +16,12 @@ import { themes, themeStyle, themesFontsHref } from '../data/themes';
  *
  * Служебная страница: noindex, удаляется перед сдачей клиенту.
  */
-const heroBullets = demo.hero.bullets.slice(0, 2);
-const benefitItems = demo.benefits.items.slice(0, 3);
+const heroBullets = c.hero.bullets.slice(0, 2);
+const benefitItems = c.benefits.items.slice(0, 3);
 ---
 
 <BaseLayout
-  title={`Выбор темы — ${demo.brand}`}
+  title={`Выбор темы — ${c.brand}`}
   description="Три темы оформления на реальных секциях библиотеки"
   fontsHref={themesFontsHref(themes)}
   noindex={true}
@@ -62,17 +62,17 @@ const benefitItems = demo.benefits.items.slice(0, 3);
       {/* Тема скоупится сюда — секции внутри наследуют её переменные как есть */}
       <div class="tile__preview" style={themeStyle(t)}>
         <Hero
-          title="Ремонт принтеров в Москве"
-          subtitle="С гарантией до 3 лет на все услуги и комплектующие"
-          status={demo.hero.status}
+          title={c.hero.title}
+          subtitle={c.hero.subtitle}
+          status={c.hero.status}
           bullets={heroBullets}
-          promo={demo.hero.promo}
-          rating={demo.hero.rating}
-          phone={demo.phone}
+          promo={c.hero.promo}
+          rating={c.hero.rating}
+          phone={c.phone}
           variant="centered"
         />
         <Benefits
-          title="Почему выбирают нас"
+          title={c.benefits.title}
           items={benefitItems}
           variant="cards"
           alt={true}

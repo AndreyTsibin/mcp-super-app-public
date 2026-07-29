@@ -2,7 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { demo } from '../data/demo';
+import { placeholder as c } from '../data/placeholder';
 
 /*
  * Политика конфиденциальности — обязательная страница: на неё ссылается чекбокс
@@ -12,21 +12,21 @@ import { demo } from '../data/demo';
  * ЗАПОЛНИТЬ перед сдачей: реквизиты оператора, адрес, дату редакции.
  * Текст типовой — при работе с медициной, финансами и детьми юрист обязателен.
  */
-const operator = demo.requisites.entity;
+const operator = c.requisites.entity;
 const updated = '27 июля 2026 года';
 ---
 
 <BaseLayout
-  title={`Политика конфиденциальности — ${demo.brand}`}
+  title={`Политика конфиденциальности — ${c.brand}`}
   description="Как мы собираем, храним и обрабатываем персональные данные посетителей сайта"
   noindex={true}
   animations={false}
 >
   <Header
-    logo={demo.brand}
-    phone={demo.phone}
-    workHours={demo.workHours}
-    nav={demo.nav}
+    logo={c.brand}
+    phone={c.phone}
+    workHours={c.workHours}
+    nav={c.nav}
     variant="classic"
     logoIcon={true}
   />
@@ -34,7 +34,7 @@ const updated = '27 июля 2026 года';
   <main class="section">
     <div class="container doc">
       <h1>Политика конфиденциальности</h1>
-      <p class="doc__meta">Редакция от {updated}. Оператор: {operator}, ИНН {demo.requisites.inn}.</p>
+      <p class="doc__meta">Редакция от {updated}. Оператор: {operator}, ИНН {c.requisites.inn}.</p>
 
       <h2>1. Общие положения</h2>
       <p>
@@ -52,7 +52,7 @@ const updated = '27 июля 2026 года';
 
       <h2>3. Зачем мы их обрабатываем</h2>
       <p>
-        Чтобы связаться с вами по заявке, согласовать выезд мастера и стоимость работ,
+        Чтобы связаться с вами по заявке, согласовать условия и стоимость работ,
         а также выполнить обязательства перед вами. Данные не используются для рассылок,
         если вы отдельно на них не подписались.
       </p>
@@ -60,7 +60,7 @@ const updated = '27 июля 2026 года';
       <h2>4. Передача третьим лицам</h2>
       <p>
         Данные передаются только тем, без кого невозможно исполнить заявку: сервису приёма
-        заявок и мастеру, который к вам выезжает. Мы не продаём и не передаём данные
+        заявок и сотруднику, который с вами работает. Мы не продаём и не передаём данные
         для рекламных целей.
       </p>
 
@@ -74,7 +74,7 @@ const updated = '27 июля 2026 года';
       <p>
         Вы вправе запросить, какие данные о вас хранятся, потребовать их исправления
         или удаления, а также отозвать согласие на обработку. Для этого напишите на
-        <a href={`mailto:${demo.contacts.email}`}>{demo.contacts.email}</a> —
+        <a href={`mailto:${c.contacts.email}`}>{c.contacts.email}</a> —
         ответим в течение 30 дней.
       </p>
 
@@ -93,13 +93,13 @@ const updated = '27 июля 2026 года';
   </main>
 
   <Footer
-    brand={demo.brand}
-    phone={demo.phone}
-    workHours={demo.workHours}
-    address={demo.contacts.address}
-    nav={demo.nav}
-    requisites={demo.requisites}
-    tagline="Ремонт принтеров и МФУ в Москве с выездом мастера. Гарантия до 3 лет."
+    brand={c.brand}
+    phone={c.phone}
+    workHours={c.workHours}
+    address={c.contacts.address}
+    nav={c.nav}
+    requisites={c.requisites}
+    tagline="[[Строка в подвале: чем занимаетесь и где, 6–12 слов]]"
     variant="columns"
     logoIcon={true}
   />

@@ -1,6 +1,6 @@
 # Portrait & Cinema Patterns
 
-Reusable prompt templates for cinematic portraits, atmospheric character photography, and mood-driven portraiture. Each pattern uses `{variables}` for customisation and carries the model plus the exact `generate_image` arguments to pass with it.
+Reusable prompt templates for cinematic portraits, atmospheric character photography, and mood-driven portraiture. Each pattern uses `{variables}` for customisation and carries the model plus the exact `create_image` arguments to pass with it.
 
 Default is **Seedream 4.5**, written as coherent prose — subject + action + environment first, then style, colour, light and composition. Never labelled slots or comma-separated tags: ByteDance names tag soup as the anti-pattern. Sizing rules live in SKILL.md step 2.
 

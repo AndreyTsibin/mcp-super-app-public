@@ -2,13 +2,34 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 
 import { toolError } from "../lib/errors.js";
-import { SKILL_IDS } from "../lib/skills.js";
+import { SKILLS, SKILL_IDS, proxiedCommand } from "../lib/skills.js";
 import { runInstall, type InstallResult } from "../lib/skills-install.js";
 
+/**
+ * The catalog the dropped `list_skills` tool used to return, rendered into the
+ * `skill` parameter description instead. A bare enum of six ids tells the agent
+ * nothing about what each skill is for, so it cannot pick one from a brief like
+ * "поставь скилл для анимаций"; generating the list from SKILLS keeps it a
+ * single source of truth that cannot drift.
+ */
+function skillCatalog(): string {
+  const rows = SKILLS.map((s) => {
+    const kind =
+      s.type === "proxied" ? `proxied, runs \`${proxiedCommand(s)}\`` : "bundled";
+    return `• ${s.id} (${kind}) — ${s.title}: ${s.description}`;
+  });
+  return [
+    "Skill id — the enum values are the valid ids. Catalog:",
+    "",
+    ...rows,
+    "",
+    "bundled = copied from the server's frozen payload; proxied = installed by running the " +
+      "third-party CLI shown above in the project, so the user gets its current release.",
+  ].join("\n");
+}
+
 export const installSkillInputSchema = {
-  skill: z
-    .enum(SKILL_IDS)
-    .describe("Skill id (bundled or proxied) — valid ids are the enum values."),
+  skill: z.enum(SKILL_IDS).describe(skillCatalog()),
   project_path: z
     .string()
     .min(1)
