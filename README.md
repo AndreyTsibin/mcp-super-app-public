@@ -65,7 +65,7 @@ cp .env.example .env
 **1. CLI** (глобально, для всех проектов — `-s user`):
 
 ```bash
-claude mcp add mcp-super-app -s user -- /абсолютный/путь/к/mcp-super-app/launch.sh
+claude mcp add mcp-super-app -s user -- node /абсолютный/путь/к/mcp-super-app/dist/index.js
 ```
 
 **2. Файл `.mcp.json`** (в корне проекта — для этого проекта, или в `~/.claude.json` — глобально):
@@ -74,16 +74,21 @@ claude mcp add mcp-super-app -s user -- /абсолютный/путь/к/mcp-su
 {
   "mcpServers": {
     "mcp-super-app": {
-      "command": "/абсолютный/путь/к/mcp-super-app/launch.sh"
+      "command": "node",
+      "args": ["/абсолютный/путь/к/mcp-super-app/dist/index.js"]
     }
   }
 }
 ```
 
-Подключение через `launch.sh` (а не напрямую `node dist/index.js`) даёт
-автообновление: скрипт делает `git pull` и пересборку при каждом старте,
-а без сети или при ошибке сборки — тихо падает обратно на уже собранный `dist/`.
-Нужен запуск без апдейта — вызывай `node dist/index.js` напрямую.
+Путь обязательно абсолютный — `~` и относительные не разворачиваются, конфиг
+глобальный. На Windows это `C:\\Users\\Имя\\mcp-super-app\\dist\\index.js`
+(в JSON обратные слэши экранируются, как здесь).
+
+**Автообновления нет.** Обновление ручное: `git pull && npm install && npm run build`
+в папке репозитория, потом перезапуск Claude Code. Раньше этим занимался bash-скрипт
+`launch.sh`, но на Windows он не запускался, и держать разное поведение на разных ОС
+оказалось дороже, чем обновляться руками.
 
 После подключения перезапусти Claude Code.
 
