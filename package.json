@@ -22,7 +22,7 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "lucide-static": "^1.24.0",
     "sharp": "^0.35.3",
     "simple-icons": "^16.26.0",
