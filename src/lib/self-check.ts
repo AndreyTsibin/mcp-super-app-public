@@ -1,5 +1,5 @@
 /**
- * Two start-up self-checks whose result is prepended to the server's MCP
+ * Three start-up self-checks whose result is prepended to the server's MCP
  * instructions, so the agent reads them in its system context and tells the
  * user before anything else happens:
  *
@@ -9,6 +9,8 @@
  *    "didn't apply") costs far more to debug than this check costs to run.
  *  - **update available** — the checkout is behind its remote. Colleagues update
  *    by hand; nothing told them there was anything to pull.
+ *  - **environment gap** — a key `.env.example` marks as required is missing from
+ *    the user's `.env`. See `env-check.ts`.
  *
  * The remote check asks `git ls-remote`, not a hosting API: it reuses whatever
  * credentials the checkout already has (the private copy 404s on GitHub's API
@@ -25,6 +27,7 @@ import path from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 
+import type { EnvStatus } from "./env-check.js";
 import { PKG_ROOT } from "./scaffold.js";
 
 const execFileP = promisify(execFile);
@@ -260,10 +263,15 @@ export async function clearUpdateCache(): Promise<void> {
  * imperative: a warning the agent reads and does not pass on is a warning that
  * did not happen.
  */
-export function renderSelfCheckBanner(
-  staleBuild: boolean,
-  update: UpdateStatus | null,
-): string {
+export function renderSelfCheckBanner({
+  staleBuild,
+  update,
+  env,
+}: {
+  staleBuild: boolean;
+  update: UpdateStatus | null;
+  env: EnvStatus | null;
+}): string {
   const lines: string[] = [];
   if (staleBuild) {
     lines.push(
@@ -285,6 +293,20 @@ export function renderSelfCheckBanner(
         "`update_server` — он подтянет обновление сам. После этого нужен перезапуск сессии. " +
         "Если пользователь просит «запусти mcp-super-app» — добавь обновление отдельным " +
         "пунктом в то же меню AskUserQuestion (см. «Точки входа»).",
+    );
+  }
+  if (env) {
+    const keys = env.missing.join(", ");
+    lines.push(
+      env.hasEnvFile
+        ? `⚠️ В .env НЕ ХВАТАЕТ ОБЯЗАТЕЛЬНЫХ КЛЮЧЕЙ: ${keys}. Тулы, которым они нужны, ` +
+            "откажут в работе. СРАЗУ скажи это пользователю: ключ мог появиться с обновлением " +
+            "сервера — в `.env.example` рядом с ним написано, зачем он и где его взять. " +
+            "Файл `.env` пользователь правит сам, ты в него не пишешь."
+        : `⚠️ НЕТ ФАЙЛА .env: не заданы обязательные ключи (${keys}). Тулы, которым они ` +
+            "нужны, откажут в работе. СРАЗУ скажи это пользователю и предложи скопировать " +
+            "`.env.example` в `.env` рядом с ним и вписать ключи — где их взять, написано " +
+            "в самом образце. Ключи пользователь вписывает сам, ты их не видишь.",
     );
   }
   return lines.join("\n\n");

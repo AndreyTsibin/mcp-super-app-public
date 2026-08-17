@@ -16,6 +16,7 @@ import { z } from "zod";
 
 import { ToolError, toolError } from "../lib/errors.js";
 import { PKG_ROOT } from "../lib/scaffold.js";
+import { checkEnv } from "../lib/env-check.js";
 import { clearUpdateCache } from "../lib/self-check.js";
 
 const execFileP = promisify(execFile);
@@ -59,6 +60,9 @@ export const updateServerOutputSchema = {
   commits: z.array(z.string()).describe("Commits pulled in, newest first."),
   reinstalled: z.boolean().describe("Whether npm install ran (manifest changed)."),
   rebuilt: z.boolean(),
+  missing_env: z
+    .array(z.string())
+    .describe("Required .env keys the update introduced that the user has not set yet."),
 };
 
 type Result = {
@@ -69,6 +73,7 @@ type Result = {
   commits: string[];
   reinstalled: boolean;
   rebuilt: boolean;
+  missing_env: string[];
 };
 
 /** Split a CHANGELOG into `## …` sections, keyed by heading. */
@@ -140,7 +145,16 @@ async function runUpdate(): Promise<Result> {
   const to = await git("rev-parse", "--short", "HEAD");
 
   if (from === to) {
-    return { updated: false, from, to, commits: [], changelog: [], reinstalled: false, rebuilt: false };
+    return {
+      updated: false,
+      from,
+      to,
+      commits: [],
+      changelog: [],
+      reinstalled: false,
+      rebuilt: false,
+      missing_env: [],
+    };
   }
 
   const commits = (await git("log", "--oneline", `${from}..${to}`))
@@ -167,7 +181,20 @@ async function runUpdate(): Promise<Result> {
   }
 
   await clearUpdateCache();
-  return { updated: true, from, to, commits, changelog: await changelogSince(from), reinstalled, rebuilt: true };
+  // An update may add a mandatory key to .env.example. pull/install/build all pass
+  // without it and the gap only shows up later, inside a tool — say it here, at the
+  // one moment the user is already looking at the update.
+  const env = await checkEnv();
+  return {
+    updated: true,
+    from,
+    to,
+    commits,
+    changelog: await changelogSince(from),
+    reinstalled,
+    rebuilt: true,
+    missing_env: env?.missing ?? [],
+  };
 }
 
 function formatReport(r: Result): string {
@@ -184,6 +211,15 @@ function formatReport(r: Result): string {
     ...(r.changelog.length
       ? ["Что нового:", "", ...r.changelog, ""]
       : ["Что приехало:", ...r.commits.map((c) => `  • ${c}`), ""]),
+    ...(r.missing_env.length
+      ? [
+          `⚠️ В .env НЕ ХВАТАЕТ ОБЯЗАТЕЛЬНЫХ КЛЮЧЕЙ: ${r.missing_env.join(", ")}. Скажи это ` +
+            "пользователю вместе с рестартом: пока ключ не вписан, тулы, которым он нужен, " +
+            "откажут. Зачем ключ и где его взять — написано в `.env.example` рядом с ним. " +
+            "Файл `.env` пользователь заполняет сам.",
+          "",
+        ]
+      : []),
     "⚠️ ВАЖНО: сервер — запущенный процесс, новый код подхватится только после рестарта.",
     "ОСТАНОВИСЬ и попроси пользователя перезапустить приложение/сессию Claude Code.",
   ];

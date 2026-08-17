@@ -14,6 +14,7 @@ import { registerOptimizeImages } from "./tools/optimize-images.js";
 import { registerSearchIcons } from "./tools/search-icons.js";
 import { registerGetIcon } from "./tools/get-icon.js";
 import { registerUpdateServer } from "./tools/update-server.js";
+import { checkEnv } from "./lib/env-check.js";
 import {
   checkForUpdate,
   isBuildStale,
@@ -116,11 +117,12 @@ clean-user-facing-text; снятие C2PA/EXIF/метаданных с файл�
  * offline check costs a start-up moment at worst.
  */
 async function buildInstructions(): Promise<string> {
-  const [staleBuild, update] = await Promise.all([
+  const [staleBuild, update, env] = await Promise.all([
     isBuildStale(import.meta.url),
     checkForUpdate(),
+    checkEnv(),
   ]);
-  const banner = renderSelfCheckBanner(staleBuild, update);
+  const banner = renderSelfCheckBanner({ staleBuild, update, env });
   const text = instructions(hasMagnificKey(), update);
   return banner ? `${banner}\n\n${text}` : text;
 }

@@ -1,0 +1,54 @@
+# Keeps the public copy honest: a colleague who runs `update_server` gets a checkout
+# that is expected to build. Before CI that expectation rested on manual care —
+# a broken `main` surfaced only when someone hit the error at runtime.
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  server:
+    name: MCP server
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run typecheck
+
+      - run: npm test
+
+      # Also covers scripts/build-stamp.mjs, which `npm run build` invokes and the
+      # public copy needs — it is the one file synced out of scripts/.
+      - run: npm run build
+
+  landing:
+    name: Landing template
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: assets/landing/site/package-lock.json
+
+      # The template ships as a working Astro project; create_website copies it as is.
+      # A broken component or import must fail here, not in the user's first build.
+      # check-landing.mjs is deliberately not run: it validates a finished site, and
+      # the template is placeholders by design, so it would always be red.
+      - run: npm ci
+        working-directory: assets/landing/site
+
+      - run: npm run build
+        working-directory: assets/landing/site
