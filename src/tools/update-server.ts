@@ -6,6 +6,7 @@
  * doc is written at the agent, not at a human. Without it "there is an update"
  * (see `self-check.ts`) is a dead end for exactly the people who need it most.
  */
+import fs from "node:fs/promises";
 import path from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
@@ -50,6 +51,9 @@ async function git(...args: string[]): Promise<string> {
 
 export const updateServerOutputSchema = {
   updated: z.boolean().describe("False when the checkout was already current."),
+  changelog: z
+    .array(z.string())
+    .describe("CHANGELOG sections that are new since the previous version, newest first."),
   from: z.string().describe("Short sha before the pull."),
   to: z.string().describe("Short sha after the pull."),
   commits: z.array(z.string()).describe("Commits pulled in, newest first."),
@@ -59,12 +63,47 @@ export const updateServerOutputSchema = {
 
 type Result = {
   updated: boolean;
+  changelog: string[];
   from: string;
   to: string;
   commits: string[];
   reinstalled: boolean;
   rebuilt: boolean;
 };
+
+/** Split a CHANGELOG into `## …` sections, keyed by heading. */
+function sectionsOf(text: string): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const block of text.split(/\n(?=## )/)) {
+    const heading = block.match(/^## .*/)?.[0];
+    if (heading) out.set(heading.trim(), block.trim());
+  }
+  return out;
+}
+
+/**
+ * Version sections added between `from` and now — the human-readable half of the
+ * report. Commit subjects are English conventional commits; the audience for this
+ * server reads Russian and does not care which file moved.
+ */
+async function changelogSince(from: string): Promise<string[]> {
+  let current: string;
+  try {
+    current = await fs.readFile(path.join(PKG_ROOT, "CHANGELOG.md"), "utf8");
+  } catch {
+    return []; // нет файла — просто нечего показывать
+  }
+  let previous = "";
+  try {
+    previous = await git("show", `${from}:CHANGELOG.md`);
+  } catch {
+    // до этой версии файла не было — покажем всё, что есть сейчас
+  }
+  const seen = new Set(sectionsOf(previous).keys());
+  return [...sectionsOf(current).entries()]
+    .filter(([heading, body]) => !seen.has(heading) && !/Не выпущено/.test(heading) && body.length > heading.length)
+    .map(([, body]) => body);
+}
 
 async function runUpdate(): Promise<Result> {
   try {
@@ -101,7 +140,7 @@ async function runUpdate(): Promise<Result> {
   const to = await git("rev-parse", "--short", "HEAD");
 
   if (from === to) {
-    return { updated: false, from, to, commits: [], reinstalled: false, rebuilt: false };
+    return { updated: false, from, to, commits: [], changelog: [], reinstalled: false, rebuilt: false };
   }
 
   const commits = (await git("log", "--oneline", `${from}..${to}`))
@@ -128,7 +167,7 @@ async function runUpdate(): Promise<Result> {
   }
 
   await clearUpdateCache();
-  return { updated: true, from, to, commits, reinstalled, rebuilt: true };
+  return { updated: true, from, to, commits, changelog: await changelogSince(from), reinstalled, rebuilt: true };
 }
 
 function formatReport(r: Result): string {
@@ -140,9 +179,11 @@ function formatReport(r: Result): string {
     r.reinstalled ? "Зависимости переустановлены (менялся манифест)." : "Зависимости не менялись.",
     "Сборка прошла.",
     "",
-    "Что приехало:",
-    ...r.commits.map((c) => `  • ${c}`),
-    "",
+    // CHANGELOG написан для пользователя, коммиты — для разработчика. Есть первое —
+    // показываем его, второе уходит в structuredContent и в отчёт не лезет.
+    ...(r.changelog.length
+      ? ["Что нового:", "", ...r.changelog, ""]
+      : ["Что приехало:", ...r.commits.map((c) => `  • ${c}`), ""]),
     "⚠️ ВАЖНО: сервер — запущенный процесс, новый код подхватится только после рестарта.",
     "ОСТАНОВИСЬ и попроси пользователя перезапустить приложение/сессию Claude Code.",
   ];
