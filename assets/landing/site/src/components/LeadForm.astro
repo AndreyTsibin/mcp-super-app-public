@@ -5,7 +5,9 @@
  * honeypot. Механику (маска, валидация, отправка на send.php, трекинг) даёт
  * подключённый lead-form.js — он цепляется за name/data-атрибуты, НЕ за классы,
  * поэтому CSS свободно темизируем под дизайн (инструкция это разрешает).
- * Заказчик: поле «Имя» НЕ используем — только телефон + чекбокс согласия (checked).
+ * Поле «Имя» НЕ используем — только телефон + чекбокс согласия. Галочка НЕ
+ * предзаполнена: по 152-ФЗ согласие даётся активным действием, а предустановленная
+ * галочка им не считается. Отправку без неё блокируют required и lead-form.js.
  */
 interface Props {
   dataForm: string;                 // уникальный id формы: 'hero' | 'footer' | 'popup' → уходит как form_id
@@ -39,7 +41,7 @@ const {
   </div>
 
   <label class="lead-form__consent">
-    <input type="checkbox" name="consent" required checked />
+    <input type="checkbox" name="consent" required />
     <span>Согласен с обработкой персональных данных
       <a href={policyHref} target="_blank" rel="noopener">политика конфиденциальности</a>
     </span>

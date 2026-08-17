@@ -7,6 +7,7 @@
  *   none       — без карты, только контактная колонка на всю ширину
  * Радиус выезда — обязательное поле маркетолога. Заявка — через модалку (CTA), не открытая форма.
  */
+import Img from './Img.astro';
 import { nbsp } from '../lib/typography';
 
 interface Props {
@@ -18,7 +19,8 @@ interface Props {
   radius?: string;              // «Выезжаем в радиусе 30 км от МКАД»
   email?: string;
   mapEmbed?: string;            // src для iframe (variant=map)
-  mapImage?: string;            // путь к скриншоту карты (variant=screenshot)
+  mapImage?: ImageMetadata | string;  // скриншот карты (variant=screenshot):
+                                // импорт из src/assets/ или путь строкой
   variant?: 'map' | 'screenshot' | 'none';
   ctaText?: string;
   eyebrow?: string;
@@ -112,7 +114,7 @@ const PIN = 'M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5
             <iframe class="contacts__frame" src={mapEmbed} title="Карта проезда" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
           )}
           {variant === 'screenshot' && mapImage && (
-            <img class="contacts__frame" src={mapImage} alt="Карта проезда к сервисному центру" loading="lazy" />
+            <Img class="contacts__frame" src={mapImage} alt="Карта проезда к сервисному центру" loading="lazy" />
           )}
           {((variant === 'map' && !mapEmbed) || (variant === 'screenshot' && !mapImage)) && (
             <div class="contacts__map-ph" role="img" aria-label="Здесь будет карта проезда">

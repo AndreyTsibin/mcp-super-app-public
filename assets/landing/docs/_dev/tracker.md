@@ -17,7 +17,7 @@
 | 2 | Тема | 3 контрастные темы в `src/data/themes.ts` → `/themes` в превью → **пользователь выбрал** → токены в `src/styles/theme.css`, шрифты в `fontsHref` | `design-standard.md` | ☐ |
 | 3 | Контент | `src/data/<проект>.ts` заполнен по структуре `placeholder.ts`: все тексты написаны, маркеров `[[…]]` не осталось; финальный проход `/humanizer-ru` | `landing-spec.md` → «Копирайтинг» | ☐ |
 | 4 | Сборка страниц | Страницы собраны из секций по плану задачи 1, импорт переключён на свой data-файл, маршруты и навигация на месте | `tech-standard.md` | ☐ |
-| 5 | Картинки | hero + 2–4 поддерживающих в `public/assets/img/`, hero первым и как `reference_images` для остальных, в конце `optimize_images`; пути в data-файле | `image-standard.md` | ☐ |
+| 5 | Картинки | hero + 2–4 поддерживающих в `src/assets/img/`, hero первым и как `reference_images` для остальных, в конце `optimize_images`; в data-файл идут импорты картинок, не строки | `image-standard.md` | ☐ |
 | 6 | Заявки и домен | `WEBHOOK_URL` и политика в `send.php`, боевой домен в `astro.config.mjs`, реквизиты на `/privacy`; живой тест формы | `ЗАЯВКИ-инструкция-для-Claude.md` | ☐ |
 | 7 | Критика-луп | Скриншоты 375/768/1440, рубрика с баллами, gate «все оси ≥7, средняя ≥8», максимум 2 итерации правок | `critique-standard.md` | ☐ |
 | 8 | Приёмка и упаковка | `npm run build` + `node .claude/check-landing.mjs` без ❌, zip из `dist/`, отчёт пользователю | `landing-flow.md` → «Упаковка и отчёт» | ☐ |

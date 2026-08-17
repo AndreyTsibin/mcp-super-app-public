@@ -130,11 +130,13 @@ import { site } from '../data/site';
 
 ## Картинки
 
-Готовятся на шаге 5 флоу (`docs/image-standard.md`), лежат в `public/assets/img/`
+Готовятся на шаге 5 флоу (`docs/image-standard.md`), лежат в `src/assets/img/`
 оптимизированными (`optimize_images`: webp, ресайз). В разметке всё уже сделано
-библиотекой: hero — `fetchpriority="high"` без lazy, остальные — `loading="lazy"`.
-От тебя нужны:
-- путь (`/assets/img/…` — от корня `public/`, не `./`),
+библиотекой: hero — `fetchpriority="high"` без lazy, остальные — `loading="lazy"`,
+`srcset` под все ширины Astro считает сам. От тебя нужны:
+- импорт картинки в data-файл (`import hero from '../assets/img/hero.webp'`) —
+  именно импорт включает нарезку; строковый путь отдаёт один файл на все экраны
+  и годится только для SVG-заглушек и внешних URL,
 - осмысленный русский `alt` (для декоративных фонов — пустой, там `aria-hidden`).
 
 Никаких внешних картиночных сервисов и hotlink — всё локально.

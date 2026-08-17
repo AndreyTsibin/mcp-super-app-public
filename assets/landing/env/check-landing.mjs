@@ -29,8 +29,8 @@ async function readIfExists(abs) {
   }
 }
 
-/** All files under `dir` matching `test`, as paths relative to dist. */
-async function walk(dir, test, acc = []) {
+/** All files under `dir` matching `test`, as paths relative to `base` (dist by default). */
+async function walk(dir, test, acc = [], base = DIST) {
   let entries;
   try {
     entries = await fs.readdir(dir, { withFileTypes: true });
@@ -39,8 +39,8 @@ async function walk(dir, test, acc = []) {
   }
   for (const e of entries) {
     const abs = path.join(dir, e.name);
-    if (e.isDirectory()) await walk(abs, test, acc);
-    else if (e.isFile() && test(e.name)) acc.push(path.relative(DIST, abs));
+    if (e.isDirectory()) await walk(abs, test, acc, base);
+    else if (e.isFile() && test(e.name)) acc.push(path.relative(base, abs));
   }
   return acc;
 }
@@ -289,6 +289,11 @@ async function checkImages(pages, assets) {
       if (src.startsWith("/") && !assets.has(src.slice(1).split("?")[0])) {
         report(S, "error", `${file}: картинка ${src} не найдена в сборке — битый путь.`);
       }
+      // Растр из public/ Astro не трогает: одна картинка на все экраны. Нарезка
+      // включается только для импортов из src/assets/ — там и место контенту.
+      if (/^\/assets\/img\/.+\.(jpe?g|png|webp|avif)$/i.test(src) && !/srcset=/.test(img)) {
+        report(S, "warn", `${file}: ${src} лежит в public/ и грузится одним файлом на все ширины — перенеси в src/assets/img/ и подключи импортом (см. image-standard).`);
+      }
       if (src.startsWith("./") || (src && !src.startsWith("/") && !/^https?:/.test(src))) {
         report(S, "error", `${file}: относительный путь картинки (${src}) — на внутренних страницах он уедет в 404, пиши от корня: /assets/img/…`);
       }
@@ -298,16 +303,26 @@ async function checkImages(pages, assets) {
     report(S, "warn", 'Нет <img fetchpriority="high"> — ок, только если hero сделан CSS-фоном.');
   }
 
-  for (const rel of assets) {
-    if (!/^assets\/img\//.test(rel)) continue;
-    const kb = Math.round((await fs.stat(path.join(DIST, rel))).size / 1024);
+  // Вес проверяем у ИСХОДНИКОВ, а не у того, что доехало до dist: нарезки в
+  // dist/_astro/ делает Astro, они заведомо лёгкие. Тяжёлый файл автор кладёт
+  // в src/assets/img/ (оттуда режется) или в public/assets/img/ (оттуда — как есть).
+  const SRC_IMG = path.join(ROOT, "src/assets/img");
+  const sources = [
+    ...(await walk(SRC_IMG, () => true, [], SRC_IMG)).map((rel) => ["src/assets/img", rel]),
+    ...[...assets].filter((rel) => /^assets\/img\//.test(rel)).map((rel) => [DIST, rel]),
+  ];
+  for (const [base, rel] of sources) {
+    if (/\.(md|svg)$/i.test(rel)) continue; // README папки и SVG — резать нечего
+    const abs = base === DIST ? path.join(DIST, rel) : path.join(SRC_IMG, rel);
+    const kb = Math.round((await fs.stat(abs)).size / 1024);
+    const name = base === DIST ? rel : `src/assets/img/${rel}`;
     if (kb > 1024) {
-      report(S, "error", `${rel}: ${kb} КБ — слишком тяжёлая, прогони optimize_images.`);
+      report(S, "error", `${name}: ${kb} КБ — слишком тяжёлая, прогони optimize_images.`);
     } else if (kb > 400) {
-      report(S, "warn", `${rel}: ${kb} КБ — тяжеловата, стоит прогнать optimize_images.`);
+      report(S, "warn", `${name}: ${kb} КБ — тяжеловата, стоит прогнать optimize_images.`);
     }
     if (/\.(png|tiff?)$/i.test(rel)) {
-      report(S, "warn", `${rel}: не-webp формат — конвертируй через optimize_images.`);
+      report(S, "warn", `${name}: не-webp формат — конвертируй через optimize_images.`);
     }
   }
 }

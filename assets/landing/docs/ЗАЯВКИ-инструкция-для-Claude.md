@@ -364,7 +364,7 @@ respond(200, ['status' => 'ok']);
   </div>
 
   <label class="lead-form__consent">
-    <input type="checkbox" name="consent" required checked>
+    <input type="checkbox" name="consent" required>
     <span>Согласен с обработкой персональных данных
       <a href="ССЫЛКА_НА_ПОЛИТИКУ" target="_blank" rel="noopener">политика конфиденциальности</a>
     </span>
@@ -423,6 +423,9 @@ if (h) document.querySelectorAll('h1').forEach(function (el) { el.textContent = 
 ## Нельзя
 
 - ❌ Править URL вебхука, который дал человек: достраивать путь, менять параметры, «исправлять» домен. Вставляй строку как есть — иначе заявки теряются.
+- ❌ Ставить галочке согласия `checked` — по 152-ФЗ согласие даётся активным
+  действием, предзаполненная галочка им не считается. Проверки уже стоят:
+  `required` в разметке, `consent.checked` в JS, `consent_required` в `send.php`.
 - ❌ Менять имена/регистр полей (`Name`/`Phone`/`consent`/`website`/`form_id`/`page_url`/`ip`/`origin`/`kolokol_token`).
 - ❌ Убирать honeypot, проверку согласия или рейт-лимит.
 - ❌ Брать `ip` из тела запроса или из внешнего сервиса (ipify и подобные) — только `REMOTE_ADDR`.

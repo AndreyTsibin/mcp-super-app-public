@@ -38,8 +38,12 @@ export const placeholder = {
       { icon: 'shield', label: '[[Метрика 4]]', value: '[[значение]]' },
     ],
     promo: '[[Оффер с дедлайном, 3–5 слов]]',
+    promoNote: '[[Подпись под офером вне часов работы, 3–5 слов]]',
     rating: { value: '0.0', count: '[[число отзывов]]' },
-    image: '/assets/img/placeholder-hero.svg',   // заменить кадром из image-пайплайна (generate → optimize)
+    // Заглушка лежит в public/ и подключается строкой — SVG резать нечем.
+    // Реальный кадр подключай ИМПОРТОМ, тогда Astro нарежет его по ширинам:
+    //   import hero from '../assets/img/hero.webp';  →  image: hero
+    image: '/assets/img/placeholder-hero.svg',
     imageAlt: '[[Alt: что на кадре, 3–6 слов]]',
   },
 

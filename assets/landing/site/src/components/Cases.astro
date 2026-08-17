@@ -9,6 +9,7 @@
  *   beforeafter — пары «до / после» в одной карточке, подписи фиксированы
  *   list        — фото слева, текст справа; для развёрнутых описаний
  */
+import Img from './Img.astro';
 import { nbsp } from '../lib/typography';
 
 interface CaseItem {
@@ -18,10 +19,10 @@ interface CaseItem {
   result?: string;
   /** Метка сверху фото: тип работы, модель, район. */
   tag?: string;
-  image?: string;
+  image?: ImageMetadata | string;
   imageAlt?: string;
   /** Только для variant="beforeafter": второе фото — состояние «после». */
-  imageAfter?: string;
+  imageAfter?: ImageMetadata | string;
   imageAfterAlt?: string;
 }
 
@@ -73,7 +74,7 @@ const CHECK_D = 'M9.6 16.2 5.4 12l-1.4 1.4 5.6 5.6 12-12L20.2 5.6z';
               <figure class="case__shot">
                 <div class="case__photo">
                   {c.image
-                    ? <img src={c.image} alt={c.imageAlt ?? `${c.title} — до работы`} loading="lazy" />
+                    ? <Img src={c.image} alt={c.imageAlt ?? `${c.title} — до работы`} loading="lazy" />
                     : <span class="case__placeholder" aria-hidden="true">
                         <svg viewBox="0 0 24 24" width="40" height="40" fill="currentColor"><path d={PHOTO_D} /></svg>
                       </span>}
@@ -83,7 +84,7 @@ const CHECK_D = 'M9.6 16.2 5.4 12l-1.4 1.4 5.6 5.6 12-12L20.2 5.6z';
               <figure class="case__shot">
                 <div class="case__photo">
                   {c.imageAfter
-                    ? <img src={c.imageAfter} alt={c.imageAfterAlt ?? `${c.title} — после работы`} loading="lazy" />
+                    ? <Img src={c.imageAfter} alt={c.imageAfterAlt ?? `${c.title} — после работы`} loading="lazy" />
                     : <span class="case__placeholder" aria-hidden="true">
                         <svg viewBox="0 0 24 24" width="40" height="40" fill="currentColor"><path d={PHOTO_D} /></svg>
                       </span>}
@@ -94,7 +95,7 @@ const CHECK_D = 'M9.6 16.2 5.4 12l-1.4 1.4 5.6 5.6 12-12L20.2 5.6z';
           ) : (
             <div class="case__photo">
               {c.image
-                ? <img src={c.image} alt={c.imageAlt ?? c.title} loading="lazy" />
+                ? <Img src={c.image} alt={c.imageAlt ?? c.title} loading="lazy" />
                 : <span class="case__placeholder" aria-hidden="true">
                     <svg viewBox="0 0 24 24" width="44" height="44" fill="currentColor"><path d={PHOTO_D} /></svg>
                   </span>}

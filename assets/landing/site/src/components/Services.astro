@@ -9,6 +9,7 @@
  *           на мобилке фото сверху, список стекается в одну колонку
  * brands — опциональная лента брендов-чипов под списком (любой variant).
  */
+import Img from './Img.astro';
 import { nbsp } from '../lib/typography';
 
 interface ServiceItem { title: string; desc?: string; icon?: string; }
@@ -19,7 +20,7 @@ interface Props {
   items: ServiceItem[];
   brands?: string[];
   variant?: 'cards' | 'tiles' | 'list' | 'split';
-  image?: string;
+  image?: ImageMetadata | string;
   imageAlt?: string;
   eyebrow?: string;
   /** Текст кнопки в карточке (variant=split) — открывает модалку заявки. */
@@ -71,7 +72,7 @@ const iconPath = (key?: string) => ICONS[key ?? 'check'] ?? ICONS.check;
       <div class="services-split" data-animate>
         <div class="services-split__media">
           {image ? (
-            <img class="services-split__img" src={image} alt={imageAlt} width="900" height="1205" loading="lazy" />
+            <Img class="services-split__img" src={image} alt={imageAlt} width={900} height={1205} loading="lazy" />
           ) : (
             <div class="services-split__ph" role="img" aria-label="Место для фото">
               <svg viewBox="0 0 24 24" width="56" height="56" fill="currentColor" aria-hidden="true"><path d="M19 8h-1V3H6v5H5a3 3 0 0 0-3 3v6h4v3h12v-3h4v-6a3 3 0 0 0-3-3zM8 5h8v3H8V5zm8 14H8v-4h8v4zm3-5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/></svg>

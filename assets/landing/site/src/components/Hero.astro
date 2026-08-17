@@ -1,4 +1,5 @@
 ---
+import Img from './Img.astro';
 import { nbsp } from '../lib/typography';
 
 interface Rating { value: string; count: string; }
@@ -23,11 +24,13 @@ interface Props {
                               // без этого prop плашка не переключает цвет/текст по времени
   bullets?: Bullet[];        // 2×2 сетка: иконка + краткое значение
   promo?: string;            // заголовок офера внизу колонки («Скидка 15% до конца дня»)
-  promoNote?: string;        // статичная подпись под офером — фолбэк, если workHours не передан
+  promoNote?: string;        // статичная подпись под офером: фолбэк, если workHours не передан,
+                              // и замена таймеру вне часов работы
   workHours?: string;        // та же константа, что уходит в Header («Пн–Вс 7:00–23:00»);
                               // время закрытия парсится из неё и живёт таймером в офере
   rating?: Rating;           // плашка рейтинга — рендерится рядом с офером
-  image?: string;            // фото справа (split) или фон (image-bg)
+  image?: ImageMetadata | string;  // фото справа (split) или фон (image-bg);
+                              // импорт из src/assets/ режется по ширинам, строка — как есть
   imageAlt?: string;
   variant?: 'default' | 'split' | 'centered' | 'image-bg';
   ctaText?: string;          // кнопка открывает модалку с формой
@@ -63,7 +66,7 @@ const closeTime = workTimeMatch?.[workTimeMatch.length - 1] ?? null;
 
 <section class:list={['hero', `hero--${variant}`]} id="top-hero">
   {variant === 'image-bg' && image && (
-    <img class="hero__bg" src={image} alt="" aria-hidden="true" fetchpriority="high" />
+    <Img class="hero__bg" src={image} alt="" aria-hidden="true" layout="full-width" loading="eager" fetchpriority="high" />
   )}
   <div class="container hero__inner">
     <div class="hero__content" data-animate>
@@ -110,9 +113,19 @@ const closeTime = workTimeMatch?.[workTimeMatch.length - 1] ?? null;
               <span class="hero__offer-text">
                 <strong>{nbsp(promo)}</strong>
                 {closeTime ? (
-                  <span class="hero__offer-note" data-countdown data-close-time={closeTime}>
-                    Осталось <span data-countdown-value>{closeTime}</span>
-                  </span>
+                  <Fragment>
+                    <span
+                      class="hero__offer-note"
+                      data-countdown
+                      data-open-time={openTime}
+                      data-close-time={closeTime}
+                    >
+                      Осталось <span data-countdown-value>{closeTime}</span>
+                    </span>
+                    {promoNote && (
+                      <span class="hero__offer-note" data-countdown-closed hidden>{nbsp(promoNote)}</span>
+                    )}
+                  </Fragment>
                 ) : promoNote ? (
                   <span class="hero__offer-note">{nbsp(promoNote)}</span>
                 ) : null}
@@ -139,7 +152,7 @@ const closeTime = workTimeMatch?.[workTimeMatch.length - 1] ?? null;
     {variant === 'split' && (
       <div class="hero__media" data-animate>
         {image ? (
-          <img class="hero__media-img" src={image} alt={imageAlt} width="1200" height="896" fetchpriority="high" />
+          <Img class="hero__media-img" src={image} alt={imageAlt} width={1200} height={896} loading="eager" fetchpriority="high" />
         ) : (
           <div class="hero__media-ph" role="img" aria-label="Место для фото">
             <svg viewBox="0 0 24 24" width="72" height="72" fill="currentColor" aria-hidden="true"><path d="M19 8h-1V3H6v5H5a3 3 0 0 0-3 3v6h4v3h12v-3h4v-6a3 3 0 0 0-3-3zM8 5h8v3H8V5zm8 14H8v-4h8v4zm3-5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/></svg>
@@ -153,59 +166,105 @@ const closeTime = workTimeMatch?.[workTimeMatch.length - 1] ?? null;
 <script is:inline>
   (function () {
     function pad(n) { return String(n).padStart(2, '0'); }
-    function startCountdown(el) {
-      var close = el.getAttribute('data-close-time'); // «23:00»
+    function toMinutes(hhmm) {
+      var p = hhmm.split(':').map(Number);
+      return p[0] * 60 + p[1];
+    }
+    /** Открыт ли сервис прямо сейчас. Общая для таймера и плашки — иначе они врут порознь. */
+    function isOpenNow(openMin, closeMin) {
+      var now = new Date();
+      var nowMin = now.getHours() * 60 + now.getMinutes();
+      if (openMin === closeMin) return true; // круглосуточно
+      if (openMin < closeMin) return nowMin >= openMin && nowMin < closeMin;
+      return nowMin >= openMin || nowMin < closeMin; // ночной график через полночь
+    }
+
+    /**
+     * Таймер до закрытия. Вне часов работы прячется: иначе рядом со статус-плашкой
+     * «Сейчас не работаем» тикало бы «Осталось 20:00:00» — таймер до закрытия,
+     * когда уже закрыто. На его место встаёт статичная подпись, если она задана.
+     * @returns функция пересчёта, которую дёргает общий тикер (см. ниже).
+     */
+    function makeCountdown(el) {
+      var closeAttr = el.getAttribute('data-close-time'); // «23:00»
+      var openAttr = el.getAttribute('data-open-time');
       var valueEl = el.querySelector('[data-countdown-value]');
-      if (!close || !valueEl) return;
-      var parts = close.split(':').map(Number);
+      if (!closeAttr || !valueEl) return null;
+      var closedEl = el.parentNode ? el.parentNode.querySelector('[data-countdown-closed]') : null;
+      var parts = closeAttr.split(':').map(Number);
       var hh = parts[0], mm = parts[1];
+      var closeMin = toMinutes(closeAttr);
+      var openMin = openAttr ? toMinutes(openAttr) : null;
+
       function nextClose() {
         var t = new Date();
         t.setHours(hh, mm, 0, 0);
         if (t.getTime() <= Date.now()) t.setDate(t.getDate() + 1);
         return t;
       }
-      function update() {
+      return function update() {
+        // Без времени открытия часов работы нет — таймер идёт всегда, как раньше.
+        var open = openMin === null || isOpenNow(openMin, closeMin);
+        el.hidden = !open;
+        if (closedEl) closedEl.hidden = open;
+        if (!open) return;
         var diff = Math.max(0, nextClose().getTime() - Date.now());
         var h = Math.floor(diff / 3600000);
         var m = Math.floor((diff % 3600000) / 60000);
         var s = Math.floor((diff % 60000) / 1000);
         valueEl.textContent = pad(h) + ':' + pad(m) + ':' + pad(s);
-      }
-      update();
-      setInterval(update, 1000);
+      };
     }
 
-    function toMinutes(hhmm) {
-      var p = hhmm.split(':').map(Number);
-      return p[0] * 60 + p[1];
-    }
-    function startStatusWidget(el) {
+    function makeStatusWidget(el) {
       var openTime = el.getAttribute('data-open-time');
       var closeTime = el.getAttribute('data-close-time');
       var offlineEl = el.querySelector('[data-status-offline]');
       var onlineEl = el.querySelector('[data-status-online]');
       // Без пары «открытие/закрытие» или без офлайн-текста переключать нечем и не на что.
-      if (!openTime || !closeTime || !offlineEl) return;
+      if (!openTime || !closeTime || !offlineEl) return null;
       var openMin = toMinutes(openTime), closeMin = toMinutes(closeTime);
-      function isOpenNow() {
-        var nowMin = new Date().getHours() * 60 + new Date().getMinutes();
-        if (openMin === closeMin) return true; // круглосуточно
-        if (openMin < closeMin) return nowMin >= openMin && nowMin < closeMin;
-        return nowMin >= openMin || nowMin < closeMin; // ночной график через полночь
-      }
-      function apply() {
-        var open = isOpenNow();
+      return function apply() {
+        var open = isOpenNow(openMin, closeMin);
         el.classList.toggle('hero__status--offline', !open);
         if (onlineEl) onlineEl.hidden = !open;
         offlineEl.hidden = open;
-      }
-      apply();
-      setInterval(apply, 60000);
+      };
     }
 
-    document.querySelectorAll('[data-countdown]').forEach(startCountdown);
-    document.querySelectorAll('[data-status-widget]').forEach(startStatusWidget);
+    var ticks = [];
+    document.querySelectorAll('[data-countdown]').forEach(function (el) {
+      var fn = makeCountdown(el);
+      if (fn) ticks.push(fn);
+    });
+    document.querySelectorAll('[data-status-widget]').forEach(function (el) {
+      var fn = makeStatusWidget(el);
+      if (fn) ticks.push(fn);
+    });
+    if (ticks.length === 0) return;
+
+    /**
+     * Один тикер на все виджеты, и он засыпает вместе со вкладкой: считать секунды
+     * в фоне некому и незачем. При возврате пересчёт идёт сразу, до первого тика,
+     * потому что состояние берётся из Date.now(), а не накапливается.
+     */
+    var timer = null;
+    function runAll() { ticks.forEach(function (fn) { fn(); }); }
+    function start() {
+      if (timer !== null) return;
+      runAll();
+      timer = setInterval(runAll, 1000);
+    }
+    function stop() {
+      if (timer === null) return;
+      clearInterval(timer);
+      timer = null;
+    }
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) stop();
+      else start();
+    });
+    start();
   })();
 </script>
 

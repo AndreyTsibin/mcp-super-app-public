@@ -1,0 +1,84 @@
+---
+/*
+ * УТИЛИТА, не секция библиотеки. Единственное место, где решается, как рендерить
+ * картинку — через него ходят все <img> секций.
+ *
+ * Два режима, по типу `src`:
+ *   1. Импорт из `src/assets/` (ImageMetadata) → <Image> из astro:assets. Astro
+ *      сам режет варианты по ширинам, отдаёт webp и проставляет srcset/sizes.
+ *      Это рабочий режим для контента: так грузятся кадры из image-пайплайна.
+ *   2. Строка (путь в public/, внешний URL) → обычный <img>, без обработки.
+ *      Astro не умеет оптимизировать то, что лежит вне src/. Здесь живут
+ *      SVG-заглушки шаблона и всё, что приходит по ссылке.
+ *
+ * Почему не только режим 1: путь строкой должен продолжать работать. Заглушки
+ * шаблона — SVG (резать нечего), а данные страницы может писать человек, у
+ * которого картинка ещё не приехала.
+ */
+import { Image } from 'astro:assets';
+
+interface Props {
+  src: ImageMetadata | string;
+  alt: string;
+  class?: string;
+  /** Обязательны для строкового src — иначе браузеру нечем зарезервировать место. */
+  width?: number;
+  height?: number;
+  /**
+   * Как картинка тянется в своём контейнере (только для импортов):
+   *   constrained — не растёт выше исходной ширины, дефолт для контента;
+   *   full-width  — во всю ширину контейнера, для фонов и hero;
+   *   fixed       — фиксированный размер, srcset только под retina.
+   */
+  layout?: 'constrained' | 'full-width' | 'fixed';
+  loading?: 'lazy' | 'eager';
+  fetchpriority?: 'high' | 'low' | 'auto';
+  decoding?: 'async' | 'sync' | 'auto';
+  sizes?: string;
+  'aria-hidden'?: 'true' | 'false';
+}
+
+const {
+  src,
+  alt,
+  class: className,
+  width,
+  height,
+  layout = 'constrained',
+  loading,
+  fetchpriority,
+  decoding,
+  sizes,
+  ...rest
+} = Astro.props;
+
+const isPath = typeof src === 'string';
+---
+
+{isPath ? (
+  <img
+    class={className}
+    src={src as string}
+    alt={alt}
+    width={width}
+    height={height}
+    loading={loading}
+    fetchpriority={fetchpriority}
+    decoding={decoding}
+    {...rest}
+  />
+) : (
+  <Image
+    class={className}
+    src={src as ImageMetadata}
+    alt={alt}
+    width={width}
+    height={height}
+    layout={layout}
+    loading={loading}
+    fetchpriority={fetchpriority}
+    decoding={decoding}
+    sizes={sizes}
+    {...rest}
+  />
+)}

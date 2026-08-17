@@ -6,9 +6,10 @@
  *   compact — мелкие миниатюры, только название
  * Нет скана → placeholder-документ (реальные сканы придут от заказчика или из пайплайна).
  */
+import Img from './Img.astro';
 import { nbsp } from '../lib/typography';
 
-interface Cert { title: string; desc?: string; image?: string; imageAlt?: string; }
+interface Cert { title: string; desc?: string; image?: ImageMetadata | string; imageAlt?: string; }
 
 interface Props {
   title: string;
@@ -45,7 +46,7 @@ const DIPLOMA = 'M6 2h9l5 5v15H6zm8 8H9v2h5zm2 4H9v2h7zm-1 6.5a2.5 2.5 0 1 1 0-5
         <figure class="cert">
           <div class="cert__doc">
             {c.image
-              ? <img src={c.image} alt={c.imageAlt ?? c.title} loading="lazy" />
+              ? <Img src={c.image} alt={c.imageAlt ?? c.title} loading="lazy" />
               : <span class="cert__placeholder" aria-hidden="true">
                   <svg viewBox="0 0 24 24" width="42" height="42" fill="currentColor"><path d={DIPLOMA} /></svg>
                 </span>}

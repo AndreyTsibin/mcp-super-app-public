@@ -16,8 +16,9 @@ interface Props {
   description?: string;
   /** Канонический URL страницы. Для многостраничника обязателен на КАЖДОЙ странице. */
   canonical?: string;
-  /** Картинка для ссылки в мессенджерах и соцсетях. Обычно hero страницы. */
-  ogImage?: string;
+  /** Картинка для ссылки в мессенджерах и соцсетях. Обычно hero страницы:
+   *  тот же импорт из src/assets/, что уходит в секцию, либо путь строкой. */
+  ogImage?: ImageMetadata | string;
   /** Тип страницы для OG: главная лендинга — website, статья/услуга — article. */
   ogType?: 'website' | 'article';
   /** Google Fonts href под шрифтовую пару из theme.css. Пусто → системный стек. */
@@ -47,7 +48,9 @@ const {
 
 // Абсолютный URL страницы: Astro.site задаётся в astro.config (нужен для canonical и OG).
 const pageUrl = canonical ?? (Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined);
-const ogImageUrl = ogImage && Astro.site ? new URL(ogImage, Astro.site).href : ogImage;
+// У импорта из src/assets/ путь лежит в .src — он уже с хешем сборки. Строка идёт как есть.
+const ogImagePath = typeof ogImage === 'string' ? ogImage : ogImage?.src;
+const ogImageUrl = ogImagePath && Astro.site ? new URL(ogImagePath, Astro.site).href : ogImagePath;
 ---
 
 <!doctype html>
