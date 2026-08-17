@@ -14,6 +14,7 @@ import { registerSearchIcons } from "./tools/search-icons.js";
 import { registerGetIcon } from "./tools/get-icon.js";
 import { registerUpdateServer } from "./tools/update-server.js";
 import { checkForUpdate, isBuildStale, renderSelfCheckBanner } from "./lib/self-check.js";
+import { hasMagnificKey } from "./lib/magnific.js";
 
 // Load OPENROUTER_API_KEY from the package-root .env (best-effort; create_image
 // surfaces an actionable error if the key is missing). dist/index.js → ../.env.
@@ -36,9 +37,17 @@ const SERVER_VERSION = "0.1.0";
  * with the server itself. In Russian on purpose: the trigger phrases are
  * Russian and the tools' own reports already are.
  *
- * Keep it short — it is paid for in every session.
+ * Keep it short — it is paid for in every session. The create_image line
+ * follows the same Magnific gate as the tool's own schema: an install without
+ * MAGNIFIC_API_KEY is never told about a provider it cannot run.
  */
-const INSTRUCTIONS = `mcp-super-app — личный сервер: каркас проектов, скиллы, сайты, картинки, иконки.
+const createImageLine = (magnific: boolean): string =>
+  magnific
+    ? `- create_image — генерация картинок; provider=openrouter по умолчанию, magnific — только
+  если пользователь сам назвал Magnific (жжёт кредиты Business-плана).`
+    : "- create_image — генерация картинок через OpenRouter (Seedream 4.5, Gemini 3).";
+
+const instructions = (magnific: boolean): string => `mcp-super-app — личный сервер: каркас проектов, скиллы, сайты, картинки, иконки.
 
 ## Точки входа
 Пользователь сказал «запусти mcp-super-app» (или похожее, без названия конкретного тула) —
@@ -47,7 +56,7 @@ const INSTRUCTIONS = `mcp-super-app — личный сервер: каркас 
   профиль S/M/L, путь);
 - create_website — среда сайта; дальше kind: landing (лендинг из библиотеки секций) или
   multipage (переделка существующего сайта-донора);
-- create_image — генерация картинок через OpenRouter (Seedream 4.5, Gemini 3).
+${createImageLine(magnific)}
 
 Остальные тулы вспомогательные, их зовут по ходу дела, в меню не выносить:
 install_skill, install_guard, search_icons, get_icon, optimize_images, update_server.
@@ -79,7 +88,8 @@ async function buildInstructions(): Promise<string> {
     checkForUpdate(),
   ]);
   const banner = renderSelfCheckBanner(staleBuild, update);
-  return banner ? `${banner}\n\n${INSTRUCTIONS}` : INSTRUCTIONS;
+  const text = instructions(hasMagnificKey());
+  return banner ? `${banner}\n\n${text}` : text;
 }
 
 async function main(): Promise<void> {
@@ -89,12 +99,11 @@ async function main(): Promise<void> {
   );
 
   // Three entry points: bootstrap_project (new project), create_website (landing
-  // or donor redesign), create_image (image generation). The scaffolders behind
-  // create_website and the OpenRouter engine behind create_image are not
-  // registered on purpose — routing through one tool per area keeps the mode
-  // choice a question to the user, keeps both site flows behind the same
-  // one-task-per-session tracker protocol, and keeps generation behind the
-  // prompt-skill gate.
+  // or donor redesign), create_image (OpenRouter or Magnific). The scaffolders and
+  // image engines behind the routers are not registered on purpose — routing
+  // through one tool per area keeps the mode choice a question to the user,
+  // keeps both site flows behind the same one-task-per-session tracker protocol,
+  // and keeps both image engines behind the prompt-skill gate.
   registerBootstrapProject(server);
   registerInstallSkill(server);
   registerCreateWebsite(server);

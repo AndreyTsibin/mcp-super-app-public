@@ -1,12 +1,13 @@
 ---
 name: image
 description: >
-  Image prompting skill for Seedream 4.5 and Gemini 3 (Nano Banana 2 / Pro), generated
-  through the create_image tool.
+  Image prompting skill for Seedream 4.5 and Gemini 3 (Nano Banana 2 / Pro) and for
+  Magnific Mystic — all generated through the create_image tool (`provider` picks the engine).
   Writes ready-to-use prompts plus the model and sizing arguments to pass with them.
   Use when: "нарисуй", "сгенерируй картинку", "image prompt", "промпт для картинки", hero
   covers, blog covers, slides, posters, product shots, UI mockups, storyboards, character
-  sheets, edit/colorize, style transfer, image-to-image, seedream, nano banana, nb2.
+  sheets, edit/colorize, style transfer, image-to-image, seedream, nano banana, nb2,
+  magnific, mystic.
   Do NOT use for: video, 3D models, audio, non-image tasks.
 ---
 
@@ -42,6 +43,15 @@ asks for a specific model, that wins — don't argue the table at them.
 **Seedream is the default and usually right.** \$0.04 flat, 7.5 MP, best prompt adherence,
 best editing consistency, and by a distance the best price per pixel.
 
+**Magnific Mystic is a separate engine**, not a row in this table. It runs through
+`create_image` with `provider: 'magnific'` (direct Magnific API, plan credits — not OpenRouter),
+with its own args (nested in the `magnific` object) and its own prompt syntax. Reach for it only when the brief wants the Magnific look specifically
+(photographic texture, cinematic light, structure/style references). Everything about it —
+sizing, model flavours, engines, sliders, prompting — lives in [mystic.md](references/mystic.md).
+
+**Магнифик есть не у всех.** Провайдер включается только при `MAGNIFIC_API_KEY` в `.env`
+сервера. Нет ключа — у `create_image` нет ни параметра `provider`, ни объекта `magnific`:
+значит эта установка работает через OpenRouter, и весь раздел Mystic к ней не относится.
 
 **7.5 MP already exceeds any web or screen need**, so resolution is almost never a reason to
 leave seedream. The default is the default because it wins, not because it is cheap.
@@ -118,6 +128,9 @@ comma-separated tags as an anti-pattern, while a prompt tuned for one reads as m
 - **Gemini 3 (flash / pro)** → [gemini.md](references/gemini.md)
   Google's official templates, positive-framing rule, camera control, step-by-step for
   complex scenes.
+- **Magnific Mystic** (via `create_image` with `provider: 'magnific'`) → [mystic.md](references/mystic.md).
+  Its own sizing enums, base-model flavours, engines and sliders. Magnific's written prompt
+  guidance is thin, so mystic.md borrows the seedream prose pattern as its base.
 
 ---
 
