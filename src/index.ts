@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -31,7 +32,21 @@ try {
 }
 
 const SERVER_NAME = "mcp-super-app";
-const SERVER_VERSION = "0.1.0";
+
+/**
+ * Read from package.json rather than hardcoded: a literal here silently rots —
+ * `release.mjs` bumps the manifest, and the number the client sees in the MCP
+ * handshake would keep claiming whatever version the file was born with.
+ */
+const SERVER_VERSION: string = (() => {
+  try {
+    const manifest = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "package.json");
+    const { version } = JSON.parse(fs.readFileSync(manifest, "utf8"));
+    return typeof version === "string" ? version : "0.0.0";
+  } catch {
+    return "0.0.0";
+  }
+})();
 
 /**
  * Server instructions — the client puts this in the agent's system context.
