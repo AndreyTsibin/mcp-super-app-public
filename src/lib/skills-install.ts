@@ -24,6 +24,7 @@ export type InstallResult = {
   type: "bundled" | "proxied";
   invoke: string;
   install_path?: string;
+  commands?: string[];
   created?: string[];
   skipped?: string[];
   manual_only?: boolean;
@@ -63,12 +64,23 @@ async function installBundled(
   await s.copyDir(assetPath("skills", skill.id), destDir);
   if (manualOnly) await setManualOnly(path.join(destDir, "SKILL.md"));
 
+  // Commands land in .claude/commands/, not inside the skill: that is the only
+  // place Claude Code reads them from, and it keeps the `../skills/<id>/…`
+  // links in their bodies resolving.
+  for (const name of skill.commands ?? []) {
+    await s.copyFile(
+      assetPath("commands", skill.id, `${name}.md`),
+      path.join(projectPath, ".claude", "commands", `${name}.md`),
+    );
+  }
+
   const rel = (p: string) => path.relative(projectPath, p);
   return {
     skill: skill.id,
     type: "bundled",
     invoke: `/${skill.id}`,
     install_path: rel(destDir),
+    commands: skill.commands ? [...skill.commands] : undefined,
     created: s.created.map((e) => rel(e.path)),
     skipped: s.skipped.map((e) => rel(e.path)),
     manual_only: manualOnly,
@@ -132,7 +144,13 @@ export async function runInstall(
     skill.type === "bundled"
       ? await installBundled(skill, projectPath, manualOnly)
       : await installProxied(skill, projectPath);
-  const gitignored = await ensureIgnored(projectPath, skill.ignore);
+  // Commands are ignored file by file — `.claude/commands/` as a whole would
+  // also swallow the commands a project writes for itself.
+  const patterns =
+    skill.type === "bundled" && skill.commands
+      ? [...skill.ignore, ...skill.commands.map((c) => `.claude/commands/${c}.md`)]
+      : skill.ignore;
+  const gitignored = await ensureIgnored(projectPath, patterns);
   return { ...base, gitignored };
 }
 

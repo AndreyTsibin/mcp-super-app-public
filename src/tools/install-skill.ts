@@ -15,7 +15,11 @@ import { runInstall, type InstallResult } from "../lib/skills-install.js";
 function skillCatalog(): string {
   const rows = SKILLS.map((s) => {
     const kind =
-      s.type === "proxied" ? `proxied, runs \`${proxiedCommand(s)}\`` : "bundled";
+      s.type === "proxied"
+        ? `proxied, runs \`${proxiedCommand(s)}\``
+        : s.commands
+          ? `bundled, + commands ${s.commands.map((c) => `/${c}`).join(" ")}`
+          : "bundled";
     return `• ${s.id} (${kind}) — ${s.title}: ${s.description}`;
   });
   return [
@@ -50,6 +54,10 @@ export const installSkillOutputSchema = {
     .string()
     .optional()
     .describe("Bundled: where the skill was copied (relative to project)."),
+  commands: z
+    .array(z.string())
+    .optional()
+    .describe("Slash commands installed into .claude/commands/, without the leading '/'."),
   created: z.array(z.string()).optional(),
   skipped: z.array(z.string()).optional(),
   manual_only: z.boolean().optional(),
@@ -70,6 +78,10 @@ function formatReport(r: InstallResult): string {
     );
     if (r.manual_only) lines.push("Режим: manual-only (disable-model-invocation).");
     lines.push(`Вызов: ${r.invoke}`);
+    if (r.commands?.length) {
+      const cmds = r.commands.map((c) => `/${c}`).join(", ");
+      lines.push(`Команды в .claude/commands/: ${cmds}`);
+    }
   } else {
     lines.push(`Скилл '${r.skill}' (proxied) поставлен через CLI.`);
     lines.push(`Команда: ${r.command}`);

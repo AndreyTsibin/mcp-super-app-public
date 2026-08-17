@@ -2,9 +2,11 @@
  * Skill registry — the single source of truth for `install_skill` and the
  * default-skill installs in `bootstrap_project` / `scaffold_landing`. Two kinds:
  *
- * - `bundled`: our own static `.skill` payloads, unpacked under `assets/skills/`
- *   and copied into `<project>/.claude/skills/<id>/`. They don't evolve, so we
- *   vendor them verbatim (git-diffable, zero runtime deps).
+ * - `bundled`: static payloads under `assets/skills/`, copied into
+ *   `<project>/.claude/skills/<id>/`. Either ours, or a third-party skill
+ *   vendored verbatim because it has no installer CLI to call (its `LICENSE`
+ *   file records the upstream commit — bump it by re-copying that tree).
+ *   Git-diffable, zero runtime deps, installs offline.
  * - `proxied`: third-party skills that keep shipping releases. We don't freeze
  *   them — we shell out to their official installer CLI (via `npx`) in the
  *   target project, so the user always gets the current version.
@@ -25,6 +27,17 @@ interface SkillBase {
 
 export interface BundledSkill extends SkillBase {
   type: "bundled";
+  /**
+   * Slash commands shipped alongside the skill, stored as
+   * `assets/commands/<skill id>/<name>.md` and copied into
+   * `<project>/.claude/commands/`. Values are the command names (= file stems,
+   * = how the user types them). Only vendored plugins carry these: upstream
+   * ships them next to the skill and their bodies link back into it with
+   * `../skills/<id>/…`, which resolves under `.claude/` exactly as it does in a
+   * plugin root. Gitignore entries are derived per file, so a project's own
+   * commands stay tracked.
+   */
+  commands?: readonly string[];
 }
 
 export interface ProxiedSkill extends SkillBase {
@@ -43,6 +56,23 @@ export type SkillDef = BundledSkill | ProxiedSkill;
 const CLAUDE_SKILLS = ".claude/skills/";
 
 export const SKILLS: readonly SkillDef[] = [
+  {
+    id: "clean-user-facing-text",
+    type: "bundled",
+    title: "Clean User-Facing Text",
+    description:
+      "Final hygiene pass over prose: audits and strips invisible/bidi Unicode and exotic spaces with its own Python scripts, then rewrites the text without touching facts, code, paths or quotes. Language-agnostic and self-contained (needs python3 on PATH). Pairs with humanizer-ru, which fixes Russian style rather than characters. Vendored from guillaumemeyer/watermarks-remover (MIT).",
+    ignore: [CLAUDE_SKILLS],
+  },
+  {
+    id: "diagram-design",
+    type: "bundled",
+    title: "Diagram Design",
+    description:
+      "Editorial diagrams as self-contained HTML with inline SVG: architecture, flowchart, sequence, state machine, ER, timeline, swimlane, quadrant, org chart, Venn, funnel, bar/line/Gantt/scatter and more. Redraws .drawio and Mermaid sources, exports SVG/PNG (needs Playwright for PNG), can pull brand tokens off a site. Adds four slash commands. Vendored from cathrynlavery/diagram-design v2.4 (MIT); its scripts are Python 3 stdlib only.",
+    ignore: [CLAUDE_SKILLS],
+    commands: ["export-diagram", "import-drawio", "import-mermaid", "profile"],
+  },
   {
     id: "frontend-design",
     type: "bundled",
@@ -73,6 +103,14 @@ export const SKILLS: readonly SkillDef[] = [
     title: "Image Prompting",
     description:
       "Writes model-specific image prompts for Seedream 4.5 and Gemini 3, plus the sizing args to pass — feed the result to create_image. Prompt syntax follows each vendor's official guide. Parts derive from smixs/visual-skills (MIT).",
+    ignore: [CLAUDE_SKILLS],
+  },
+  {
+    id: "remove-ai-marks",
+    type: "bundled",
+    title: "Remove AI Marks",
+    description:
+      "Strips AI provenance from content you own: invisible Unicode, statistical text watermarks (via rewrite), and C2PA/EXIF/XMP metadata on PNG/JPEG/WebP/SVG/PDF/DOCX/ODT/EPUB. REQUIRES the cleaning service from guillaumemeyer/watermarks-remover running separately (docker compose up -d, or make serve on 127.0.0.1:8765) — the skill is a thin HTTP client and stops with an error when the service is unreachable. For text-only work without that service, install clean-user-facing-text instead. Intended use and honesty rules: references/ethics.md. Vendored from guillaumemeyer/watermarks-remover (MIT).",
     ignore: [CLAUDE_SKILLS],
   },
   {
