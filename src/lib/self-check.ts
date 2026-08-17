@@ -71,19 +71,53 @@ async function newestMtime(dir: string): Promise<number> {
   return newest;
 }
 
+/** Files under `dir`, relative and sorted — must match scripts/build-stamp.mjs. */
+async function listFiles(dir: string, base = dir, acc: string[] = []): Promise<string[]> {
+  for (const entry of await fs.readdir(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) await listFiles(full, base, acc);
+    else if (entry.isFile()) acc.push(path.relative(base, full));
+  }
+  return acc.sort();
+}
+
+/** sha1 over «path + contents» of every source file, as written at build time. */
+async function stampOf(srcDir: string): Promise<string> {
+  const hash = crypto.createHash("sha1");
+  for (const rel of await listFiles(srcDir)) {
+    hash.update(rel);
+    hash.update(await fs.readFile(path.join(srcDir, rel)));
+  }
+  return hash.digest("hex");
+}
+
 /**
- * True when the compiled output is older than the sources it was built from.
+ * True when `dist/` was built from sources that have since changed.
+ *
+ * Compares content, not timestamps: `git checkout` rewrites files and makes them
+ * "newer" than `dist/` without changing a byte, so an mtime check cried wolf after
+ * every branch switch — and a banner that lies is a banner nobody reads. The stamp
+ * is written by `npm run build` (scripts/build-stamp.mjs); an install predating it
+ * has no stamp, so we fall back to the old mtime comparison rather than stay silent.
+ *
  * Skipped when this module itself runs from `src/` (npm run dev / tsx), where
  * `dist/` plays no part.
  */
 export async function isBuildStale(moduleUrl: string): Promise<boolean> {
   if (!moduleUrl.includes("/dist/")) return false;
+  const src = path.join(PKG_ROOT, "src");
   try {
-    const [dist, src] = await Promise.all([
+    const stamp = await fs.readFile(path.join(PKG_ROOT, "dist", ".build-stamp"), "utf8");
+    return stamp.trim() !== (await stampOf(src));
+  } catch {
+    // no stamp — fall through to the timestamp heuristic
+  }
+  try {
+    const [dist, newest] = await Promise.all([
       fs.stat(path.join(PKG_ROOT, "dist", "index.js")),
-      newestMtime(path.join(PKG_ROOT, "src")),
+      newestMtime(src),
     ]);
-    return src > dist.mtimeMs;
+    return newest > dist.mtimeMs;
   } catch {
     return false; // no src/ (installed as a package) or no dist/ — nothing to compare
   }

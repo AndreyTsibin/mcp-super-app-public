@@ -12,7 +12,7 @@
     "assets"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node scripts/build-stamp.mjs",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
