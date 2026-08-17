@@ -25,7 +25,50 @@ try {
 const SERVER_NAME = "mcp-super-app";
 const SERVER_VERSION = "0.1.0";
 
-const server = new McpServer({ name: SERVER_NAME, version: SERVER_VERSION });
+/**
+ * Server instructions — the client puts this in the agent's system context.
+ *
+ * The entry-point menu used to live only in the owner's personal `~/.claude/
+ * CLAUDE.md`, so anyone else running this server got eight bare tool names and
+ * no idea a menu was meant to exist. Shipping it here means the rule travels
+ * with the server itself. In Russian on purpose: the trigger phrases are
+ * Russian and the tools' own reports already are.
+ *
+ * Keep it short — it is paid for in every session.
+ */
+const INSTRUCTIONS = `mcp-super-app — личный сервер: каркас проектов, скиллы, сайты, картинки, иконки.
+
+## Точки входа
+Пользователь сказал «запусти mcp-super-app» (или похожее, без названия конкретного тула) —
+НЕ перечисляй все инструменты. Задай один AskUserQuestion с тремя опциями:
+- bootstrap_project — каркас нового проекта (спроси бриф в чате: название, стек, что строим,
+  профиль S/M/L, путь);
+- create_website — среда сайта; дальше kind: landing (лендинг из библиотеки секций) или
+  multipage (переделка существующего сайта-донора);
+- create_image — генерация картинок через OpenRouter (Seedream 4.5, Gemini 3).
+
+Остальные тулы вспомогательные, их зовут по ходу дела, в меню не выносить:
+install_skill, install_guard, search_icons, get_icon, optimize_images.
+
+## Скиллы
+Каталог из девяти скиллов с назначением каждого — в описании параметра \`skill\` у
+install_skill; читай его, а не гадай. Ориентиры: диаграммы и схемы → diagram-design
+(несёт свои слэш-команды); чистка текста от невидимого юникода и следов AI →
+clean-user-facing-text; снятие C2PA/EXIF/метаданных с файлов → remove-ai-marks (нужен
+внешний сервис, см. описание); дизайн, анимации, русский копирайт, промпты картинок →
+по каталогу.
+
+## Всегда помнить
+- Скиллы, команды и хуки грузятся ТОЛЬКО при старте сессии. После install_skill,
+  bootstrap_project и create_website остановись и попроси перезапустить сессию.
+- create_image требует промпт, написанный скиллом \`image\` (аргумент prompt_source).
+  Без него тул откажет и денег не потратит.
+- Тулы идемпотентны: существующие файлы не затираются, а репортятся как пропущенные.`;
+
+const server = new McpServer(
+  { name: SERVER_NAME, version: SERVER_VERSION },
+  { instructions: INSTRUCTIONS },
+);
 
 // Three entry points: bootstrap_project (new project), create_website (landing
 // or donor redesign), create_image (image generation). The scaffolders behind
