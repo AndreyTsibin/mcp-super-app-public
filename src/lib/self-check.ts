@@ -95,6 +95,10 @@ export type UpdateStatus = {
   remote: string;
   /** Commits we're behind, or null when the remote history isn't fetched yet. */
   behind_by: number | null;
+  /** Newest released version on the remote, or null when it publishes no tags. */
+  version: string | null;
+  /** Version this checkout was built from. */
+  current: string;
 };
 
 type Cache = { checked_at: number; head: string; status: UpdateStatus | null };
@@ -113,6 +117,40 @@ async function readCache(head: string): Promise<Cache | null> {
 async function currentBranch(): Promise<string | null> {
   const branch = await git(["symbolic-ref", "--quiet", "--short", "HEAD"]);
   return branch || null;
+}
+
+/** Version in the checkout's own package.json ("0.0.0" if unreadable). */
+async function localVersion(): Promise<string> {
+  try {
+    const pkg = JSON.parse(await fs.readFile(path.join(PKG_ROOT, "package.json"), "utf8"));
+    return typeof pkg.version === "string" ? pkg.version : "0.0.0";
+  } catch {
+    return "0.0.0";
+  }
+}
+
+const asTuple = (v: string): number[] => v.split(".").map((n) => Number.parseInt(n, 10) || 0);
+
+/** a > b, comparing X.Y.Z numerically. */
+function isNewer(a: string, b: string): boolean {
+  const [x, y] = [asTuple(a), asTuple(b)];
+  for (let i = 0; i < 3; i += 1) {
+    if ((x[i] ?? 0) !== (y[i] ?? 0)) return (x[i] ?? 0) > (y[i] ?? 0);
+  }
+  return false;
+}
+
+/**
+ * Newest `vX.Y.Z` tag on the remote, when it is ahead of ours. Tags are what a
+ * release actually publishes, so this turns "ушла вперёд на 21 коммит" — true but
+ * meaningless to the audience — into "доступна v0.2.0, у тебя v0.1.0".
+ */
+async function remoteVersion(current: string): Promise<string | null> {
+  const out = await git(["ls-remote", "--tags", "origin"], REMOTE_TIMEOUT_MS).catch(() => "");
+  const versions = [...out.matchAll(/refs\/tags\/v(\d+\.\d+\.\d+)(?:\^\{\})?$/gm)].map((m) => m[1]);
+  if (versions.length === 0) return null;
+  const newest = versions.reduce((a, b) => (isNewer(b, a) ? b : a));
+  return isNewer(newest, current) ? newest : null;
 }
 
 async function compare(branch: string, head: string): Promise<UpdateStatus | null> {
@@ -138,13 +176,23 @@ async function compare(branch: string, head: string): Promise<UpdateStatus | nul
       () => "",
     );
     const behind = Number.parseInt(count, 10);
+    const current = await localVersion();
     return {
       branch,
       remote: remote.slice(0, 7),
       behind_by: Number.isFinite(behind) && behind > 0 ? behind : null,
+      version: await remoteVersion(current),
+      current,
     };
   }
-  return { branch, remote: remote.slice(0, 7), behind_by: null };
+  const current = await localVersion();
+  return {
+    branch,
+    remote: remote.slice(0, 7),
+    behind_by: null,
+    version: await remoteVersion(current),
+    current,
+  };
 }
 
 /** Cached (24h) "is this checkout behind its remote" check. Null = up to date. */
@@ -191,14 +239,18 @@ export function renderSelfCheckBanner(
     );
   }
   if (update) {
-    const behind =
-      update.behind_by === null
-        ? "ушла вперёд"
-        : `ушла вперёд на ${update.behind_by} коммит(ов)`;
+    // Версия понятна любому; «отстаёшь на N коммитов» — только тому, кто читает git log.
+    const what = update.version
+      ? `версия v${update.version} (у тебя v${update.current})`
+      : update.behind_by === null
+        ? `ветка \`${update.branch}\` в origin ушла вперёд (там ${update.remote})`
+        : `ветка \`${update.branch}\` в origin ушла вперёд на ${update.behind_by} коммит(ов) ` +
+          `(там ${update.remote})`;
     lines.push(
-      `⚠️ ДОСТУПНО ОБНОВЛЕНИЕ: ветка \`${update.branch}\` в origin ${behind} ` +
-        `(там ${update.remote}). СРАЗУ скажи это пользователю и предложи вызвать ` +
-        "`update_server` — он подтянет обновление сам. После этого нужен перезапуск сессии.",
+      `⚠️ ДОСТУПНО ОБНОВЛЕНИЕ: ${what}. СРАЗУ скажи это пользователю и предложи вызвать ` +
+        "`update_server` — он подтянет обновление сам. После этого нужен перезапуск сессии. " +
+        "Если пользователь просит «запусти mcp-super-app» — добавь обновление отдельным " +
+        "пунктом в то же меню AskUserQuestion (см. «Точки входа»).",
     );
   }
   return lines.join("\n\n");

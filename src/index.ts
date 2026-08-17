@@ -13,7 +13,12 @@ import { registerOptimizeImages } from "./tools/optimize-images.js";
 import { registerSearchIcons } from "./tools/search-icons.js";
 import { registerGetIcon } from "./tools/get-icon.js";
 import { registerUpdateServer } from "./tools/update-server.js";
-import { checkForUpdate, isBuildStale, renderSelfCheckBanner } from "./lib/self-check.js";
+import {
+  checkForUpdate,
+  isBuildStale,
+  renderSelfCheckBanner,
+  type UpdateStatus,
+} from "./lib/self-check.js";
 import { hasMagnificKey } from "./lib/magnific.js";
 
 // Load OPENROUTER_API_KEY from the package-root .env (best-effort; create_image
@@ -47,16 +52,29 @@ const createImageLine = (magnific: boolean): string =>
   если пользователь сам назвал Magnific (жжёт кредиты Business-плана).`
     : "- create_image — генерация картинок через OpenRouter (Seedream 4.5, Gemini 3).";
 
-const instructions = (magnific: boolean): string => `mcp-super-app — личный сервер: каркас проектов, скиллы, сайты, картинки, иконки.
+/**
+ * Четвёртый пункт меню появляется только когда обновление реально есть: постоянная
+ * строка «обновиться» приучила бы и агента, и пользователя её пролистывать.
+ */
+const updateLine = (update: UpdateStatus | null): string => {
+  if (!update) return "";
+  const what = update.version
+    ? `Обновить сервер до v${update.version} (сейчас v${update.current})`
+    : "Обновить сервер (в origin есть свежие коммиты)";
+  return `\n- ⚠️ ${what} — вызвать update_server, потом попросить перезапуск сессии.
+  Ставь этот пункт ПОСЛЕДНИМ, но обязательно: пользователь иначе о нём не узнает.`;
+};
+
+const instructions = (magnific: boolean, update: UpdateStatus | null): string => `mcp-super-app — личный сервер: каркас проектов, скиллы, сайты, картинки, иконки.
 
 ## Точки входа
 Пользователь сказал «запусти mcp-super-app» (или похожее, без названия конкретного тула) —
-НЕ перечисляй все инструменты. Задай один AskUserQuestion с тремя опциями:
+НЕ перечисляй все инструменты. Задай один AskUserQuestion с опциями:
 - bootstrap_project — каркас нового проекта (спроси бриф в чате: название, стек, что строим,
   профиль S/M/L, путь);
 - create_website — среда сайта; дальше kind: landing (лендинг из библиотеки секций) или
   multipage (переделка существующего сайта-донора);
-${createImageLine(magnific)}
+${createImageLine(magnific)}${updateLine(update)}
 
 Остальные тулы вспомогательные, их зовут по ходу дела, в меню не выносить:
 install_skill, install_guard, search_icons, get_icon, optimize_images, update_server.
@@ -88,7 +106,7 @@ async function buildInstructions(): Promise<string> {
     checkForUpdate(),
   ]);
   const banner = renderSelfCheckBanner(staleBuild, update);
-  const text = instructions(hasMagnificKey());
+  const text = instructions(hasMagnificKey(), update);
   return banner ? `${banner}\n\n${text}` : text;
 }
 
