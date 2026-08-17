@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { ToolError } from "./errors.js";
 
 /** Package root — resolved from this module: <root>/{src,dist}/lib/scaffold → <root>. */
-const PKG_ROOT = path.resolve(
+export const PKG_ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
   "..",

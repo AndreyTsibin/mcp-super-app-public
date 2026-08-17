@@ -12,6 +12,8 @@ import { registerCreateImage } from "./tools/create-image.js";
 import { registerOptimizeImages } from "./tools/optimize-images.js";
 import { registerSearchIcons } from "./tools/search-icons.js";
 import { registerGetIcon } from "./tools/get-icon.js";
+import { registerUpdateServer } from "./tools/update-server.js";
+import { checkForUpdate, isBuildStale, renderSelfCheckBanner } from "./lib/self-check.js";
 
 // Load OPENROUTER_API_KEY from the package-root .env (best-effort; create_image
 // surfaces an actionable error if the key is missing). dist/index.js → ../.env.
@@ -48,7 +50,7 @@ const INSTRUCTIONS = `mcp-super-app — личный сервер: каркас 
 - create_image — генерация картинок через OpenRouter (Seedream 4.5, Gemini 3).
 
 Остальные тулы вспомогательные, их зовут по ходу дела, в меню не выносить:
-install_skill, install_guard, search_icons, get_icon, optimize_images.
+install_skill, install_guard, search_icons, get_icon, optimize_images, update_server.
 
 ## Скиллы
 Каталог из девяти скиллов с назначением каждого — в описании параметра \`skill\` у
@@ -65,28 +67,44 @@ clean-user-facing-text; снятие C2PA/EXIF/метаданных с файл�
   Без него тул откажет и денег не потратит.
 - Тулы идемпотентны: существующие файлы не затираются, а репортятся как пропущенные.`;
 
-const server = new McpServer(
-  { name: SERVER_NAME, version: SERVER_VERSION },
-  { instructions: INSTRUCTIONS },
-);
-
-// Three entry points: bootstrap_project (new project), create_website (landing
-// or donor redesign), create_image (image generation). The scaffolders behind
-// create_website and the OpenRouter engine behind create_image are not
-// registered on purpose — routing through one tool per area keeps the mode
-// choice a question to the user, keeps both site flows behind the same
-// one-task-per-session tracker protocol, and keeps generation behind the
-// prompt-skill gate.
-registerBootstrapProject(server);
-registerInstallSkill(server);
-registerCreateWebsite(server);
-registerInstallGuard(server);
-registerCreateImage(server);
-registerOptimizeImages(server);
-registerSearchIcons(server);
-registerGetIcon(server);
+/**
+ * Self-checks run before `connect` because their findings ride along in
+ * `instructions`, which the client reads exactly once, at initialize. Both are
+ * cheap (the network one is cached for a day) and both fail open, so a slow or
+ * offline check costs a start-up moment at worst.
+ */
+async function buildInstructions(): Promise<string> {
+  const [staleBuild, update] = await Promise.all([
+    isBuildStale(import.meta.url),
+    checkForUpdate(),
+  ]);
+  const banner = renderSelfCheckBanner(staleBuild, update);
+  return banner ? `${banner}\n\n${INSTRUCTIONS}` : INSTRUCTIONS;
+}
 
 async function main(): Promise<void> {
+  const server = new McpServer(
+    { name: SERVER_NAME, version: SERVER_VERSION },
+    { instructions: await buildInstructions() },
+  );
+
+  // Three entry points: bootstrap_project (new project), create_website (landing
+  // or donor redesign), create_image (image generation). The scaffolders behind
+  // create_website and the OpenRouter engine behind create_image are not
+  // registered on purpose — routing through one tool per area keeps the mode
+  // choice a question to the user, keeps both site flows behind the same
+  // one-task-per-session tracker protocol, and keeps generation behind the
+  // prompt-skill gate.
+  registerBootstrapProject(server);
+  registerInstallSkill(server);
+  registerCreateWebsite(server);
+  registerInstallGuard(server);
+  registerCreateImage(server);
+  registerOptimizeImages(server);
+  registerSearchIcons(server);
+  registerGetIcon(server);
+  registerUpdateServer(server);
+
   const transport = new StdioServerTransport();
   await server.connect(transport);
   // stdout is reserved for the JSON-RPC channel; log to stderr only.
