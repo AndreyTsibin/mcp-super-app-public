@@ -1,7 +1,7 @@
 ---
 name: image
 description: >
-  Image prompting skill for Seedream 4.5 and Gemini 3 (Nano Banana 2 / Pro) and for
+  Image prompting skill for Seedream 5.0 Lite and Gemini 3 (Nano Banana 2 / Pro) and for
   Magnific Mystic — all generated through the create_image tool (`provider` picks the engine).
   Writes ready-to-use prompts plus the model and sizing arguments to pass with them.
   Use when: "нарисуй", "сгенерируй картинку", "image prompt", "промпт для картинки", hero
@@ -11,7 +11,7 @@ description: >
   Do NOT use for: video, 3D models, audio, non-image tasks.
 ---
 
-# Image Prompting — Seedream 4.5 · Gemini 3
+# Image Prompting — Seedream 5.0 Lite · Gemini 3
 
 This skill writes image prompts. It does not generate images — `create_image` does.
 Your output is: **model + sizing arguments + the prompt text**.
@@ -29,18 +29,18 @@ produced this skill — tokenisation differs per vendor. Do not "correct" these 
 
 **This table is cost guidance, not a capability map.** Every model here handles any subject
 competently — Gemini models are general-purpose, not niche ones. What the rows name
-is the one edge where each model beats seedream by enough to justify costing 2.5–3.4x more
+is the one edge where each model beats seedream by enough to justify costing 2.9–3.9x more
 per frame. No edge in the frame → no reason to pay the premium. And if the user explicitly
 asks for a specific model, that wins — don't argue the table at them.
 
 | When is the premium worth it | Model |
 |---|---|
-| **It isn't (default)** | **`bytedance-seed/seedream-4.5`** |
-| Realistic, lived-in scenes | `bytedance-seed/seedream-4.5` (the default) |
+| **It isn't (default)** | **`bytedance-seed/seedream-5-0-lite`** |
+| Realistic, lived-in scenes | `bytedance-seed/seedream-5-0-lite` (the default) |
 | Close-up skin texture where pores/hairs genuinely carry the shot | `google/gemini-3.1-flash-image` |
 | Hardest scenes: many interacting subjects, tricky physics | `google/gemini-3-pro-image` |
 
-**Seedream is the default and usually right.** \$0.04 flat, 7.5 MP, best prompt adherence,
+**Seedream is the default and usually right.** \$0.035 flat, 7.5 MP, best prompt adherence,
 best editing consistency, and by a distance the best price per pixel.
 
 **Magnific Mystic is a separate engine**, not a row in this table. It runs through
@@ -60,7 +60,7 @@ Where each premium model earns its price:
 - **Gemini flash** has the best skin fidelity (visible pores, stray hairs). Seedream is
   cleaner but its skin reads slightly "rendered". Only worth \$0.101 when the pores are the
   point of the shot.
-- **Gemini pro** costs ~6x seedream per pixel. Use it only when a scene genuinely defeats
+- **Gemini pro** costs ~7x seedream per pixel. Use it only when a scene genuinely defeats
   the others — not as a general "better" button.
 
 Deliberately absent: OpenAI image models and `gemini-3.1-flash-lite-image` — both failed
@@ -75,15 +75,18 @@ trap that costs money while silently giving you less.
 
 | Model | Pass | Never pass | Result at 16:9 | $/frame | $/MP |
 |---|---|---|---|---|---|
-| `seedream-4.5` | `aspect_ratio` | **`size`** | 3642×2048 (7.5 MP) | **\$0.040** | **\$0.0054** |
+| `seedream-5-0-lite` | `aspect_ratio` | `size` (web work) | 3642×2048 (7.5 MP) | **\$0.035** | **\$0.0047** |
 | `gemini-3.1-flash-image` | `aspect_ratio` + `resolution:'2K'` | *omitting* `resolution` | 2752×1536 (4.2 MP) | \$0.101 | \$0.024 |
 | `gemini-3-pro-image` | `aspect_ratio` + `resolution:'2K'` | `resolution:'1K'` | 2752×1536 (4.2 MP) | \$0.137 | \$0.032 |
 
 ### The traps, explicitly
 
-1. **Seedream: never pass `size`.** It costs \$0.04 either way. Passing `size` only *lowers*
-   what you get (`'2560x1440'` = 3.7 MP vs 7.5 MP with `aspect_ratio` alone). `aspect_ratio`
-   alone returns the model's maximum. This also matches the vendor's own recommended method.
+1. **Seedream: for web work, pass `aspect_ratio` and leave `size` alone.** The price is flat
+   \$0.035 whatever you ask for, and `aspect_ratio` alone already returns 7.5 MP at 16:9 —
+   more than any screen needs. A `size` below that just *lowers* what you get
+   (`'2560x1440'` = 3.7 MP for the same money). The one reason to pass `size` is **print**:
+   the ceiling is 16,777,216 px (`'5456x3072'` = 16.8 MP at 16:9), still \$0.035 *(measured)*.
+   Accepted range is 3,686,400–16,777,216 px; outside it the model returns an error.
 
 2. **Gemini: always pass `resolution:'2K'`.** Omitting it silently defaults to `1K` — 1376×768
    (1.1 MP) for \$0.069 on flash, the worst price per pixel of any option here.
@@ -97,7 +100,9 @@ argument. But 16.9 MP is print territory: **do not use `4K` for web work.** It c
 more for pixels a screen will never show. Mentioned here only so the number is on record.
 
 **On seedream only**, pixel count scales with the ratio: 7.5 MP at 16:9 but 4.2 MP at 1:1
-(2048×2048), same \$0.04 — a wider ratio buys pixels for free.
+(2048×2048), same \$0.035 — a wider ratio buys pixels for free. And unlike Gemini's `4K`
+tier, seedream's 16.8 MP print maximum costs nothing extra — it is a file-size decision,
+not a money one.
 
 ### Which ratio?
 
@@ -121,7 +126,7 @@ third is an empty wall"), or the headline lands on a face.
 **Do not write a prompt without this.** The models do not share a syntax — seedream treats
 comma-separated tags as an anti-pattern, while a prompt tuned for one reads as mush to another.
 
-- **Seedream 4.5** → [seedream.md](references/seedream.md)
+- **Seedream 5.0 Lite** → [seedream.md](references/seedream.md)
   The vendor publishes a real prompt guide; this file follows it. Coherent prose, quoted text,
   explicit fixed elements when editing, visual cue markers. It also carries the **anti-polish
   worked example** — the house pattern for lived-in realism, useful far beyond seedream.
@@ -191,7 +196,7 @@ Things we established by testing that no vendor documents:
 # Output format
 
 ```
-Model: <bytedance-seed/seedream-4.5 | google/gemini-3.1-flash-image | google/gemini-3-pro-image>
+Model: <bytedance-seed/seedream-5-0-lite | google/gemini-3.1-flash-image | google/gemini-3-pro-image>
 Args: aspect_ratio: '<16:9|1:1|…>'[, resolution: '2K'][, reference_images: ['<path>']]
 Cost: ~$<measured $/frame>
 

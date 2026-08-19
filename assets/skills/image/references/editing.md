@@ -22,7 +22,7 @@ image-to-image only. When you need to point at a region, use visual cue markers 
 instead of a mask.
 
 **Use seedream unless you need something else.** It is the strongest editor of the three —
-4.5 was built for editing consistency and "strictly preserves the details of the reference
+The Seedream line was built for editing consistency and "strictly preserves the details of the reference
 images" *(vendor)*. Our test (recolour a jacket, "leave everything else alone") held face,
 pose, background and even added correct secondary physics — a colour bounce from the jacket
 onto the chin *(measured)*.

@@ -21,10 +21,10 @@ Marked *(vendor)* below. Ours marked *(measured)*.
 Seedream is the default. Come here for:
 - **Skin texture close-ups** — flash renders pores and stray hairs better than seedream,
   whose skin reads slightly "rendered" *(measured)*. This is the only reason to pick flash.
-- **Genuinely hard scenes** — pro only. It is ~6x seedream per pixel; it is not a "better" button.
+- **Genuinely hard scenes** — pro only. It is ~7x seedream per pixel; it is not a "better" button.
 
 **Never come here for pixels.** At `2K` flash gives 4.2 MP (2752×1536 at 16:9) for \$0.101 —
-*fewer* pixels than seedream's 7.5 MP at \$0.040, and 2.5x the price. Pro at `2K` is the same
+*fewer* pixels than seedream's 7.5 MP at \$0.035, and 2.9x the price. Pro at `2K` is the same
 4.2 MP for \$0.137. Reaching for Gemini to get a bigger frame is a downgrade *(measured)*.
 
 ## Official rules *(vendor)*

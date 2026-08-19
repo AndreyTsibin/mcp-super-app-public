@@ -3,12 +3,14 @@ import { ToolError } from "./errors.js";
 const IMAGES_ENDPOINT = "https://openrouter.ai/api/v1/images";
 
 /**
- * Default image model — Seedream 4.5. Flat $0.04/img at any size, and without an explicit
- * `size` it returns its maximum (3642x2048 = 7.5MP at 16:9), i.e. ~$0.005/MP — roughly 12x
- * cheaper per pixel than gemini-3.1-flash-image, which caps at ~1.1MP for $0.069.
+ * Default image model — Seedream 5.0 Lite. Flat $0.035/img at any size: `aspect_ratio` alone
+ * gives 3642x2048 = 7.5MP at 16:9 (~$0.0047/MP), and an explicit `size` reaches the
+ * 16,777,216 px ceiling (5456x3072 = 16.8MP) for the same money — roughly 5x cheaper per
+ * pixel than gemini-3.1-flash-image at its usable `2K` tier.
+ * Successor to seedream-4.5: same flat price model, higher pixel ceiling, slightly cheaper.
  * See docs/_dev/image-cost-audit.md for the measured matrix.
  */
-export const DEFAULT_IMAGE_MODEL = "bytedance-seed/seedream-4.5";
+export const DEFAULT_IMAGE_MODEL = "bytedance-seed/seedream-5-0-lite";
 
 export interface GenerateImageParams {
   prompt: string;
@@ -17,7 +19,7 @@ export interface GenerateImageParams {
   resolution?: string;
   /**
    * Explicit pixel size, "<width>x<height>" (e.g. "2560x1440"). Some models take
-   * only this and ignore aspect_ratio/resolution — notably Seedream 4.5, which also
+   * only this and ignore aspect_ratio/resolution — notably Seedream 5.0 Lite, which also
    * rejects anything under 3_686_400 px.
    */
   size?: string;

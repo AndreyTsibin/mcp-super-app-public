@@ -2,7 +2,7 @@
 
 Reusable prompt templates for cinematic portraits, atmospheric character photography, and mood-driven portraiture. Each pattern uses `{variables}` for customisation and carries the model plus the exact `create_image` arguments to pass with it.
 
-Default is **Seedream 4.5**, written as coherent prose — subject + action + environment first, then style, colour, light and composition. Never labelled slots or comma-separated tags: ByteDance names tag soup as the anti-pattern. Sizing rules live in SKILL.md step 2.
+Default is **Seedream 5.0 Lite**, written as coherent prose — subject + action + environment first, then style, colour, light and composition. Never labelled slots or comma-separated tags: ByteDance names tag soup as the anti-pattern. Sizing rules live in SKILL.md step 2.
 
 ---
 
@@ -18,7 +18,7 @@ An editorial portrait photograph of {person_description} standing at {position_i
 
 **Key levers:** `{street_description}` (narrow European alley with stone walls, wide boulevard with linden trees, industrial backstreet with brick), `{person_description}`, `{expression}` (quiet confidence, mid-smile with closed lips, contemplative gaze), `{bounce_surface}` (cream-painted wall, parked white van, sand-colored buildings), `{clothing_detail}` (linen shirt collar, leather jacket shoulder seam, scarf edge), `{ground_surface}` (wet cobblestones, dry asphalt, packed earth), `{color_grade}` (Kodak Portra 400 warmth, slightly lifted blacks with amber cast, clean digital with warm white balance)
 
-**Recommended model:** `bytedance-seed/seedream-4.5` — the shot is carried by constraint-following (face exposed under backlight, flare held to one or two artifacts), which is seedream's strength.
+**Recommended model:** `bytedance-seed/seedream-5-0-lite` — the shot is carried by constraint-following (face exposed under backlight, flare held to one or two artifacts), which is seedream's strength.
 **Args:** `aspect_ratio: '3:2'`
 
 > If you crop tight to head-and-shoulders and pores become the subject, switch to `google/gemini-3.1-flash-image` with `aspect_ratio: '3:2', resolution: '2K'` (\$0.101, 4.2 MP) — seedream's skin reads slightly rendered up close. You trade pixels for texture: flash gives fewer of them than seedream's 7.5 MP, so only swap when skin is genuinely the subject.
@@ -37,7 +37,7 @@ A night portrait of {person_description} outside a {store_type}, {pose_descripti
 
 **Key levers:** `{store_type}` (Korean convenience store, bodega, late-night pharmacy, 24-hour laundromat), `{fluorescent_color}` (cool blue-white, greenish-white, warm tungsten), `{neon_sign_description}` (red "OPEN" sign, blue beer brand logo, pink cursive word), `{neon_color}` (red #FF2D2D, blue #3366FF, pink #FF69B4, green #39FF14), `{person_description}`, `{pose_description}` (leaning against door frame, sitting on overturned crate, standing with hands in pockets), `{clothing_description}` (dark hoodie that absorbs light, white t-shirt that bounces both colors, leather that reflects), `{camera_feel}` (Cinestill 800T with halation around neon, clean digital night, Fujifilm color science)
 
-**Recommended model:** `bytedance-seed/seedream-4.5` — the default; strong prompt adherence and realistic environments. \$0.04, up to 7.5MP.
+**Recommended model:** `bytedance-seed/seedream-5-0-lite` — the default; strong prompt adherence and realistic environments. \$0.035, up to 7.5MP.
 **Args:** `aspect_ratio: '3:2'`
 
 > Keep any sign text in double quotes, as in the `red "OPEN" sign` lever above.
@@ -56,7 +56,7 @@ A high-contrast black-and-white press portrait of {person_description} in sharp 
 
 **Key levers:** `{person_description}`, `{direction}` (left, right), `{hair_detail}` (tight buzz cut showing skull contour, shoulder-length hair with flyaway strands catching backlight, pulled-back bun), `{glitch_positions}` (across the eye, across the mouth, across the forehead — specify 2-3 positions), `{accent_color}` (#FF0000 red, #00FF41 terminal green, #FF00FF magenta), `{max_glitch_lines}` (3-5)
 
-**Recommended model:** `bytedance-seed/seedream-4.5` — pixel-level graphic instructions (slice thickness, offset distance, line count, colour confined to the slices) are prompt-adherence work, and skin texture is irrelevant here since the highlights are blown by design.
+**Recommended model:** `bytedance-seed/seedream-5-0-lite` — pixel-level graphic instructions (slice thickness, offset distance, line count, colour confined to the slices) are prompt-adherence work, and skin texture is irrelevant here since the highlights are blown by design.
 **Args:** `aspect_ratio: '1:1'`
 
 ---
@@ -73,7 +73,7 @@ A waist-up portrait of {person_description} on a {rooftop_description}. They sta
 
 **Key levers:** `{person_description}`, `{rooftop_description}` (concrete apartment building rooftop, industrial warehouse roof with exhaust vents, school building roof with chain-link fence), `{pose_description}` (leaning on railing looking at camera, turned away looking at skyline, sitting on a ledge with knees drawn up), `{city_skyline}` (Tokyo mid-rise apartments, generic Asian city with power lines), `{sky_condition}` (overcast white sky, hazy afternoon sun), `{color_shift}` (green-cyan cast, yellow-amber cast), `{clothing_description}` (oversized vintage windbreaker, plain white t-shirt, navy work jacket), `{wind_detail}` (hair across face, jacket hem, collar), `{frame_position}` (left third, right third)
 
-**Recommended model:** `bytedance-seed/seedream-4.5` — the look is a colour and exposure treatment applied over a simple one-subject scene, which seedream handles at the best price per pixel.
+**Recommended model:** `bytedance-seed/seedream-5-0-lite` — the look is a colour and exposure treatment applied over a simple one-subject scene, which seedream handles at the best price per pixel.
 **Args:** `aspect_ratio: '3:2'` (or `'4:5'`)
 
 ---
@@ -93,4 +93,4 @@ A surreal underwater beauty portrait of {person_description} floating in a relax
 **Recommended model:** `google/gemini-3-pro-image` — this is the one pattern here that earns it: many interacting subjects under one physics rule (weightless hair, fabric drifting free of the body, a school of translucent fish, caustics falling across all of it).
 **Args:** `aspect_ratio: '4:5', resolution: '2K'`
 
-> Pro costs ~6x seedream per pixel, so try `bytedance-seed/seedream-4.5` with `aspect_ratio: '4:5'` first and only escalate if the fish turn opaque or the fabric starts hanging as if dry.
+> Pro costs ~7x seedream per pixel, so try `bytedance-seed/seedream-5-0-lite` with `aspect_ratio: '4:5'` first and only escalate if the fish turn opaque or the fabric starts hanging as if dry.

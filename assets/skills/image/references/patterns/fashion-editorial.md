@@ -4,7 +4,7 @@ Reusable prompt templates for fashion campaigns, lookbooks, and editorial shoots
 
 Prompts are written as connected prose — subject and action first, then environment, style, color, light, composition. Comma-separated tags and labelled slots degrade Seedream output; keep the sentences.
 
-Default model is `bytedance-seed/seedream-4.5` (pass `aspect_ratio`, never `size`). Each pattern lists the model it actually wants and the exact `create_image` args.
+Default model is `bytedance-seed/seedream-5-0-lite` (pass `aspect_ratio`; `size` only for print work). Each pattern lists the model it actually wants and the exact `create_image` args.
 
 ---
 
@@ -20,9 +20,9 @@ Use for fashion brand campaign hero images, lookbook covers, and social carousel
 
 **Key levers:** `{model_description}` (East Asian woman mid-20s, athletic man early 30s), `{outfit_description}`, `{detail_focus}` (collar construction, cuff button, belt buckle, shoe sole), `{fabric_type}` (raw selvedge denim, double-faced cashmere, washed silk), `{background_1}` (concrete wall, sand dune, industrial corridor), `{background_2}` (open street, field, rooftop), `{color_grade}` (lifted blacks with amber cast, desaturated teal), `{color_temperature}` (warm 4000K feel, cool overcast daylight)
 
-**Recommended model:** `bytedance-seed/seedream-4.5` — the panel geometry and the "same person three times" requirement are prompt-following problems, and Seedream follows layout instructions best per dollar.
+**Recommended model:** `bytedance-seed/seedream-5-0-lite` — the panel geometry and the "same person three times" requirement are prompt-following problems, and Seedream follows layout instructions best per dollar.
 
-**Args:** `model: 'bytedance-seed/seedream-4.5'`, `aspect_ratio: '16:9'` (3642×2048, \$0.040)
+**Args:** `model: 'bytedance-seed/seedream-5-0-lite'`, `aspect_ratio: '16:9'` (3642×2048, \$0.035)
 
 ---
 
@@ -56,9 +56,9 @@ Use for streetwear drops, limited edition launches, and urban fashion campaigns 
 
 **Key levers:** `{HEADLINE_TEXT}` (brand name, drop name), `{SUBHEAD_TEXT}` (date, "LIMITED DROP", collection name), `{background_color}` (off-white #F5F1EB, concrete gray #8C8C8C, matte black #0D0D0D), `{text_color}` (#000000, #FF3333, #FFFFFF), `{font_style}` (sans-serif like Druk Wide, slab-serif, stencil), `{streetwear_outfit}`, `{model_position}` (center-left, right third), `{lighting_type}` (harsh direct flash, soft window light), `{grain_intensity}` (subtle film grain, heavy 35mm grain)
 
-**Recommended model:** `bytedance-seed/seedream-4.5` — text rendering and the front/behind depth interplay are instruction-following, which is Seedream's strength. Quoted text is its documented syntax for on-image copy.
+**Recommended model:** `bytedance-seed/seedream-5-0-lite` — text rendering and the front/behind depth interplay are instruction-following, which is Seedream's strength. Quoted text is its documented syntax for on-image copy.
 
-**Args:** `model: 'bytedance-seed/seedream-4.5'`, `aspect_ratio: '2:3'` (\$0.040)
+**Args:** `model: 'bytedance-seed/seedream-5-0-lite'`, `aspect_ratio: '2:3'` (\$0.035)
 
 ---
 
@@ -74,9 +74,9 @@ A sun-drenched wide shot of {model_description} roller skating along a {location
 
 **Key levers:** `{model_description}`, `{outfit_description}` (high-waisted terry shorts in coral, cropped zip-up in cream, tube socks with racing stripes), `{location_description}` (Venice Beach boardwalk, empty suburban tennis court, coastal promenade), `{film_stock}` (Kodak Gold 200, Fuji Superia 400), `{palette_description}` (terracotta #CC5533, cream #FFF5E1, sky blue #87CEEB, mustard #D4A017), `{lane_color}` (faded yellow, sun-bleached white), `{background_elements}` (palm trees and pastel buildings, chain-link fence and bleachers), `{aspect_ratio}` (3:2, 16:9 — passed as an arg, not written into the prompt)
 
-**Recommended model:** `bytedance-seed/seedream-4.5` — the default; strong prompt adherence and realistic environments. \$0.04, up to 7.5MP.
+**Recommended model:** `bytedance-seed/seedream-5-0-lite` — the default; strong prompt adherence and realistic environments. \$0.035, up to 7.5MP.
 
-**Args:** `model: 'bytedance-seed/seedream-4.5'`, `aspect_ratio: '16:9'` (\$0.040)
+**Args:** `model: 'bytedance-seed/seedream-5-0-lite'`, `aspect_ratio: '16:9'` (\$0.035)
 
 ---
 
@@ -92,6 +92,6 @@ Use for forward-looking athletic or techwear editorials where abstract 3D forms 
 
 **Key levers:** `{studio_environment}` (white void, concrete gray, deep navy), `{floor_color}` (light gray #D0D0D0, charcoal #333333), `{blob_color}` (chrome silver, translucent jade #00A86B, matte coral #FF6B6B), `{techwear_outfit}` (bonded seam track pants + compression top, oversized windbreaker + utility shorts), `{pose_detail}` (low lunge position, standing with one arm extended checking a wrist device, mid-jump), `{fabric_detail}` (visible bonded seams, reflective piping, mesh ventilation panels), `{palette}` (monochrome + single accent, earth tones + neon green #39FF14)
 
-**Recommended model:** `bytedance-seed/seedream-4.5` — the studio is deliberately clean, so Seedream's smooth render finish is an asset here, and blob placement plus shadow direction are prompt-following work. Only escalate to `google/gemini-3-pro-image` if the pattern is pushed toward heavy fabric physics (a full windbreaker mid-jump, a flowing layer wrapping a blob); Pro costs roughly 6x Seedream per pixel and is not a general quality upgrade.
+**Recommended model:** `bytedance-seed/seedream-5-0-lite` — the studio is deliberately clean, so Seedream's smooth render finish is an asset here, and blob placement plus shadow direction are prompt-following work. Only escalate to `google/gemini-3-pro-image` if the pattern is pushed toward heavy fabric physics (a full windbreaker mid-jump, a flowing layer wrapping a blob); Pro costs roughly 7x Seedream per pixel and is not a general quality upgrade.
 
-**Args:** `model: 'bytedance-seed/seedream-4.5'`, `aspect_ratio: '4:5'` (\$0.040)
+**Args:** `model: 'bytedance-seed/seedream-5-0-lite'`, `aspect_ratio: '4:5'` (\$0.035)

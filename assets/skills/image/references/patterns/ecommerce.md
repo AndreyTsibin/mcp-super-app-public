@@ -1,6 +1,6 @@
 # E-Commerce Product Photography Patterns
 
-Reusable prompt templates for product ads, packaging, and commercial visuals. Each pattern uses `{variables}` for customization and is written as coherent prose — the format Seedream 4.5 expects. Default model: `bytedance-seed/seedream-4.5`, sized with `aspect_ratio` only (never `size`). See SKILL.md step 2 before changing a size.
+Reusable prompt templates for product ads, packaging, and commercial visuals. Each pattern uses `{variables}` for customization and is written as coherent prose — the format Seedream 5.0 Lite expects. Default model: `bytedance-seed/seedream-5-0-lite`, sized with `aspect_ratio` (`size` only for print work — see SKILL.md step 2).
 
 ---
 
@@ -26,9 +26,9 @@ lettering in the shot.
 
 **Key levers:** `{product_name}`, `{product_material}` (frosted glass, matte aluminum, glossy plastic), `{surface_color}` (white marble, raw concrete, light birch wood), `{accent_color}` (safety orange #FF6600, yellow #FFD600)
 
-**Recommended model:** `bytedance-seed/seedream-4.5` — best prompt adherence holds the figurine count and scale play, and keeps the product label legible
+**Recommended model:** `bytedance-seed/seedream-5-0-lite` — best prompt adherence holds the figurine count and scale play, and keeps the product label legible
 
-**Args:** `aspect_ratio: '4:5'` · ~\$0.040
+**Args:** `aspect_ratio: '4:5'` · ~\$0.035
 
 ---
 
@@ -52,9 +52,9 @@ outside it. Clean light with no lens flare, no text overlaid on the image, no ha
 
 **Key levers:** `{background_surface}` (nero marquina marble, wet obsidian slab, brushed gunmetal), `{product_finish}` (frosted glass, lacquered black, brushed gold), `{accent_material}` (raw quartz crystals, dried lavender stems, black river stones), `{palette}` (golds #C9A84C and blacks, rose #B76E79 and creams, emerald #2D6A4F and silvers), `{time_mood}` (cold blue, warm amber)
 
-**Recommended model:** `bytedance-seed/seedream-4.5` — 7.5 MP covers magazine print, and the restricted palette plus condensation detail depend on prompt adherence more than on skin fidelity
+**Recommended model:** `bytedance-seed/seedream-5-0-lite` — 7.5 MP covers magazine print, and the restricted palette plus condensation detail depend on prompt adherence more than on skin fidelity
 
-**Args:** `aspect_ratio: '4:5'` · ~\$0.040
+**Args:** `aspect_ratio: '4:5'` · ~\$0.035
 
 ---
 
@@ -84,9 +84,9 @@ studio lighting. The cells carry no panel numbers and no captions.
 
 **Key levers:** `{product_name}`, `{protagonist}` (woman in her 30s, young couple, family), `{setting}` (bright kitchen, outdoor terrace, urban cafe), `{emotion}` (satisfied, surprised, relaxed), `{beauty_surface}` (white marble, gradient gray), `{tagline}`, `{duration}` (15, 30)
 
-**Recommended model:** `bytedance-seed/seedream-4.5` — 4.5 improved typography and dense text specifically, which is what the grid and the panel-9 tagline need
+**Recommended model:** `bytedance-seed/seedream-5-0-lite` — Seedream improved typography and dense text specifically, which is what the grid and the panel-9 tagline need
 
-**Args:** `aspect_ratio: '1:1'` · ~\$0.040
+**Args:** `aspect_ratio: '1:1'` · ~\$0.035
 
 ---
 
@@ -111,9 +111,9 @@ clear of it.
 
 **Key levers:** `{product_name}`, `{background_gradient}` (#F5F0EB to #FFFFFF for light, #1A0A2E to #0D0D0D for dark), `{liquid_type}` (amber juice, white milk, green smoothie), `{ingredient_list}` (sliced strawberries + mint leaves + ice cubes, cocoa nibs + hazelnuts + vanilla pod), `{texture_details}` (visible seeds on strawberry cross-section, frost crystals on ice), `{tilt_angle}` (15, 25), `{max_ingredients}` (6-8)
 
-**Recommended model:** `bytedance-seed/seedream-4.5` — the shot lives or dies on ingredient count, orbital placement, and an unobstructed label, all prompt-adherence work
+**Recommended model:** `bytedance-seed/seedream-5-0-lite` — the shot lives or dies on ingredient count, orbital placement, and an unobstructed label, all prompt-adherence work
 
-**Args:** `aspect_ratio: '4:5'` · ~\$0.040
+**Args:** `aspect_ratio: '4:5'` · ~\$0.035
 
 ---
 
@@ -140,6 +140,6 @@ packaging, and the frame holds nothing else — no liquid, no particles, no peop
 
 **Key levers:** `{product_name}`, `{background_color}` (bubblegum pink #FFB6C1, electric blue #007BFF, acid yellow #E8FF00), `{product_color_scheme}`, `{companion_objects}` (matching accessories, ingredient items, brand mascot elements)
 
-**Recommended model:** `bytedance-seed/seedream-4.5` — one object on a flat background is not a physics-hard scene; the distortion holds together on prompt adherence alone
+**Recommended model:** `bytedance-seed/seedream-5-0-lite` — one object on a flat background is not a physics-hard scene; the distortion holds together on prompt adherence alone
 
-**Args:** `aspect_ratio: '4:5'` · ~\$0.040
+**Args:** `aspect_ratio: '4:5'` · ~\$0.035

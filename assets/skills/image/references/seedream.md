@@ -1,6 +1,6 @@
-# Seedream 4.5 — prompt syntax
+# Seedream 5.0 Lite — prompt syntax
 
-**Default model.** `bytedance-seed/seedream-4.5` · \$0.04 flat · 7.5 MP at 16:9.
+**Default model.** `bytedance-seed/seedream-5-0-lite` · \$0.035 flat · 7.5 MP at 16:9.
 
 Source: ByteDance's official prompt guide,
 [docs.byteplus.com/en/docs/ModelArk/1829186](https://docs.byteplus.com/en/docs/ModelArk/1829186)
@@ -8,7 +8,13 @@ Source: ByteDance's official prompt guide,
 [image generation API reference](https://docs.byteplus.com/en/docs/ModelArk/1541523).
 Everything below marked *(vendor)* is from those pages. Everything marked *(measured)* is ours.
 
-Sizing: pass `aspect_ratio`, never `size`. See SKILL.md step 2.
+**Caveat on the source.** The vendor's prompt guide was written for the 4.x line; ByteDance
+has since published separate 5.0 pages we have not read through. The syntax below still
+matches what 5.0 Lite does in our own runs *(measured)*, but treat the *(vendor)* notes as
+"documented for 4.x, holding for 5.0" rather than freshly confirmed.
+
+Sizing: pass `aspect_ratio` for web work (7.5 MP at 16:9); `size` only for print, up to
+16.8 MP at the same flat \$0.035. See SKILL.md step 2.
 
 ---
 
@@ -90,14 +96,14 @@ Example *(vendor)*: `Generate four film storyboard images, corresponding to the 
 scenes: astronauts repairing a spacecraft in a space station, suddenly encountering an
 asteroid belt attack, …`
 
-## What 4.5 changed vs 4.0 *(vendor)*
+## What the 4.x line brought *(vendor)*
 
 Stronger prompt adherence, alignment and aesthetics; "strictly preserves the details of the
 reference images" in multi-image editing; better typography and dense text. Benchmarked on
 their internal MagicBench — no published numbers, treat as vendor marketing.
 
-Hard technical differences that do matter: 4.5 dropped the `1K` tier (2K/4K only), minimum
-3,686,400 px, and does not support `seed` or `guidance_scale`.
+Hard technical limits of our current default, 5.0 Lite *(measured)*: no resolution tiers,
+output between 3,686,400 and 16,777,216 px, price flat at \$0.035 across that whole range.
 
 ---
 

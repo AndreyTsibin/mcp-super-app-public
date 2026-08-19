@@ -2,7 +2,7 @@
 
 Reusable prompt templates for food photography, beverage campaigns, and culinary illustration. Each pattern uses `{variables}` for customization.
 
-Write prompts as flowing prose: subject and action first, then environment, then style, color, light and composition. Do not use comma-separated tag lists or labeled slots (`Scene:` / `Subject:` / …) — the default model treats them as an anti-pattern. Text that must appear in the image goes in "double quotes". Default model is Seedream 4.5 unless a pattern says otherwise; pass `aspect_ratio` and never `size`.
+Write prompts as flowing prose: subject and action first, then environment, then style, color, light and composition. Do not use comma-separated tag lists or labeled slots (`Scene:` / `Subject:` / …) — the default model treats them as an anti-pattern. Text that must appear in the image goes in "double quotes". Default model is Seedream 5.0 Lite unless a pattern says otherwise; pass `aspect_ratio`; `size` only for print work (see SKILL.md step 2).
 
 ---
 
@@ -56,8 +56,8 @@ The label stays consistent and legible across all three panels, every object res
 
 **Key levers:** `{product_name}`, `{beverage_brand}`, `{model_description}`, `{location}` (sunlit rooftop bar, marble kitchen counter, poolside), `{hold_position}` (mid-sip, resting at hip, gesturing with it), `{model_action}` (laughing mid-conversation, looking off-frame, walking), `{film_aesthetic}` (warm Kodak Portra feel, clean digital, cold editorial), `{product_angle}` (three-quarter front, straight-on, slight low angle), `{product_surface}` (wet dark stone, frosted glass shelf, white marble), `{highlight_style}` (long specular strip down the bottle, soft wrapped falloff, hard rim edge), `{lineup_count}` (3-5), `{lineup_arrangement}` (even row, shallow arc, staggered depth), `{variant_colors}` (amber/ruby/gold, mint/lemon/berry), `{divider_color}` (#FFFFFF, #1A1A1A), `{color_temperature}` (warm 3200K feel, neutral daylight, cool editorial)
 
-**Recommended model:** `bytedance-seed/seedream-4.5` — a three-panel layout with fixed proportions and a repeated legible label is pure instruction-following, which is where seedream is strongest.
-**Args:** `model: 'bytedance-seed/seedream-4.5'`, `aspect_ratio: '16:9'` (\$0.040/frame)
+**Recommended model:** `bytedance-seed/seedream-5-0-lite` — a three-panel layout with fixed proportions and a repeated legible label is pure instruction-following, which is where seedream is strongest.
+**Args:** `model: 'bytedance-seed/seedream-5-0-lite'`, `aspect_ratio: '16:9'` (\$0.035/frame)
 
 ---
 
@@ -85,8 +85,8 @@ Use for hero food posters — restaurants, delivery apps, menu boards — where 
 - `{camera_angle}` — 45-degree three-quarter, straight-on eye-level, overhead flat-lay
 - `{lens_feel}` — shallow depth of field, deep focus front to back, tight macro on the plating
 
-**Recommended model:** `bytedance-seed/seedream-4.5` — many filled slots resolved into one composition; seedream follows them and costs the least per pixel. Switch to `google/gemini-3.1-flash-image` at `resolution: '2K'` (\$0.101/frame) when `{lens_feel}` is a tight macro and crust or steam texture is the point — that buys texture, not pixels.
-**Args:** `model: 'bytedance-seed/seedream-4.5'`, `aspect_ratio: '3:4'` (\$0.040/frame)
+**Recommended model:** `bytedance-seed/seedream-5-0-lite` — many filled slots resolved into one composition; seedream follows them and costs the least per pixel. Switch to `google/gemini-3.1-flash-image` at `resolution: '2K'` (\$0.101/frame) when `{lens_feel}` is a tight macro and crust or steam texture is the point — that buys texture, not pixels.
+**Args:** `model: 'bytedance-seed/seedream-5-0-lite'`, `aspect_ratio: '3:4'` (\$0.035/frame)
 
 ---
 
@@ -102,8 +102,8 @@ A naturalist illustration of {food_item} in the style of a 19th-century scientif
 
 **Key levers:** `{food_item}` (pomegranate, sourdough loaf, wagyu ribeye, cacao pod), `{internal_details}` (seed chambers with ruby arils, crumb structure with irregular air pockets, marbling fat distribution), `{detail_element}` (individual seed anatomy, crust layering, fat crystal structure), `{paper_color}` (warm cream #FDF5E6, cool ivory #FFFFF0), `{medium_description}` (watercolor wash with ink line, graphite with colored pencil, pure ink with minimal color), `{latin_label}` (a playful Latinized name), `{ink_color}` (sepia #704214, India black #1A1A1A)
 
-**Recommended model:** `bytedance-seed/seedream-4.5` — a fixed three-tier layout plus a legible serif label; both are instruction-following, and seedream holds the lithograph look without extra spend.
-**Args:** `model: 'bytedance-seed/seedream-4.5'`, `aspect_ratio: '3:4'` (\$0.040/frame)
+**Recommended model:** `bytedance-seed/seedream-5-0-lite` — a fixed three-tier layout plus a legible serif label; both are instruction-following, and seedream holds the lithograph look without extra spend.
+**Args:** `model: 'bytedance-seed/seedream-5-0-lite'`, `aspect_ratio: '3:4'` (\$0.035/frame)
 
 ---
 
@@ -119,5 +119,5 @@ A hand-drawn bird's-eye map of {city_name} showing its food culture, covering th
 
 **Key levers:** `{city_name}`, `{area_description}` (central 5 km, old town quarter, waterfront district), `{landmark_list}` (main cathedral, central market, river bridges), `{dish_count}` (6-10), `{dish_list}` (plov near the bazaar, samsa near the old town, shashlik near the park), `{street_style}` (slightly wobbly freehand, clean but simplified), `{water_color}` (cerulean #0077B6, teal #2A9D8F), `{palette_description}` (warm terracotta and cream with food items in full saturated color, cool blues and greens with warm food accents), `{MAP_TITLE}` ("A Taster's Guide to {city_name}")
 
-**Recommended model:** `bytedance-seed/seedream-4.5` — many labeled elements placed at specific spots plus hand-lettered title text; that is placement accuracy, not texture.
-**Args:** `model: 'bytedance-seed/seedream-4.5'`, `aspect_ratio: '3:4'` (or `'1:1'`) (\$0.040/frame)
+**Recommended model:** `bytedance-seed/seedream-5-0-lite` — many labeled elements placed at specific spots plus hand-lettered title text; that is placement accuracy, not texture.
+**Args:** `model: 'bytedance-seed/seedream-5-0-lite'`, `aspect_ratio: '3:4'` (or `'1:1'`) (\$0.035/frame)

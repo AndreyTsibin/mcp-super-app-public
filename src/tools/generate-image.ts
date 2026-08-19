@@ -71,12 +71,12 @@ export const openrouterInputShape = {
     .describe(
       `OpenRouter image model. All numbers below are MEASURED usage.cost and measured pixels, not estimates.
 
-DEFAULT — ${DEFAULT_IMAGE_MODEL}: use it unless a rule below says otherwise. $0.04 flat at ANY size, best prompt adherence, best editing consistency, best $/MP. Sizing: pass aspect_ratio and DO NOT pass 'size' — without 'size' it returns its maximum (3642x2048 = 7.5MP at 16:9; 2048x2048 = 4.2MP at 1:1) for the same $0.04. That is ~$0.005/MP. Passing 'size' only ever LOWERS the resolution for the same price.
+DEFAULT — ${DEFAULT_IMAGE_MODEL}: use it unless a rule below says otherwise. $0.035 flat at ANY size, best prompt adherence, best editing consistency, best $/MP. Sizing: pass aspect_ratio alone and it returns 3642x2048 = 7.5MP at 16:9 (2048x2048 = 4.2MP at 1:1) for $0.035, i.e. ~$0.0047/MP — already more pixels than any screen needs. 'size' is worth passing ONLY for print: the ceiling is 16,777,216 px ('5456x3072' = 16.8MP at 16:9), still $0.035.
 
-This list is cost guidance, not a capability map: every model here handles any subject competently, and seedream's 7.5MP already exceeds any web/screen need. Each rule below names the one edge where that model beats seedream by enough to justify costing 2.5-3.4x more per frame — no edge in the frame, no reason to pay the premium. An explicit user request for a specific model overrides these rules.
+This list is cost guidance, not a capability map: every model here handles any subject competently, and seedream's 7.5MP already exceeds any web/screen need. Each rule below names the one edge where that model beats seedream by enough to justify costing 2.9-3.9x more per frame — no edge in the frame, no reason to pay the premium. An explicit user request for a specific model overrides these rules.
 
 • Close-up skin texture where pores/hairs genuinely carry the shot → google/gemini-3.1-flash-image with resolution:'2K' ($0.101, 2752x1536 = 4.2MP). Best skin fidelity of any model here; seedream is cleaner but its skin reads slightly 'rendered'. Also the ONLY model with banner-strip ratios (1:4, 4:1, 1:8, 8:1).
-• Hardest scenes only (many interacting subjects, tricky physics) → google/gemini-3-pro-image with resolution:'2K' ($0.137). ~6x seedream per pixel — not a general 'better' button.
+• Hardest scenes only (many interacting subjects, tricky physics) → google/gemini-3-pro-image with resolution:'2K' ($0.137). ~7x seedream per pixel — not a general 'better' button.
 
 ALWAYS pass resolution:'2K' on either Gemini. Omitting it silently defaults to '1K' (1376x768 = 1.1MP for $0.069 on flash) — the worst $/MP of any option here. On gemini-3-pro-image '1K' and '2K' cost the SAME ($0.135 vs $0.137, both 1120 image tokens), so asking pro for '1K' is a pure loss.
 
@@ -88,7 +88,7 @@ Deliberately not listed: OpenAI image models and google/gemini-3.1-flash-lite-im
     .string()
     .optional()
     .describe(
-      "Aspect ratio, e.g. '16:9', '1:1', '9:16'. Works on every listed model, including Seedream. This is the PREFERRED way to control framing — on Seedream it also maximises resolution for free (16:9 -> 7.5MP vs 4.2MP for 1:1, same $0.04).",
+      "Aspect ratio, e.g. '16:9', '1:1', '9:16'. Works on every listed model, including Seedream. This is the PREFERRED way to control framing — on Seedream a wider ratio buys pixels for free (16:9 -> 7.5MP vs 4.2MP for 1:1, same $0.035).",
     ),
   resolution: z
     .string()
@@ -101,7 +101,7 @@ Deliberately not listed: OpenAI image models and google/gemini-3.1-flash-lite-im
     .regex(/^\d+x\d+$/, "Use '<width>x<height>', e.g. '2560x1440'.")
     .optional()
     .describe(
-      "Explicit pixel size, '<width>x<height>'. Seedream only, and ONLY when an exact pixel size is genuinely required — it costs $0.04 either way, so passing 'size' just LOWERS what you get (e.g. '2560x1440' = 3.7MP vs 7.5MP with aspect_ratio alone). Prefer aspect_ratio. Minimum 3686400 px; the model rejects anything smaller.",
+      "Explicit pixel size, '<width>x<height>'. Seedream only. Price is flat ($0.035) whatever you ask for, so 'size' either LOWERS what you get (e.g. '2560x1440' = 3.7MP vs 7.5MP with aspect_ratio alone) or, for print work, RAISES it up to the 16,777,216 px ceiling ('5456x3072' = 16.8MP). For web work prefer aspect_ratio alone. Accepted range: 3686400 to 16777216 px; the model rejects anything outside it.",
     ),
   n: z
     .number()

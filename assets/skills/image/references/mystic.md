@@ -8,7 +8,7 @@ credits, not the flat OpenRouter price), async under the hood. The cost tables i
 Reach for Mystic when the brief wants the Magnific look specifically — photographic realism with
 real material/skin texture, cinematic light, or structure/style references in Mystic's own
 engine. For everyday work `provider: 'openrouter'` (seedream) is cheaper and faster; don't burn Magnific
-credits on a job seedream does for \$0.04.
+credits on a job seedream does for \$0.035.
 
 Source grading, same discipline as the rest of this skill:
 *(vendor)* = docs.magnific.com. *(community)* = third-party guides, unverified here — treat as a
