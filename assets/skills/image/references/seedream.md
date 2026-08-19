@@ -1,6 +1,10 @@
 # Seedream 5.0 Lite — prompt syntax
 
-**Default model.** `bytedance-seed/seedream-5-0-lite` · \$0.035 flat · 7.5 MP at 16:9.
+**Fallback and editing workhorse.** `bytedance-seed/seedream-5-0-lite` · \$0.035 flat ·
+7.5 MP at 16:9. Not the default any more — the default is `openai/gpt-5.4-image-2`
+(drafts) and production goes to `gemini-3.1-flash-image`; see SKILL.md step 1. Come here
+when a draft frame disappointed the user, when the job will be edited or extended into a
+series off one reference, or when raw pixel count is the point.
 
 Source: ByteDance's official prompt guide,
 [docs.byteplus.com/en/docs/ModelArk/1829186](https://docs.byteplus.com/en/docs/ModelArk/1829186)
@@ -102,7 +106,7 @@ Stronger prompt adherence, alignment and aesthetics; "strictly preserves the det
 reference images" in multi-image editing; better typography and dense text. Benchmarked on
 their internal MagicBench — no published numbers, treat as vendor marketing.
 
-Hard technical limits of our current default, 5.0 Lite *(measured)*: no resolution tiers,
+Hard technical limits of 5.0 Lite *(measured)*: no resolution tiers,
 output between 3,686,400 and 16,777,216 px, price flat at \$0.035 across that whole range.
 
 ---

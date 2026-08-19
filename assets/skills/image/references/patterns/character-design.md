@@ -2,7 +2,16 @@
 
 Reusable prompt templates for character turnarounds, expression sheets, outfit variants, and collectible/card formats. Each pattern uses `{variables}` for customization.
 
-Default model: **Seedream 5.0 Lite** (`bytedance-seed/seedream-5-0-lite`, \$0.035/frame, 3642x2048 at 16:9). Write prompts as connected prose — subject and action first, then environment, then style, colour, light and composition. Comma-separated tags and labelled slots (`Scene:`, `Subject:`, …) are an anti-pattern for this model. Pass `aspect_ratio`; `size` only for print work (see SKILL.md step 2). Text that must appear in the image goes in "double quotes".
+**Which model?** Step 1 of SKILL.md decides that, not this file: production frames
+(landing, client site, anything shipped) go to `google/gemini-3.1-flash-image` with
+`resolution:'2K'`; drafts and experiments go to the default `openai/gpt-5.4-image-2`.
+The "Best fit for this pattern" line under each pattern below says which model holds *this
+particular layout* best — read it as a tie-breaker inside your category, and as a reason to
+override step 1 only when the pattern's own demand (exact object counts, dense on-image text,
+a consistent set of n frames) is the whole point of the frame. Seedream leads on those, and
+that is a deliberate trade of skin texture for instruction-following.
+
+Write prompts as connected prose — subject and action first, then environment, then style, colour, light and composition. Comma-separated tags and labelled slots (`Scene:`, `Subject:`, …) are an anti-pattern for this model. Pass `aspect_ratio`; `size` only for print work (see SKILL.md step 2). Text that must appear in the image goes in "double quotes".
 
 Seedream renders a consistent character in a consistent style across multiple outputs — the vendor's own use cases are storyboarding, comic creation, set-based design, IP product design and emoji packs. Trigger a series with "a set of", "a series of", or an explicit frame count, and raise `n` (up to 10) for separate frames instead of cells on one sheet.
 
@@ -20,7 +29,7 @@ Use for game or animation pre-production — front, side, and back views of a ch
 
 **Key levers:** `{character_name}`, `{character_description}` (age, build, hairstyle, outfit — be specific), `{color_1}`/`{hex_1}` through `{color_3}`/`{hex_3}` (key palette colors for callouts, e.g. jacket navy #1B2A4A, skin warm beige #D4A574, hair auburn #8B3A2F)
 
-**Recommended model:** Seedream 5.0 Lite — best prompt adherence of the set, which is what holds the three views to identical proportions and keeps the callout leader lines attached to the right material.
+**Best fit for this pattern:** Seedream 5.0 Lite — best prompt adherence of the set, which is what holds the three views to identical proportions and keeps the callout leader lines attached to the right material.
 
 **Args:** `model: 'bytedance-seed/seedream-5-0-lite'`, `aspect_ratio: '16:9'`
 
@@ -38,7 +47,7 @@ An expression sheet for {character_name}, {character_description}: a set of six 
 
 **Key levers:** `{character_name}`, `{character_description}` (face shape, skin tone, hair, distinguishing marks), `{art_style}` (clean cel-shaded anime, painterly semi-realism, flat vector illustration), `{label_font}` (condensed sans-serif, monospace, rounded sans), `{extra_expressions}` (extend to a 3x3 grid of nine: e.g. "Bottom row continues with smirk: one corner of the mouth raised, knowing look, labelled 'SMIRK'.")
 
-**Recommended model:** Seedream 5.0 Lite — holds one face identity across nine cells and renders the quoted labels. For a nine-expression sheet, switching to `n: 9` separate portraits and assembling the grid yourself gives cleaner faces than nine cells crammed into one canvas.
+**Best fit for this pattern:** Seedream 5.0 Lite — holds one face identity across nine cells and renders the quoted labels. For a nine-expression sheet, switching to `n: 9` separate portraits and assembling the grid yourself gives cleaner faces than nine cells crammed into one canvas.
 
 **Args:** `model: 'bytedance-seed/seedream-5-0-lite'`, `aspect_ratio: '3:2'` (single sheet) or `aspect_ratio: '1:1'`, `n: 9` (separate portraits)
 
@@ -58,7 +67,7 @@ A set of six outfit variants of {character_name}, {character_description}, arran
 
 **Key levers:** `{character_name}`, `{character_description}` (build, face, hair — anchor identity), `{bg_color}` (#F0F0F0 light gray, #FFF8F0 warm cream, #E8EDF2 cool blue-gray), `{grid_layout}` (2x3 or 3x3), `{pose_description}` (hands on hips, relaxed standing, one hand raised), `{outfit_N_name}` / `{outfit_N_description}` (e.g. "Street Casual" — oversized denim jacket, white tee, black cargo pants, chunky sneakers)
 
-**Recommended model:** Seedream 5.0 Lite — character consistency across a set is exactly the vendor's set-based design case, and it is the cheapest per pixel.
+**Best fit for this pattern:** Seedream 5.0 Lite — character consistency across a set is exactly the vendor's set-based design case, and it is the cheapest per pixel.
 
 **Args:** `model: 'bytedance-seed/seedream-5-0-lite'`, `aspect_ratio: '3:2'` (single sheet) or `aspect_ratio: '2:3'`, `n: 6` (one full-body frame per outfit, labels dropped)
 
@@ -76,7 +85,7 @@ A row of {num_poses} chibi-style 3D vinyl collectible figurines of {character_na
 
 **Key levers:** `{character_name}`, `{character_description_simplified}` (key outfit and hair only), `{face_markers}` (e.g. round glasses, scar on left cheek, green eyes), `{color_palette}` (hex values for 2-3 dominant colors), `{bg_gradient}` (#F5F0EB to #FFFFFF warm, #E0E8F0 to #FFFFFF cool), `{num_poses}` (3-5), `{pose_N_description}` (e.g. sitting cross-legged reading a book, waving with both hands, holding a coffee cup), `{base_color}` (white, black, matching character's main color)
 
-**Recommended model:** Seedream 5.0 Lite — the row of figurines is a product-design set, which is what its multi-output consistency is built for.
+**Best fit for this pattern:** Seedream 5.0 Lite — the row of figurines is a product-design set, which is what its multi-output consistency is built for.
 
 **Args:** `model: 'bytedance-seed/seedream-5-0-lite'`, `aspect_ratio: '16:9'` (whole row) or `aspect_ratio: '1:1'`, `n: {num_poses}` (one figurine per frame, for avatar sets)
 
@@ -96,6 +105,6 @@ An anime-style character reference card for {character_name}, {character_descrip
 
 **Key levers:** `{character_name}`, `{character_description}` (detailed: hair color/style, eye color, outfit layers, accessories), `{face_details}` (distinctive facial features — e.g. heterochromia, facial tattoo, sharp jawline), `{item_1}`/`{item_2}`/`{item_3}` (signature weapon, accessory, artifact), `{swatch_colors}` (e.g. midnight blue #191970, cherry red #C41E3A, silver #C0C0C0, warm skin #E8B89D), `{num_swatches}` (4-6), `{class}` / `{height}` / `{affiliation}` (stat block fields)
 
-**Recommended model:** Seedream 5.0 Lite — the densest text of any pattern here (item labels, hex codes, stat block) plus a multi-section layout, both of which ride on prompt adherence.
+**Best fit for this pattern:** Seedream 5.0 Lite — the densest text of any pattern here (item labels, hex codes, stat block) plus a multi-section layout, both of which ride on prompt adherence.
 
 **Args:** `model: 'bytedance-seed/seedream-5-0-lite'`, `aspect_ratio: '3:4'`

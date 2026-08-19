@@ -102,7 +102,7 @@ export const SKILLS: readonly SkillDef[] = [
     type: "bundled",
     title: "Image Prompting",
     description:
-      "Writes model-specific image prompts for Seedream 5.0 Lite and Gemini 3, plus the sizing args to pass — feed the result to create_image. Prompt syntax follows each vendor's official guide. Parts derive from smixs/visual-skills (MIT).",
+      "Writes model-specific image prompts for GPT-5.4 Image 2, Seedream 5.0 Lite and Gemini 3, plus the sizing args to pass — feed the result to create_image. Prompt syntax follows each vendor's official guide. Parts derive from smixs/visual-skills (MIT).",
     ignore: [CLAUDE_SKILLS],
   },
   {

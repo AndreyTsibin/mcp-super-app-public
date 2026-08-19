@@ -19,7 +19,7 @@ import {
 
 /**
  * Single entry point for "make me an image". Two providers behind one tool:
- * OpenRouter (Seedream / Gemini — the everyday path, paid per frame) and
+ * OpenRouter (GPT-5.4 Image 2 / Seedream / Gemini — the everyday path, paid per frame) and
  * Magnific Mystic (direct API, burns Business-plan credits).
  *
  * The OpenRouter knobs sit at the top level because that is the default path
@@ -57,7 +57,7 @@ function buildInputSchema(magnificEnabled: boolean) {
             .enum(["openrouter", "magnific"])
             .optional()
             .describe(
-              "Which engine to generate on. Default 'openrouter' — Seedream/Gemini, the everyday path. " +
+              "Which engine to generate on. Default 'openrouter' — GPT-5.4 Image 2 / Seedream / Gemini, the everyday path. " +
                 "Pick 'magnific' only when the user asked for Magnific/Mystic by name: it goes to the direct " +
                 "Magnific API and burns Business-plan credits rather than per-frame API money.",
             ),
@@ -124,7 +124,7 @@ function buildOutputSchema(magnificEnabled: boolean) {
 }
 
 const OPENROUTER_DESCRIPTION =
-  "Seedream 5.0 Lite / Gemini 3 via OpenRouter. Returns the image inline in chat plus the saved paths and the measured cost. Seedream is the default model: $0.035 flat at any resolution, best prompt adherence — control framing with `aspect_ratio` alone (7.5MP at 16:9) and pass `size` only for print work (ceiling 16.8MP, same price). Seedream covers essentially every task; read the `model` description before picking anything else, it carries a measured decision table. EDITING: pass the source image via `reference_images` (local paths or URLs) plus an instruction in the prompt ('remove the sign', 'make the background lighter'); every model here accepts image input. Name what must stay unchanged explicitly ('keeping its pose unchanged') — the vendor-documented way to avoid drift. Mask-based inpainting is NOT supported. Sizing is model-specific: Seedream takes `aspect_ratio` alone; Gemini needs `aspect_ratio` + `resolution:'2K'`. Requires OPENROUTER_API_KEY in the server .env.";
+  "GPT-5.4 Image 2 / Seedream 5.0 Lite / Gemini 3 via OpenRouter. Returns the image inline in chat plus the saved paths and the measured cost. Model choice starts with one question: is the frame going into production (a landing, a client site, anything shipped)? If yes — google/gemini-3.1-flash-image with `resolution:'2K'` ($0.101, 2752x1536), the whole series on it. If no (drafts, references, experiments) — the schema default openai/gpt-5.4-image-2: $0.035 at 16:9 (1536x864), cheapest frame and best single-shot realism of the cheap tier; control framing with `aspect_ratio` alone, it has no resolution tiers, ignores `size`, and tops out at 1.3MP. A draft the user disliked, or a job that will be edited or extended into a series, goes to bytedance-seed/seedream-5-0-lite ($0.035 flat, 7.5MP, best editor). Read the `model` description before overriding — it carries the measured decision table. EDITING: pass the source image via `reference_images` (local paths or URLs) plus an instruction in the prompt ('remove the sign', 'make the background lighter'); every model here accepts image input. BUT an edit on the default model costs ~$0.140 (measured), 4x a fresh frame and 4x the same edit on seedream, because the source is billed as input tokens — so when editing is part of the plan, run the whole job on seedream from the start. Name what must stay unchanged explicitly ('keeping its pose unchanged') — the vendor-documented way to avoid drift. Mask-based inpainting is NOT supported. Sizing is model-specific: the default GPT model and Seedream take `aspect_ratio` alone; Gemini needs `aspect_ratio` + `resolution:'2K'`. Requires OPENROUTER_API_KEY in the server .env.";
 
 const TAIL_DESCRIPTION =
   "Files land in save_dir (default ./generated, relative to the project). AFTER GENERATING: raw output is full-resolution and the wrong format for production — run `optimize_images` on save_dir before shipping (resize/webp/srcset). In a landing build (create_website kind='landing') this is the mandatory last step of the image stage: generate the whole series first (hero → reference_images for the rest, same 'photoshoot'), then one `optimize_images` call on assets/img at the end — never optimize between individual generations.";

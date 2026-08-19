@@ -2,7 +2,16 @@
 
 Reusable prompt templates for posters, art prints, campaign collages, and graphic illustrations. Each pattern uses `{variables}` for customization. Write prompts as connected prose — subject and action first, then style, color, light, composition. Never as comma-separated tags or labelled slots.
 
-Default model: `bytedance-seed/seedream-5-0-lite` with `aspect_ratio` (`size` only when the poster goes to print — see SKILL.md step 2). Any text that must appear in the image goes in double quotes — that is the syntax the model reads as "render this literally".
+**Which model?** Step 1 of SKILL.md decides that, not this file: production frames
+(landing, client site, anything shipped) go to `google/gemini-3.1-flash-image` with
+`resolution:'2K'`; drafts and experiments go to the default `openai/gpt-5.4-image-2`.
+The "Best fit for this pattern" line under each pattern below says which model holds *this
+particular layout* best — read it as a tie-breaker inside your category, and as a reason to
+override step 1 only when the pattern's own demand (exact object counts, dense on-image text,
+a consistent set of n frames) is the whole point of the frame. Seedream leads on those, and
+that is a deliberate trade of skin texture for instruction-following.
+
+Sizing: `aspect_ratio`; `size` is seedream-only and only when the poster goes to print (SKILL.md step 2). Any text that must appear in the image goes in double quotes — that is the syntax the model reads as "render this literally".
 
 ---
 
@@ -18,7 +27,7 @@ A wide elevated view of {city_landmark_view}, the frame divided vertically down 
 
 **Key levers:** `{city_landmark_view}` (view down the main avenue toward the central square, riverfront panorama, view from the hill overlooking the old town), `{historical_era}` / `{modern_era}` (1920s / 2020s, medieval / present day, 1960s / 2060s), `{historical_details}` (cobblestone streets, horse-drawn carts, hand-painted shop signs), `{modern_details}` (glass facades, rooftop gardens, digital signage), `{historical_palette}` (sepia and desaturated earth tones, hand-colored photograph quality), `{modern_palette}` (clean contemporary color, cooler blue-grays with warm accent), `{historical_atmosphere}` (coal haze, soft morning fog), `{modern_atmosphere}` (clear sky, light pollution glow at horizon), `{historical_sky}` (warm overcast), `{modern_sky}` (clear gradient blue)
 
-**Recommended model:** seedream 5.0 Lite — the split-frame rule, the shared terrain and the single perspective across both halves are all prompt-adherence problems, and seedream follows them best per dollar.
+**Best fit for this pattern:** seedream 5.0 Lite — the split-frame rule, the shared terrain and the single perspective across both halves are all prompt-adherence problems, and seedream follows them best per dollar.
 **Args:** `model: 'bytedance-seed/seedream-5-0-lite', aspect_ratio: '16:9'` → 3642×2048, \$0.035
 
 ---
@@ -35,7 +44,7 @@ A three-panel horizontal collage on a {canvas_color} canvas with {divider_style}
 
 **Key levers:** `{athlete_description}`, `{gym_environment}` (industrial boxing gym with heavy bags, outdoor concrete training yard, dimly lit basement ring), `{atmosphere_detail}` (chalk dust in backlight, steam from breath in cold air, golden light through high windows), `{action_type}` (throwing a cross, landing a hook on a heavy bag, rope-skipping), `{action_detail}` (fist connecting with bag creating visible impact ripple, rope frozen in arc above head), `{gear_description}` (red hand wraps, worn leather gloves, no gloves — taped knuckles), `{expression}` (focused intensity, controlled exhale, battle cry), `{detail_subject}` (taped knuckles against red canvas, worn boxing boot laces, sweat dripping from chin onto canvas), `{detail_description}` (each tape fiber visible, leather cracking at flex points, individual droplets mid-fall), `{color_treatment}` (desaturated with warm midtones, high-contrast monochrome with sepia, teal-and-orange split tone), `{canvas_color}` (matte black #0D0D0D, dark charcoal #1A1A1A), `{divider_style}` (thin white 2px, no dividers — edge bleed)
 
-**Recommended model:** seedream 5.0 Lite — identity has to hold across three panels and the panel widths are an explicit instruction; both are prompt adherence.
+**Best fit for this pattern:** seedream 5.0 Lite — identity has to hold across three panels and the panel widths are an explicit instruction; both are prompt adherence.
 **Args:** `model: 'bytedance-seed/seedream-5-0-lite', aspect_ratio: '16:9'` → 3642×2048, \$0.035
 
 ---
@@ -52,7 +61,7 @@ Use for tech product launch visuals — clean, color-dominant hero shots where a
 
 **Key levers:** `{device_name}`, `{color_light}` / `{color_dark}` (lavender #E6D5F5 to #7B4FA0, mint #D0F0E0 to #1B7A5A, coral #FFDDD2 to #C44536), `{device_finish}` (matte aluminum, polished titanium, frosted glass back), `{screen_content}` (a clean home screen with app icons, a camera app showing a landscape, a gradient wallpaper), `{accent_shapes}` (spheres, rounded pills, soft cubes, torus rings), `{accent_shape_color}` — same family as background but slightly lighter or more saturated, `{accent_size}` (golf-ball to grapefruit), `{HEADLINE}` / `{SUBHEADLINE}`, `{headline_color}` (white #FFFFFF, dark tint of the color family), `{color_family}` (lavender-purple, sage-green, warm terracotta), `{tilt_angle}` (5-15), `{horizontal_position}` (left third, center, right third)
 
-**Recommended model:** seedream 5.0 Lite — headline, subhead and on-screen UI all have to render as readable type, which is exactly what the Seedream line is built for. Use `4:5` for a POS or social hero, `16:9` for a site header.
+**Best fit for this pattern:** seedream 5.0 Lite — headline, subhead and on-screen UI all have to render as readable type, which is exactly what the Seedream line is built for. Use `4:5` for a POS or social hero, `16:9` for a site header.
 **Args:** `model: 'bytedance-seed/seedream-5-0-lite', aspect_ratio: '4:5'` → \$0.035
 
 ---
@@ -69,7 +78,7 @@ A graphic poster on a flat solid {background_color} field, one even color with n
 
 **Key levers:** `{background_color}` (emerald #006B3F, cobalt #0047AB, saffron #F4C430, hot pink #FF1493), `{model_description}`, `{outfit_description}` (oversized leather trench + chunky sneakers, cropped bomber + wide-leg trousers + platform boots), `{pose_description}` (wide stance with arms crossed, one hand adjusting collar, walking stride caught mid-step), `{MAIN_TITLE}` / `{SUBTITLE}`, `{title_font_style}` (geometric sans-serif, grotesque, stencil cut), `{title_color}` (#FFFFFF, #000000, cream #FFF5E1), `{subtitle_color}` (same as title but at 60% opacity), `{fabric_details}` (visible grain in leather, corduroy ridges, denim selvedge edge), `{graphic_accents}` (none, thin white border 20px from edge, small logo mark at bottom-left)
 
-**Recommended model:** seedream 5.0 Lite — oversized type is the whole poster, and Seedream handles typography and figure-over-letter layering best per dollar.
+**Best fit for this pattern:** seedream 5.0 Lite — oversized type is the whole poster, and Seedream handles typography and figure-over-letter layering best per dollar.
 **Args:** `model: 'bytedance-seed/seedream-5-0-lite', aspect_ratio: '2:3'` → \$0.035
 
 **Go gemini flash for extreme ratios only** — it is the only model that will take `4:1` or `8:1`, so a banner-strip version of this poster has to run there. That is the whole reason to leave seedream on this pattern; for the poster itself seedream gives more pixels for less.
@@ -89,7 +98,7 @@ A symmetrical ornamental art print centered on a {peacock_variant} peacock in fu
 
 **Key levers:** `{peacock_variant}` (Indian blue, white albino, green Java), `{view_angle}` (front-facing straight on, three-quarter turning left), `{eye_colors}` (deep blue #003366 and emerald #006B3F and gold #C9A84C, monochrome — all in shades of navy and silver), `{base_element}` (ornate stone pedestal, flowering branch, decorative tile floor), `{botanical_left}` / `{botanical_right}` (magnolia branches, trailing wisteria, passion flower vines, banksia stems), `{additional_fauna}` (two small butterflies, a dragonfly pair, none), `{background_texture}` / `{background_color}` (aged linen #F5F0E1, dark navy #0A1628, cream parchment #FDF5E6), `{print_style}` (hand-colored etching, woodblock print, chromolithograph), `{technique_marks}` (cross-hatching in shadows, visible plate tone, registration marks at corners), `{border_style}` (thin double-line art nouveau border, ornamental corner flourishes, simple single-line rectangle), `{palette}` (natural jewel tones — emerald, sapphire, gold on cream / limited three-color palette — teal, copper, black on ivory / muted earth tones — sage, terracotta, umber)
 
-**Recommended model:** seedream 5.0 Lite — mirror symmetry and species accuracy are prompt-adherence work, and at 7.5 MP it is also the largest frame on offer.
+**Best fit for this pattern:** seedream 5.0 Lite — mirror symmetry and species accuracy are prompt-adherence work, and at 7.5 MP it is also the largest frame on offer.
 **Args:** `model: 'bytedance-seed/seedream-5-0-lite', aspect_ratio: '3:4'` → \$0.035
 
 Seedream stays the default here; the Gemini models top out at 4.2 MP on their working `2K` tier, so there is nothing to gain by switching. (If genuinely large-format print ever came up, both have a `4K` tier at 16.9 MP — print territory, not web.)

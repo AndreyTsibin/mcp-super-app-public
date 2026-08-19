@@ -3,14 +3,17 @@ import { ToolError } from "./errors.js";
 const IMAGES_ENDPOINT = "https://openrouter.ai/api/v1/images";
 
 /**
- * Default image model — Seedream 5.0 Lite. Flat $0.035/img at any size: `aspect_ratio` alone
- * gives 3642x2048 = 7.5MP at 16:9 (~$0.0047/MP), and an explicit `size` reaches the
- * 16,777,216 px ceiling (5456x3072 = 16.8MP) for the same money — roughly 5x cheaper per
- * pixel than gemini-3.1-flash-image at its usable `2K` tier.
- * Successor to seedream-4.5: same flat price model, higher pixel ceiling, slightly cheaper.
+ * Default image model — GPT-5.4 Image 2. $0.035 for 1536x864 (1.3MP) at 16:9: the cheapest
+ * frame we measure and the strongest single-shot realism of the cheap tier, which is what
+ * most calls need. Its price is NOT flat — it scales with pixels (1:1 = 1024x1024 for
+ * $0.024) — and an edit with `reference_images` costs ~$0.14, 4x a fresh frame, so plan
+ * edit-heavy work on seedream instead.
+ * Fallbacks: bytedance-seed/seedream-5-0-lite when a frame disappoints or editing is
+ * planned (flat $0.035, 7.5MP, best editor), google/gemini-3.1-flash-image for website
+ * heroes and anything where quality outranks cost.
  * See docs/_dev/image-cost-audit.md for the measured matrix.
  */
-export const DEFAULT_IMAGE_MODEL = "bytedance-seed/seedream-5-0-lite";
+export const DEFAULT_IMAGE_MODEL = "openai/gpt-5.4-image-2";
 
 export interface GenerateImageParams {
   prompt: string;
@@ -121,7 +124,7 @@ export async function generateImage(
   if (images.length === 0) {
     throw new ToolError(
       `Model '${model}' returned no image.`,
-      `It may not support image output, or the prompt was refused. Try ${DEFAULT_IMAGE_MODEL} or rephrase the prompt.`,
+      "It may not support image output, or the prompt was refused. Try bytedance-seed/seedream-5-0-lite or rephrase the prompt.",
     );
   }
 

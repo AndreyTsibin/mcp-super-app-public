@@ -6,7 +6,8 @@ separate endpoint.
 
 `reference_images` takes **local file paths** (png/jpg/jpeg/webp — absolute, or relative to
 the project) **or http(s) URLs**, as an array. Local files are inlined as base64 for you.
-Limits: 14 images on seedream and Gemini.
+Limits: 14 images on seedream and Gemini; not measured on the default GPT model, so pass
+one reference there and check the result before assuming more will work.
 
 **Two branches, different contracts — decide which one you are in first:**
 
@@ -20,6 +21,14 @@ Treating it as an edit gets you the new subject awkwardly patched into the old c
 **Mask-based inpainting is NOT supported.** `/v1/images` has no editing endpoint — this is
 image-to-image only. When you need to point at a region, use visual cue markers (below)
 instead of a mask.
+
+**Editing costs are not the generation costs — check before you iterate.** An edit on the
+default model (`openai/gpt-5.4-image-2`) costs **~\$0.140** *(measured)*: 4x a fresh frame on
+the same model, and 4x the same edit on seedream, because the source image is billed as input
+tokens. Its edit *quality* is excellent, so a one-off rescue is worth paying for. But when the
+brief implies iteration — generate, then adjust, then adjust again — or a series built off one
+reference, start the job on `bytedance-seed/seedream-5-0-lite` and stay there: flat \$0.035
+per call however many rounds it takes.
 
 **Use seedream unless you need something else.** It is the strongest editor of the three —
 The Seedream line was built for editing consistency and "strictly preserves the details of the reference

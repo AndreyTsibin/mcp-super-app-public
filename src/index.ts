@@ -66,7 +66,7 @@ const createImageLine = (magnific: boolean): string =>
   magnific
     ? `- create_image — генерация картинок; provider=openrouter по умолчанию, magnific — только
   если пользователь сам назвал Magnific (жжёт кредиты Business-плана).`
-    : "- create_image — генерация картинок через OpenRouter (Seedream 5.0 Lite, Gemini 3).";
+    : "- create_image — генерация картинок через OpenRouter (GPT-5.4 Image 2, Seedream 5.0 Lite, Gemini 3).";
 
 /**
  * Четвёртый пункт меню появляется только когда обновление реально есть: постоянная

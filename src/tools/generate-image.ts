@@ -71,37 +71,44 @@ export const openrouterInputShape = {
     .describe(
       `OpenRouter image model. All numbers below are MEASURED usage.cost and measured pixels, not estimates.
 
-DEFAULT — ${DEFAULT_IMAGE_MODEL}: use it unless a rule below says otherwise. $0.035 flat at ANY size, best prompt adherence, best editing consistency, best $/MP. Sizing: pass aspect_ratio alone and it returns 3642x2048 = 7.5MP at 16:9 (2048x2048 = 4.2MP at 1:1) for $0.035, i.e. ~$0.0047/MP — already more pixels than any screen needs. 'size' is worth passing ONLY for print: the ceiling is 16,777,216 px ('5456x3072' = 16.8MP at 16:9), still $0.035.
+ASK FIRST: is this frame going into production — a landing page, a client site, a deck, anything a real audience will see? That answer picks the model.
 
-This list is cost guidance, not a capability map: every model here handles any subject competently, and seedream's 7.5MP already exceeds any web/screen need. Each rule below names the one edge where that model beats seedream by enough to justify costing 2.9-3.9x more per frame — no edge in the frame, no reason to pay the premium. An explicit user request for a specific model overrides these rules.
+PRODUCTION → google/gemini-3.1-flash-image with resolution:'2K' ($0.101, 2752x1536 = 4.2MP). Best skin and material fidelity of any model here, the only one with banner-strip ratios (1:4, 4:1, 1:8, 8:1), and enough pixels for a first screen. Cost is not an argument against it: a whole landing is 3-5 frames = $0.30-0.51 for the entire site. Keep the WHOLE series on it — hero first, then the rest with the hero in reference_images; mixing models inside one series breaks the shared style.
 
-• Close-up skin texture where pores/hairs genuinely carry the shot → google/gemini-3.1-flash-image with resolution:'2K' ($0.101, 2752x1536 = 4.2MP). Best skin fidelity of any model here; seedream is cleaner but its skin reads slightly 'rendered'. Also the ONLY model with banner-strip ratios (1:4, 4:1, 1:8, 8:1).
-• Hardest scenes only (many interacting subjects, tricky physics) → google/gemini-3-pro-image with resolution:'2K' ($0.137). ~7x seedream per pixel — not a general 'better' button.
+NOT PRODUCTION (drafts, references, mood tests, 'just draw me something') → ${DEFAULT_IMAGE_MODEL}, the schema default. $0.035 at 16:9 (1536x864 = 1.3MP), the cheapest frame here and the strongest single-shot realism of the cheap tier — lived-in interiors, working hands, believable clutter. Sizing: pass aspect_ratio alone, it has no resolution tiers and ignores 'size'. Price is NOT flat: it scales with pixels (1:1 = 1024x1024 for $0.024). Hard ceiling 1.3MP — the other reason production does not live here.
+
+FALLBACK, and the editor → bytedance-seed/seedream-5-0-lite ($0.035 FLAT at any size, 3642x2048 = 7.5MP at 16:9, ~$0.0047/MP, best editor of the set). Take it when the user disliked a draft frame, or when editing/a series is planned. It wins on pixels and on editing, but its people and hardware go wrong more often in one shot (limbs through glass, parts in impossible places) — for production the answer is flash, not seedream.
+
+EDITING IS PRICED SEPARATELY. Passing reference_images to ${DEFAULT_IMAGE_MODEL} costs ~$0.140 per call (MEASURED) — 4x a fresh frame on the same model and 4x an edit on seedream, because the source image is billed as input tokens. Its edit quality is excellent (Cyrillic text on clothing landed clean, face/pose/interior untouched), so it is worth it as a one-off rescue — but when a job is planned as generate-then-edit, or as a series off one reference, start it on seedream and stay there.
+
+Also available:
+• Hardest scenes only (many interacting subjects, tricky physics) → google/gemini-3-pro-image with resolution:'2K' ($0.137). ~7x seedream per pixel — not a general 'better' button; measured against flash on an identical prompt it came out cleaner but more sterile.
+• openai/gpt-image-2 — same 1536x864 and same $0.034 as the default, kept only as a stand-in if gpt-5.4-image-2 is unavailable. The 5.4 frame is richer at the same price.
 
 ALWAYS pass resolution:'2K' on either Gemini. Omitting it silently defaults to '1K' (1376x768 = 1.1MP for $0.069 on flash) — the worst $/MP of any option here. On gemini-3-pro-image '1K' and '2K' cost the SAME ($0.135 vs $0.137, both 1120 image tokens), so asking pro for '1K' is a pure loss.
 
 '4K' exists on both Gemini models (5504x3072 = 16.9MP) but costs 50-75% more ($0.153 flash / $0.242 pro). 16.9MP is print territory — do NOT use it for web work.
 
-Deliberately not listed: OpenAI image models and google/gemini-3.1-flash-lite-image — both failed our quality tests.`,
+Deliberately not listed: x-ai/grok-imagine-image-2.0 (1280x720 = 0.9MP for $0.060, the worst $/MP measured — and it silently ignores 'size') and google/gemini-3.1-flash-lite-image (failed quality testing).`,
     ),
   aspect_ratio: z
     .string()
     .optional()
     .describe(
-      "Aspect ratio, e.g. '16:9', '1:1', '9:16'. Works on every listed model, including Seedream. This is the PREFERRED way to control framing — on Seedream a wider ratio buys pixels for free (16:9 -> 7.5MP vs 4.2MP for 1:1, same $0.035).",
+      "Aspect ratio, e.g. '16:9', '1:1', '9:16'. Works on every listed model and is the PREFERRED way to control framing. It also moves the price on the default model, where cost scales with pixels: 16:9 = 1536x864 for $0.035, 1:1 = 1024x1024 for $0.024. On Seedream the price is flat instead, so a wider ratio buys pixels for free (16:9 -> 7.5MP vs 4.2MP for 1:1, same $0.035).",
     ),
   resolution: z
     .string()
     .optional()
     .describe(
-      "Resolution tier: '2K' (use this) or '4K' (print only — 50-75% dearer for pixels web can't use). Gemini only; do not pass it with Seedream, which has no tiers and always returns its max. MANDATORY on Gemini — omitting it defaults to '1K', which is the worst $/MP on every model that offers it (flash: 1.1MP for $0.069; and on gemini-3-pro-image '1K' costs the same as '2K' for a quarter of the pixels).",
+      "Resolution tier: '2K' (use this) or '4K' (print only — 50-75% dearer for pixels web can't use). Gemini only; do not pass it with Seedream or with the default GPT model, neither of which has tiers. MANDATORY on Gemini — omitting it defaults to '1K', which is the worst $/MP on every model that offers it (flash: 1.1MP for $0.069; and on gemini-3-pro-image '1K' costs the same as '2K' for a quarter of the pixels).",
     ),
   size: z
     .string()
     .regex(/^\d+x\d+$/, "Use '<width>x<height>', e.g. '2560x1440'.")
     .optional()
     .describe(
-      "Explicit pixel size, '<width>x<height>'. Seedream only. Price is flat ($0.035) whatever you ask for, so 'size' either LOWERS what you get (e.g. '2560x1440' = 3.7MP vs 7.5MP with aspect_ratio alone) or, for print work, RAISES it up to the 16,777,216 px ceiling ('5456x3072' = 16.8MP). For web work prefer aspect_ratio alone. Accepted range: 3686400 to 16777216 px; the model rejects anything outside it.",
+      "Explicit pixel size, '<width>x<height>'. Seedream only — the default GPT model and grok ignore it silently. Price is flat ($0.035) whatever you ask for, so 'size' either LOWERS what you get (e.g. '2560x1440' = 3.7MP vs 7.5MP with aspect_ratio alone) or, for print work, RAISES it up to the 16,777,216 px ceiling ('5456x3072' = 16.8MP). For web work prefer aspect_ratio alone. Accepted range: 3686400 to 16777216 px; the model rejects anything outside it.",
     ),
   n: z
     .number()

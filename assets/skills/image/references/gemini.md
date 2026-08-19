@@ -18,14 +18,23 @@ Marked *(vendor)* below. Ours marked *(measured)*.
 
 ## When to reach for these at all
 
-Seedream is the default. Come here for:
-- **Skin texture close-ups** — flash renders pores and stray hairs better than seedream,
-  whose skin reads slightly "rendered" *(measured)*. This is the only reason to pick flash.
-- **Genuinely hard scenes** — pro only. It is ~7x seedream per pixel; it is not a "better" button.
+**`gemini-3.1-flash-image` is the production model.** Anything shipped — a landing page, a
+client site, a deck — goes here, and the whole series stays here (SKILL.md step 1). Reasons:
 
-**Never come here for pixels.** At `2K` flash gives 4.2 MP (2752×1536 at 16:9) for \$0.101 —
-*fewer* pixels than seedream's 7.5 MP at \$0.035, and 2.9x the price. Pro at `2K` is the same
-4.2 MP for \$0.137. Reaching for Gemini to get a bigger frame is a downgrade *(measured)*.
+- **Skin and material fidelity.** Flash renders pores, stray hairs and worn fabric; seedream
+  smooths them into a slightly "rendered" finish and the cheap default is softer still
+  *(measured)*.
+- **Enough pixels for a first screen.** 4.2 MP at `2K` (2752×1536 at 16:9) against 1.3 MP on
+  the default model — which is why a hero cannot live on the cheap tier.
+- **Banner strips.** `1:4`, `4:1`, `1:8`, `8:1` exist on flash and on nothing else here.
+
+**`gemini-3-pro-image` stays a special case** — genuinely hard scenes only (many interacting
+subjects, tricky physics). It is ~7x seedream per pixel, and on an identical prompt it came
+back cleaner but noticeably more sterile than flash *(measured)*. It is not a "better" button.
+
+**Do not come here for raw pixel count.** At `2K` flash gives 4.2 MP for \$0.101 — *fewer*
+pixels than seedream's 7.5 MP at \$0.035. You are paying for fidelity, not size; if the job
+is "as many pixels as possible", that is seedream *(measured)*.
 
 ## Official rules *(vendor)*
 
