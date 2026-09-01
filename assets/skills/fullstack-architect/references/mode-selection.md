@@ -43,6 +43,11 @@ Read the user's FIRST substantive message. Score these signals.
 
 **Tie / unclear → default Wizard** (safer to over-explain than under-explain).
 
+**Scaffolded project caveat.** In a project built by `bootstrap_project`, the stack sits in
+`.claude/CLAUDE.md` and in memory because the agent that ran the scaffold wrote it there —
+the user may have said "решай сам". A stack you read from a file is NOT an expert signal:
+score only what this user typed in this conversation.
+
 ---
 
 ## The One-Time Confirmation

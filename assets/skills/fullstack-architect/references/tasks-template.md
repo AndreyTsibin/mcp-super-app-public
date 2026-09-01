@@ -1,4 +1,52 @@
-# Tasks for Claude Code CLI
+# Tasks: two layouts
+
+**Scaffolded project (mcp-super-app skeleton — see STEP B2): use the tracker section below
+and stop there.** The rest of this file is the classic TASKS.md format, for projects without
+a skeleton.
+
+---
+
+## Scaffolded project → fill `docs/_dev/tracker.md`
+
+The project already has a task list that every session reads and that `CLAUDE.md` points at.
+A separate TASKS.md would compete with it — and the tracker always wins, because all the
+signposts lead there. So Stage 5 fills the tracker instead of writing a new document.
+
+**Format — one line per task, grouped by sprint:**
+
+```markdown
+## В работе
+
+### Спринт 1 — Фундамент
+- ⬜ **1.1** Каркас приложения и подключение БД — детали: `docs/_dev/PLANNING.md` §Sprint 1.
+  Готово: `npm run dev` поднимается, миграция применяется на чистой базе.
+- ⬜ **1.2** Аутентификация — детали: `docs/architecture/ARCHITECTURE.md` §Auth.
+  Готово: регистрация, вход и выход работают, сессия переживает перезагрузку.
+
+### Спринт 2 — ...
+```
+
+**Rules for these lines:**
+
+1. **Terse on purpose.** The tracker is read every session and has a ~4k token budget. The
+   details are already written in PLANNING and ARCHITECTURE — the line points at them
+   instead of repeating them.
+2. **Every line carries three things:** what to do, where the detail lives, and how we know
+   it's done. Nothing else.
+3. **Order = execution order.** Dependencies are expressed by position; call one out in the
+   line only when it is not the obvious neighbour ("после 2.3").
+4. **No prompts to copy, no branch-per-task ritual, no test commands.** The agent works
+   inside this project and opens those docs directly — a prompt copied to itself is a step
+   that nobody performs.
+5. **Sprints beyond the first can stay coarse.** Detail the current sprint; later ones get
+   one line each until their turn comes. Planning depth decays with distance — a detailed
+   plan for what will change anyway is wasted work.
+
+Then update `PROJECT-STATE.md` and stop: STATE = COMPLETE.
+
+---
+
+# Tasks for Claude Code CLI (classic layout)
 
 > **Large projects (Complex+ or >600 lines):** do NOT put all tasks in one file. Generate sprint by sprint — `TASKS-sprint1.md`, `TASKS-sprint2.md`, … — with `TASKS.md` as the index/overview. Save + update PROJECT-STATE after each sprint; if context runs low, mark the partial (sprint + last finished task) and stop honestly. See `context-management.md` (Rule 3 split, Rule 4 section-by-section). The structure below applies inside each per-sprint file.
 

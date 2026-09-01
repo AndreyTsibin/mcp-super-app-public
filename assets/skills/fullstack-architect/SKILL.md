@@ -42,6 +42,15 @@ STEP B — ENVIRONMENT
     confirm the actual size at Stage 0.5 before pushing the switch.
   Resume strategy per profile → references/context-management.md (Environment Profiles + Migrating).
 
+STEP B2 — PROJECT LAYOUT   (decides WHERE every document below is written)
+  Look for `.claude/CLAUDE.md` + `docs/_dev/tracker.md` in the working dir.
+  IF both exist → this project was scaffolded by mcp-super-app. Follow ITS layout,
+     see "Where documents go" right below. Docs live in `docs/`, tasks live in the
+     tracker, and you do NOT create a README index — `CLAUDE.md` already maps the docs.
+  IF absent → plain project: keep the classic layout (documents in the working dir root,
+     README.md as the index). Everything else in this skill is unchanged.
+  Record which layout you are in inside PROJECT-STATE.md.
+
 STEP C — MODE SELECTION   (skip if mode already in PROJECT-STATE.md)
   Load references/mode-selection.md.
   Auto-detect Wizard vs Expert from user's first message → confirm in ONE line.
@@ -55,6 +64,37 @@ STEP D — QUICK-START CHECK
 STEP E — STAGE DETECTION
   Use the State Transition Table below to find current stage. Load ONLY that stage's reference.
 ```
+
+---
+
+## 📁 Where documents go (scaffolded projects)
+
+Applies when STEP B2 found the mcp-super-app layout. Every "Write X.md" further down means
+the path in this table — the skeleton already has a place for each of these, and a second
+copy in the project root would compete with it.
+
+| Document | Classic layout | Scaffolded project |
+|---|---|---|
+| PRD | `PRD.md` | `docs/PRD.md` |
+| Architecture | `ARCHITECTURE.md` | `docs/architecture/ARCHITECTURE.md` |
+| Roadmap | `PLANNING.md` | `docs/_dev/PLANNING.md` |
+| Tasks | `TASKS.md` | **`docs/_dev/tracker.md`** — the project's own tracker, see STAGE 4 |
+| Resume point | `PROJECT-STATE.md` | `docs/_dev/PROJECT-STATE.md` |
+| Index | `README.md` | none — `.claude/CLAUDE.md` already maps the docs |
+
+The skeleton also ships an empty `docs/_dev/scope.md`. Fill it right after the PRD is
+approved: three to five sentences on what we build and for whom, the parts the system is
+made of, and what we deliberately leave out. It is the short read every session opens —
+the PRD is the long one, opened when a detail is actually needed. Leaving the stub empty
+breaks that split and leaves the tracker pointing at blank headings.
+
+Two more rules in a scaffolded project:
+
+- **Never touch the project's `README.md`** — it belongs to the project, not to this skill.
+- **A decision you made along the way** (why this stack and not that one, a trap you hit)
+  goes into `docs/decisions/` as a short entry — format is in that folder's README. The
+  reasoning inside PRD/ARCHITECTURE answers "what we chose"; the log answers "why, and what
+  bit us" and it is what the next session actually greps.
 
 ---
 
@@ -89,10 +129,17 @@ STEP E — STAGE DETECTION
 | **STAGE_1** | PRD exists | Stack selection | `stage1-stack-questionnaire.md` |
 | **STAGE_2** | PRD + Stack | Architecture | `architecture-template.md` |
 | **STAGE_3** | PRD + Stack + ARCH | Planning | `planning-template.md` |
-| **STAGE_4** | PRD + ARCH + PLAN | Tasks | `tasks-template.md` |
+| **STAGE_4** | PRD + ARCH + PLAN | Tasks (scaffolded: fill the tracker) | `tasks-template.md` |
 | **COMPLETE** | all docs | Q&A / revise / resume | `complete-state.md` |
 
 > **Naming note:** internal states are `STAGE_0…STAGE_4`. User-facing labels are "Этап 1…5" (PRD=1, Stack=2, Architecture=3, Planning=4, Tasks=5). Keep user-facing numbering consistent — never tell the user "Stage 2" for architecture; say "Этап 3 (Архитектура)". Mind the **+1 offset**: internal `STAGE_1` = user "Этап 2", `STAGE_2` = "Этап 3", etc. — always translate. Stage 0.5 (estimate) is an **unnumbered interlude** — present it as "предварительная оценка" between Этап 1 and Этап 2, never as its own "Этап".
+
+> **The roadmap you announce.** When you first tell the user what lies ahead, say exactly
+> five stages and nothing else: `1 Описание продукта (PRD) → 2 Технологии → 3 Архитектура →
+> 4 План → 5 Задачи в трекер`. The estimate is not on that list. Announce it once, at
+> activation, and keep those numbers for the rest of the project — a user who was promised
+> six stages counts them, and every later "Этап N" you say has to match.
+
 
 ---
 
@@ -211,19 +258,29 @@ Step 3 — Load references/validation-checklists.md → STAGE 3 realism checks (
 ## ⚙️ STAGE 4: Task Generation
 
 ```
-Step 1 — Load references/tasks-template.md.
-  Generate TASKS.md: atomic self-contained tasks, P0/P1/P2, dependencies, detailed Claude Code prompts,
-  testing instructions, English code comments.
-  CONTEXT GUARD (Complex+ or expected >600 lines): do NOT generate all at once. Go sprint by sprint —
-  Write TASKS-sprintN.md → update PROJECT-STATE (sprint N done) → next. Keep TASKS.md as the index.
-  If context runs low mid-way → save what's done, mark the partial in PROJECT-STATE with the EXACT
-  resume point (sprint + last finished task, e.g. "sprint3: tasks 1-6 done, resume at task 7"), set that
-  sprint to 🔶 in the TASKS.md index too, refresh the copy-pasteable Resume prompt in PROJECT-STATE Next Action.
-  Write that Resume prompt at EVERY sprint save (not only on low context) so a hard cut can't lose the resume path.
-  Never push into a wall and lose the doc. See context-management.md.
+Step 1 — Load references/tasks-template.md and follow the branch for your layout (STEP B2).
 
-Step 2 — Save FIRST: Write TASKS.md (+ splits) BEFORE validation. Show only a summary in chat
-  (task count + sprint index) — never paste all tasks. Update PROJECT-STATE.md + README.
+  SCAFFOLDED PROJECT → fill `docs/_dev/tracker.md`, do NOT create TASKS.md.
+    One line per task, grouped by sprint: what to do + where the detail lives
+    (PLANNING/ARCHITECTURE section) + how we know it's done. Deliberately terse —
+    the tracker is read every session and has a ~4k token budget, while the details
+    are already written in the docs the line points at. No copy-paste prompts, no
+    branch-per-task ritual, no test commands: the agent lives in this project and
+    reads those docs directly.
+    This also keeps STAGE 4 cheap — no 300+ line document to generate, so the stage
+    fits in whatever context is left after Planning.
+
+  CLASSIC LAYOUT → generate TASKS.md as before: atomic self-contained tasks, P0/P1/P2,
+    dependencies, Claude Code prompts, testing instructions.
+    CONTEXT GUARD (Complex+ or expected >600 lines): do NOT generate all at once. Go sprint
+    by sprint — Write TASKS-sprintN.md → update PROJECT-STATE (sprint N done) → next. Keep
+    TASKS.md as the index. If context runs low mid-way → save what's done, mark the partial in
+    PROJECT-STATE with the EXACT resume point (sprint + last finished task), set that sprint to
+    🔶 in the TASKS.md index, refresh the copy-pasteable Resume prompt in PROJECT-STATE Next
+    Action. Write that Resume prompt at EVERY sprint save. See context-management.md.
+
+Step 2 — Save FIRST, before validation. Show only a summary in chat (task count + sprint
+  index) — never paste all tasks. Update PROJECT-STATE.md (+ README only in classic layout).
 
 Step 3 — Load references/validation-checklists.md → STAGE 4 final checks. Run against the saved file.
   Approve → STATE = COMPLETE → load references/complete-state.md for handoff.

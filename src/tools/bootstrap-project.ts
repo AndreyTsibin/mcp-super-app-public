@@ -113,17 +113,23 @@ export async function runBootstrap(ctx: BootstrapContext) {
     assetPath("bootstrap", "claude", "hooks", "load-handoff.mjs"),
     path.join(claude, "hooks", "load-handoff.mjs"),
   );
+  // Docs guard: broken links and stale code paths rot silently and are never noticed
+  // by review. Lives next to the agent's own things, not in the project's scripts/.
+  await s.copyFile(
+    assetPath("bootstrap", "claude", "scripts", "check-docs.mjs"),
+    path.join(claude, "scripts", "check-docs.mjs"),
+  );
   await s.writeFile(path.join(claude, "CLAUDE.md"), renderClaudeMd(ctx));
   await s.writeFile(path.join(claude, "HANDOFF.md"), renderHandoffStub());
 
   // --- docs/ (per profile) ---
-  for (const doc of docsPlan(ctx.profile)) {
+  for (const doc of docsPlan(ctx.profile, ctx.name)) {
     await s.writeFile(path.join(root, doc.relPath), doc.content);
   }
   // Bundle the bootstrap methodology as reference where architecture/ exists.
   if (topLevelDocsDirs(ctx.profile).includes("architecture")) {
     const arch = path.join(root, "docs", "architecture");
-    for (const file of ["INSTALL.md", "PROJECT-BOOTSTRAP.md"]) {
+    for (const file of ["INSTALL.md", "PROJECT-BOOTSTRAP.md", "context-playbook.md"]) {
       await s.copyFile(
         assetPath("bootstrap", "docs", "architecture", file),
         path.join(arch, file),
@@ -188,10 +194,12 @@ export async function runBootstrap(ctx: BootstrapContext) {
 
   const nextSteps = [
     "git init + ветки main/develop (когда будешь готов).",
-    "Наполнить бриф-зависимое: docs/_dev/scope + tracker, product-vision деталями.",
     ctx.profile === "S"
-      ? "Профиль S: обычно сразу к коду, доку ведём по факту."
-      : "Профиль M/L: прогнать бриф через fullstack-architect (уже поставлен) → PRD/ARCHITECTURE/PLANNING/TASKS.",
+      ? "Наполнить бриф-зависимое: docs/_dev/scope + tracker, product-vision деталями. Профиль S: обычно сразу к коду, доку ведём по факту."
+      : "Профиль M/L: прогнать бриф через fullstack-architect (уже поставлен) — он напишет " +
+        "docs/PRD.md, docs/architecture/ARCHITECTURE.md, docs/_dev/PLANNING.md и НАПОЛНИТ " +
+        "docs/_dev/tracker.md очередью задач. Отдельный TASKS.md в этом каркасе не заводится: " +
+        "трекер — единственная очередь, по нему и идёт работа, одна задача за сессию.",
     `Если проект — лендинг: ПРОПУСТИ подбор скиллов и сразу вызывай scaffold_landing — ` +
       `он ставит свой набор сам (иначе выйдет два рестарта сессии вместо одного).`,
     `Иначе: оцени бриф (стек «${ctx.stack}», видение «${ctx.vision}») и определи, какие скиллы из ` +
@@ -248,7 +256,7 @@ export function registerBootstrapProject(server: McpServer): void {
     {
       title: "Bootstrap project",
       description:
-        "Materialize a new project skeleton in one call: .gitignore, .editorconfig, .claude/ (settings, hook, CLAUDE.md, HANDOFF), docs/ by profile (S/M/L), and Auto-memory (work-protocol, product-vision, docs-protocol, MEMORY.md). On M/L profiles also installs the fullstack-architect skill (idea → PRD/ARCHITECTURE/PLANNING/TASKS); S skips it and goes straight to code. The report's next_steps then hands you the remaining skill catalog (frontend-design, humanizer-ru, image, ui-ux-pro-max, emil-design-skills) with a one-line description each — judge from the brief's stack/vision which ones this project actually needs, and offer that pick via AskUserQuestion (mark your recommendations) rather than installing the whole catalog by default. Also checks for the global destructive-command guard (~/.claude, same as install_guard target=user) and installs it only if missing — idempotent, never calls install_guard again once it's there. Idempotent: existing files are never overwritten. Collect the brief (name/stack/profile/vision) in chat first, then call. Note: .claude/ settings/hooks and installed skills load only at session start — if working inside the new project right away, ask the user to restart the session.",
+        "Materialize a new project skeleton in one call: .gitignore, .editorconfig, .claude/ (settings, SessionStart hook, docs guard, CLAUDE.md, HANDOFF), docs/ by profile (S/M/L) — including an empty decision log (docs/decisions/) and seeded tracker/scope — and Auto-memory (work-protocol, product-vision, docs-protocol, MEMORY.md). On M/L profiles also installs the fullstack-architect skill (idea → PRD/ARCHITECTURE/PLANNING/TASKS); S skips it and goes straight to code. The report's next_steps then hands you the remaining skill catalog (frontend-design, humanizer-ru, image, ui-ux-pro-max, emil-design-skills) with a one-line description each — judge from the brief's stack/vision which ones this project actually needs, and offer that pick via AskUserQuestion (mark your recommendations) rather than installing the whole catalog by default. Also checks for the global destructive-command guard (~/.claude, same as install_guard target=user) and installs it only if missing — idempotent, never calls install_guard again once it's there. Idempotent: existing files are never overwritten. Collect the brief (name/stack/profile/vision) in chat first, then call. Note: .claude/ settings/hooks and installed skills load only at session start — if working inside the new project right away, ask the user to restart the session.",
       inputSchema: bootstrapInputSchema,
       outputSchema: bootstrapOutputSchema,
     },

@@ -92,6 +92,12 @@ const instructions = (magnific: boolean, update: UpdateStatus | null): string =>
   multipage (переделка существующего сайта-донора);
 ${createImageLine(magnific)}${updateLine(update)}
 
+Пользователь описывает новую работу своими словами, сервер не называя («хочу сделать
+приложение», «нам нужен сайт», «с чего начать проект») — НЕ начинай с чистого листа:
+одной фразой предложи подходящую точку входа (новый проект → bootstrap_project, сайт →
+create_website, картинка → create_image) и дождись согласия. Он мог просто не знать,
+что она есть.
+
 Остальные тулы вспомогательные, их зовут по ходу дела, в меню не выносить:
 install_skill, install_guard, search_icons, get_icon, optimize_images, update_server.
 
@@ -104,6 +110,10 @@ clean-user-facing-text; снятие C2PA/EXIF/метаданных с файл�
 по каталогу.
 
 ## Всегда помнить
+- Спрашивают «что умеет сервер», «какие есть инструменты» — дай ссылку на карту
+  инструментов (\`docs/TOOLS.md\` в папке сервера, она же
+  <https://github.com/AndreyTsibin/mcp-super-app-public/blob/main/docs/TOOLS.md>)
+  и ответь по сути вопроса; каталог целиком в чат не пересказывай.
 - Скиллы, команды и хуки грузятся ТОЛЬКО при старте сессии. После install_skill,
   bootstrap_project и create_website остановись и попроси перезапустить сессию.
 - create_image требует промпт, написанный скиллом \`image\` (аргумент prompt_source).
