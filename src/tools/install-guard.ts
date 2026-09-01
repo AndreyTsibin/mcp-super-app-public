@@ -26,10 +26,10 @@ export const installGuardOutputSchema = {
     .describe("Whether the script was newly written or already present."),
   settings_path: z.string(),
   hook_status: z
-    .enum(["created", "added", "already-present"])
+    .enum(["created", "added", "already-present", "migrated"])
     .describe("Result of merging the hook into settings.json."),
   protects: z.array(z.string()).describe("What the guard blocks."),
-  warnings: z.array(z.string()).describe("Non-fatal issues (e.g. jq missing)."),
+  warnings: z.array(z.string()).describe("Non-fatal notes (e.g. a leftover legacy script)."),
 };
 
 function formatReport(r: InstallGuardResult): string {
@@ -45,6 +45,7 @@ function formatReport(r: InstallGuardResult): string {
     created: "settings.json создан с хуком",
     added: "хук добавлен в существующий settings.json (остальное не тронуто)",
     "already-present": "хук уже стоял — пропущено (идемпотентно)",
+    migrated: "старый bash-хук заменён на node-версию (запись переписана на месте)",
   };
   lines.push(`Хук PreToolUse/Bash: ${hookMsg[r.hook_status]} (${r.settings_path}).`);
   lines.push("", "Защищает от:", ...r.protects.map((p) => `  • ${p}`));
@@ -65,7 +66,7 @@ export function registerInstallGuard(server: McpServer): void {
     {
       title: "Install guard",
       description:
-        "Install the destructive-command guard (a PreToolUse/Bash hook) globally into ~/.claude (target=user, default) or into a project's .claude (target=project). Copies destructive-guard.sh into .claude/hooks/ and merges the hook into settings.json WITHOUT clobbering existing keys or hooks (idempotent — safe to re-run). The guard blocks irreversible commands (rm, find -delete, truncate/shred, git reset --hard / clean -f / push --force) while allowing safe variants (git rm, --force-with-lease). Requires jq. Restart the Claude Code session to activate. Note: bootstrap_project already checks for the global (target=user) guard and installs it if missing — you normally only need this tool directly for target='project' or to re-check after a manual jq install.",
+        "Install the destructive-command guard (a PreToolUse/Bash hook) globally into ~/.claude (target=user, default) or into a project's .claude (target=project). Copies destructive-guard.mjs into .claude/hooks/ and merges the hook into settings.json WITHOUT clobbering existing keys or hooks (idempotent — safe to re-run). The guard blocks irreversible commands (rm, find with -delete, truncate/shred, git reset --hard / clean -f / push --force) while allowing safe variants (git rm, --force-with-lease). Runs on node, no bash and no jq needed, so it works on Windows too; an older bash install is migrated in place. Restart the Claude Code session to activate. Note: bootstrap_project already checks for the global (target=user) guard and installs it if missing — you normally only need this tool directly for target='project'.",
       inputSchema: installGuardInputSchema,
       outputSchema: installGuardOutputSchema,
     },

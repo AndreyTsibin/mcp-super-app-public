@@ -1,6 +1,6 @@
 {
   "name": "mcp-super-app",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "Personal MCP server unifying project bootstrap, skills, landings, guard and image generation.",
   "type": "module",
   "private": true,

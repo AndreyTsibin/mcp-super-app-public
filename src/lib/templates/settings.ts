@@ -38,9 +38,11 @@ export function renderSettings(stack: string): string {
           matcher: "startup",
           hooks: [
             {
+              // Exec form: Claude Code runs node directly, no shell in between,
+              // so this works the same on macOS and on Windows.
               type: "command",
-              command:
-                'bash "${CLAUDE_PROJECT_DIR}/.claude/hooks/load-handoff.sh"',
+              command: "node",
+              args: ["${CLAUDE_PROJECT_DIR}/.claude/hooks/load-handoff.mjs"],
             },
           ],
         },

@@ -130,7 +130,8 @@ indent_style = tab
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/load-handoff.sh\""
+            "command": "node",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/load-handoff.mjs"]
           }
         ]
       }
@@ -142,16 +143,26 @@ indent_style = tab
 Python — `Bash(python3:*)`, `Bash(pytest:*)`.
 
 **SessionStart-хук** детерминированно подаёт cold-start в каждую новую сессию (надёжнее, чем
-надеяться, что модель прочтёт память). Создай скрипт `.claude/hooks/load-handoff.sh` (chmod +x):
-```bash
-#!/usr/bin/env bash
-# Подаёт последний handoff из прошлой сессии в контекст новой — cold-start.
-HANDOFF="${CLAUDE_PROJECT_DIR}/.claude/HANDOFF.md"
-if [ -s "$HANDOFF" ]; then
-  echo "=== COLD START — handoff из прошлой сессии (продолжай отсюда) ==="
-  cat "$HANDOFF"
-  echo "=== /COLD START ==="
-fi
+надеяться, что модель прочтёт память). Хук записан в exec-форме (`command` + `args`): Claude Code
+запускает node напрямую, без оболочки, поэтому он одинаково работает на macOS и на Windows.
+Создай скрипт `.claude/hooks/load-handoff.mjs`:
+```js
+#!/usr/bin/env node
+// Подаёт последний handoff из прошлой сессии в контекст новой — cold-start.
+import { readFileSync } from "node:fs";
+import path from "node:path";
+
+const projectDir = process.env.CLAUDE_PROJECT_DIR ?? process.cwd();
+try {
+  const handoff = readFileSync(path.join(projectDir, ".claude", "HANDOFF.md"), "utf8");
+  if (handoff.trim() !== "") {
+    process.stdout.write(
+      `=== COLD START — handoff из прошлой сессии (продолжай отсюда) ===\n${handoff}\n=== /COLD START ===\n`,
+    );
+  }
+} catch {
+  // Файла нет — тишина.
+}
 ```
 `HANDOFF.md` пишется в конце сессии (см. Шаг 5, завершение сессии). Если файла ещё нет —
 хук молчит. `${CLAUDE_PROJECT_DIR}` Claude Code подставляет сам.

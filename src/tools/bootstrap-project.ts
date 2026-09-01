@@ -71,8 +71,6 @@ export const bootstrapOutputSchema = {
     .describe("Manual follow-ups left to the agent/user."),
 };
 
-const HOOK_MODE = 0o755;
-
 /**
  * Remaining catalog for the agent to pick from via AskUserQuestion after
  * scaffolding — fullstack-architect is excluded, it's handled by the
@@ -112,9 +110,8 @@ export async function runBootstrap(ctx: BootstrapContext) {
     path.join(claude, "settings.local.json"),
   );
   await s.copyFile(
-    assetPath("bootstrap", "claude", "hooks", "load-handoff.sh"),
-    path.join(claude, "hooks", "load-handoff.sh"),
-    { mode: HOOK_MODE },
+    assetPath("bootstrap", "claude", "hooks", "load-handoff.mjs"),
+    path.join(claude, "hooks", "load-handoff.mjs"),
   );
   await s.writeFile(path.join(claude, "CLAUDE.md"), renderClaudeMd(ctx));
   await s.writeFile(path.join(claude, "HANDOFF.md"), renderHandoffStub());

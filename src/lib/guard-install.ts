@@ -1,19 +1,17 @@
 import os from "node:os";
 import path from "node:path";
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
 
 import { ToolError } from "./errors.js";
 import { Scaffold, assetPath, assertProjectDir } from "./scaffold.js";
-import { mergeHook } from "./settings-merge.js";
+import { mergeHook, type MergeHookStatus } from "./settings-merge.js";
 
-const execFileP = promisify(execFile);
-
-const SCRIPT_NAME = "destructive-guard.sh";
+const SCRIPT_NAME = "destructive-guard.mjs";
+/** The shell script this hook used to be — installs before v0.6.2 still run it. */
+const LEGACY_SCRIPT_NAME = "destructive-guard.sh";
 const HOOK_EVENT = "PreToolUse";
 const HOOK_MATCHER = "Bash";
 
-/** What the guard blocks — kept in sync with destructive-guard.sh. */
+/** What the guard blocks — kept in sync with destructive-guard.mjs. */
 export const GUARD_PROTECTS = [
   "rm (кроме git rm) — удаляй через trash",
   "find … -delete",
@@ -28,25 +26,22 @@ export type InstallGuardResult = {
   script_path: string;
   script_status: "created" | "skipped";
   settings_path: string;
-  hook_status: "created" | "added" | "already-present";
+  hook_status: MergeHookStatus;
   protects: string[];
   warnings: string[];
 };
 
-/** Hook command: $HOME for a global install, ${CLAUDE_PROJECT_DIR} for project. */
-function hookCommand(target: "user" | "project"): string {
-  const base = target === "user" ? "$HOME" : "${CLAUDE_PROJECT_DIR}";
-  return `bash "${base}/.claude/hooks/${SCRIPT_NAME}"`;
-}
-
-/** The guard fail-opens without jq, so a missing jq means no protection. */
-async function jqMissing(): Promise<boolean> {
-  try {
-    await execFileP("jq", ["--version"]);
-    return false;
-  } catch {
-    return true;
-  }
+/**
+ * Hook in exec form: Claude Code runs `node <script>` itself, without a shell,
+ * so nothing depends on bash being present or on how a shell would quote the
+ * path. A global install pins the absolute path (that settings.json never
+ * travels); a project one keeps ${CLAUDE_PROJECT_DIR} so the repo stays portable.
+ * Forward slashes throughout — Node accepts them on Windows too.
+ */
+function hookArgs(target: "user" | "project", claudeDir: string): string[] {
+  const base =
+    target === "user" ? claudeDir.replace(/\\/g, "/") : "${CLAUDE_PROJECT_DIR}/.claude";
+  return [`${base}/hooks/${SCRIPT_NAME}`];
 }
 
 /**
@@ -73,10 +68,10 @@ export async function runInstallGuard(
     claudeDir = path.join(os.homedir(), ".claude");
   }
 
-  // 1. Materialize the guard script (idempotent skip-existing, executable).
+  // 1. Materialize the guard script (idempotent skip-existing).
   const s = new Scaffold();
   const scriptDest = path.join(claudeDir, "hooks", SCRIPT_NAME);
-  await s.copyFile(assetPath("guard", SCRIPT_NAME), scriptDest, { mode: 0o755 });
+  await s.copyFile(assetPath("guard", SCRIPT_NAME), scriptDest);
   const scriptStatus = s.entries[0]?.status === "created" ? "created" : "skipped";
 
   // 2. Merge the PreToolUse/Bash hook into settings.json (safe, idempotent).
@@ -84,15 +79,17 @@ export async function runInstallGuard(
   const merge = await mergeHook(settingsPath, {
     event: HOOK_EVENT,
     matcher: HOOK_MATCHER,
-    command: hookCommand(target),
+    command: "node",
+    args: hookArgs(target, claudeDir),
     marker: SCRIPT_NAME,
+    replaces: [LEGACY_SCRIPT_NAME],
   });
 
-  // 3. Warn if jq is missing — the script fail-opens without it (no protection).
+  // 3. The migrated case leaves the old shell script behind — harmless, but say so.
   const warnings: string[] = [];
-  if (await jqMissing()) {
+  if (merge.status === "migrated") {
     warnings.push(
-      "jq не найден в PATH — скрипт без него fail-open'ит (пропускает всё, защиты нет). Установи: brew install jq.",
+      `Старый хук ${LEGACY_SCRIPT_NAME} заменён на ${SCRIPT_NAME} в settings.json. Сам файл ${path.join(claudeDir, "hooks", LEGACY_SCRIPT_NAME)} остался лежать и больше не вызывается — можно удалить вручную.`,
     );
   }
 
