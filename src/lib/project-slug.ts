@@ -3,11 +3,13 @@ import path from "node:path";
 
 /**
  * Absolute project path → Claude Code memory folder slug.
- * Claude Code derives the slug by replacing every "/" in the absolute path
- * with "-", e.g. "/Users/a/Dev/app" → "-Users-a-Dev-app".
+ * Claude Code replaces every non-alphanumeric character of the absolute path
+ * with "-": "/Users/a/Dev/app" → "-Users-a-Dev-app",
+ * "D:\\Kefir\\app" → "D--Kefir-app". Separators, drive colons, dots and
+ * underscores all collapse to "-", so the slug is always a safe folder name.
  */
 export function projectSlug(projectPath: string): string {
-  return path.resolve(projectPath).replace(/\//g, "-");
+  return path.resolve(projectPath).replace(/[^a-zA-Z0-9]/g, "-");
 }
 
 /** Absolute path to the project's Auto-memory directory. */
