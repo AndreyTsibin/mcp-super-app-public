@@ -11,8 +11,10 @@ import {
 } from "../lib/templates/session-protocol.js";
 
 /**
- * Model: rebuild a working third-party site (the donor) as an original Astro
- * project. Unlike the landing generator there is no section library to ship —
+ * Model: port an existing site (the donor) onto Astro — the donor may be the
+ * user's own builder site or mockup (exact copy) or a third-party reference
+ * (redesign); the mode is settled with the user in session 1.
+ * Unlike the landing generator there is no section library to ship —
  * the donor is unknown up front, so its structure, stack and page types are
  * discovered, not predicted. What this tool materializes is the *method*:
  * the playbook, a tracker seeded with the two research sessions, and the
@@ -88,6 +90,8 @@ function buildNextSteps(skillsFailed: { skill: string; error: string }[]): strin
     ...failedSkillsSteps(skillsFailed),
     "СТОП: скиллы подхватятся только при старте новой сессии. Попроси пользователя перезапустить приложение/сессию Claude Code — работу над сайтом начинай уже в новой сессии.",
     `В новой сессии открой ${TRACKER_DOC} и возьми задачу 1 — разведку донора. Только её.`,
+    "Первым делом в задаче 1 спроси у пользователя режим переноса (§0 плейбука): A — точная копия своего сайта/макета один в один, B — редизайн по чужому донору. Не угадывай, умолчания нет.",
+    "Режим A — воспроизводим оригинал буквально: цвета, шрифты, кегли, отступы, порядок элементов, тексты, картинки, логотип. Под блок, который не ложится в готовые компоненты, пишется свой компонент — упрощать блок нельзя.",
     `Метод — ${PLAYBOOK_DOC}: под задачу 1 читаются разделы §0–§2 и §13, остальное не грузи.`,
     "Донора разбирай внутренним браузером (preview_start / read_page / get_page_text / javascript_tool). Зеркало wget — опция, и только с разрешения пользователя.",
     "Результат задачи 1 — docs/design/donor-analysis.md. Дальше: коммит → отметка в трекере → .claude/HANDOFF.md → СТОП.",
@@ -147,7 +151,7 @@ export async function runScaffoldMultipage(
 export function formatMultipageReport(r: ScaffoldMultipageResult): string {
   const lines: string[] = [];
   lines.push(
-    `Среда редизайна по донору развёрнута. Создано: ${r.created.length}, дополнено: ${r.updated.length}, пропущено: ${r.skipped.length}.`,
+    `Среда переноса сайта развёрнута. Создано: ${r.created.length}, дополнено: ${r.updated.length}, пропущено: ${r.skipped.length}.`,
   );
   if (r.created.length) {
     lines.push("", "Создано:", ...r.created.map((p) => `  + ${p}`));
