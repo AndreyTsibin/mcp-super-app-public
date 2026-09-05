@@ -7,7 +7,9 @@ description: >
   colour and type decisions, spacing and hierarchy, component styling, hero and landing
   sections, dark mode, motion. Covers aesthetic direction, typography pairing, palette,
   layout rhythm and the judgement calls that separate a considered interface from
-  framework defaults. Worth consulting even when the ask is just "build the page" — the
+  framework defaults, plus a countable pre-flight pass over the hero, section rhythm and
+  decoration that catches the layout habits which read as machine-made. Worth consulting
+  even when the ask is just "build the page" — the
   design choices are the part that decides whether it reads as templated. Not for
   generating images (use the image skill), not for diagrams (diagram-design), not for
   backend or data-layer work.
@@ -50,6 +52,38 @@ Try to do a lot of this planning and iteration in your thinking, and only show i
 ## Restraint and self-critique
 
 Spend your boldness in one place. Let the signature element be the one memorable thing, keep everything around it quiet and disciplined, and cut any decoration that does not serve the brief. Not taking a risk can be a risk itself! Build to a quality floor without announcing it: responsive down to mobile, visible keyboard focus, reduced motion respected. Critique your own work as you build, taking screenshots if your environment supports it – a picture is worth 1000 tokens. Consider Chanel's advice: before leaving the house, take a look in the mirror and remove one accessory. Human creators have memory and always try to do something new, so if you have a space to quickly jot down notes about what you've tried, it can help you in future passes.
+
+## Pre-flight: the countable failures
+
+Everything above is a judgement call. This pass is not. Each item below is checkable by counting, and each is a shape that generated pages fall into by default — which is exactly why a reader clocks the page as machine-made before reading a word of it. Run this before calling the work done, and again after any large edit. A hit here is a fix, not a trade-off to weigh.
+
+**Hero**
+
+- It fits the first viewport. Headline at most two lines at desktop, subtext at most twenty words, primary CTA visible without scrolling. If the copy will not fit, cut the copy or drop the scale; never push the CTA below the fold.
+- At most four text elements, total: an eyebrow *or* a brand strip (one or neither), the headline, the subtext, the CTA row (one primary plus at most one secondary). Trust micro-strips, pricing teasers, feature bullets and avatar rows belong to their own section underneath.
+- Type scale is planned together with the hero asset, not after it. A headline that wraps to four lines is a font-size mistake, not a copy-length one. The largest display sizes are for headlines of three to five words.
+- Top padding stays modest. Hero content floating a third of the way down the viewport reads as a layout bug rather than as breathing room. Buy the air with scale, not with padding.
+- The "trusted by" logo wall is the section under the hero, never a row inside it.
+
+**Sections**
+
+- A layout family appears at most once per page. If "Services" and "Selected work" both resolve to a three-card row, one of them is wrong. Eight sections should draw on at least four different families.
+- At most two consecutive image-left/text-right alternating sections. A third in a row is a failure: break the run with a full-width band, a stacked section, a grid, or another family entirely.
+- A grid has exactly as many cells as there is content for. An empty tile at the end means the shape was picked before the content was counted — reshape the grid, do not pad it.
+- Multi-cell grids carry real variation in two or three cells: an image, a tint, a pattern, a change of density. Six identical text-only cards on one background is the default answer, not a designed one.
+- Small uppercase eyebrow labels are rationed to roughly one per three sections, hero included. When every header carries one they stop labelling anything and just beat out a rhythm the reader recognizes as generated. Dropping the label outright is usually right — a section's position on the page already says what it is. Same test as the numbered markers above: does it encode something true, or decorate?
+- "Big headline left, small explainer paragraph floating top-right" is a default, not a composition. Stack headline and body instead, unless the right column carries something real.
+
+**Chrome and decoration**
+
+- Navigation fits one line at desktop widths and stays under roughly 80px tall. A nav that wraps to two lines, or eats a tenth of the viewport, is broken.
+- Every multi-column block declares its narrow-width fallback where the block is defined. Do not assume the framework handles it.
+- No product UI faked out of styled divs — no invented dashboard, terminal or task list standing in for a screenshot. Use a real capture, a real component, a generated image, or nothing.
+- No hairlines, crosshairs or rules added purely to make the page feel designed. Rules earn their place by separating real content.
+- No scroll cues under the hero. Whoever is looking at the hero has not scrolled yet and knows how.
+- Long lists and spec tables get one border direction, not both. Ten rows with a hairline above and below each one is the laziest layout available.
+
+Rules in this section are adapted from [taste-skill](https://github.com/Leonxlnx/taste-skill) (MIT), sections 4.7 and 9.
 
 ## More on writing in design
 
