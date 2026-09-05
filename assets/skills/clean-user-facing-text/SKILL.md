@@ -1,6 +1,19 @@
 ---
 name: clean-user-facing-text
-description: Clean and finalize authorized natural-language text intended for readers by auditing suspicious invisible Unicode and rewriting prose while preserving facts and meaning. Use in Cursor when the user asks to clean, humanize, polish, or finalize articles, manuscripts, reports, documentation, emails, product copy, UI text, Markdown, or HTML prose, or when an installed Cursor Rule explicitly requires this workflow. Do not use for code-only tasks or undisclosed authorship evasion; leave code, commands, identifiers, paths, APIs, formulas, citations, required disclosures, and verbatim quotations unchanged.
+description: >
+  Final pass over text that already exists and is about to ship: polish, proofread,
+  tidy up, «причесать», «вычитка», «подчистить формулировки», a last read before
+  publishing, pushing or sending to a client. Does two things at once — strips
+  invisible and bidi Unicode, exotic spaces and stray typography with its own Python
+  scripts, then rewrites the prose so it reads like a person wrote it. Any language,
+  any file a reader sees: README, Markdown/MDX, docs folders, reports, emails, landing
+  and product copy, UI strings, tooltips, i18n JSON, DOCX. Facts, numbers, quotes,
+  links, code, paths and identifiers stay byte-identical. Reach for it whenever someone
+  points at existing copy and wants it cleaner, even if the word "clean" never comes up.
+  Russian text whose problem is specifically AI style — канцелярит, «является», rule of
+  three — goes to humanizer-ru; EXIF/C2PA/metadata on files goes to remove-ai-marks.
+  Not for linters or formatters, translation, database cleanup, mojibake debugging, or
+  writing new copy.
 ---
 
 # Clean user-facing text

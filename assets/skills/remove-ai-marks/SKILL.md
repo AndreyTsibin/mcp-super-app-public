@@ -1,13 +1,18 @@
 ---
 name: remove-ai-marks
 description: >
-  Remove multi-vendor AI provenance marks: invisible Unicode (Layer A), statistical
-  text watermarks via rewrite (Layer B, always offer), and C2PA/EXIF/XMP/container
-  metadata on PNG/JPEG/WebP/SVG/PDF/DOCX/ODT/HTML/MD. Covers Claude, Gemini/SynthID-class,
-  OpenAI provenance, and open-LLM sampling marks. Use when the user asks to strip
-  watermarks, remove C2PA/Content Credentials, clean AI metadata, remove invisible
-  Unicode, anti-detect clean AI output, or runs /remove-ai-marks (aliases:
-  /remove-claude-marks).
+  Remove AI provenance marks from files you own: C2PA / Content Credentials, EXIF, XMP
+  and container metadata on PNG/JPEG/WebP/SVG/PDF/DOCX/ODT/HTML/MD, invisible Unicode
+  markers in text, and statistical text watermarks via rewrite. Covers Claude, Gemini
+  and SynthID-class, OpenAI and open-LLM marks. Use whenever someone wants a file
+  stripped before it goes out — «сними C2PA», «убери exif», «почисти метаданные»,
+  «чтобы не осталось следов, чем это сделано» — including images fresh out of
+  create_image before they land on a client site. Also runs on /remove-ai-marks
+  (alias /remove-claude-marks). Needs the cleaning service running locally and stops
+  with an error when it is unreachable. Text-only jobs belong elsewhere: a pre-publish
+  proofread is clean-user-facing-text, Russian AI style is humanizer-ru. Not for
+  detecting whether an image was generated, adding watermarks, image optimisation or
+  format conversion.
 ---
 
 # Remove AI marks

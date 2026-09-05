@@ -1,15 +1,21 @@
 ---
 name: humanizer-ru
 version: 3.1.0
-description: |
-  Strip AI-writing tells from Russian text so it reads as if a person wrote it.
-  Use when editing or reviewing Russian copy — landing pages, articles, posts,
-  email. Detects and fixes patterns specific to AI-generated Russian: канцелярит
-  and nominalization, genitive-case chains, the «является» parasite, calques from
-  English, rule of three, negative parallelisms («не просто X, а Y»), promotional
-  language, filler, chatbot artefacts, and typography tells (dash-as-connector,
-  stray semicolons/colons). Adapts Wikipedia's "Signs of AI writing" and the
-  humanizer skill to Russian. For English text, use the upstream blader/humanizer.
+description: >
+  Strip AI-writing tells from Russian text so it reads as if a person wrote it. Use for
+  any request to review, rewrite, de-robotize or humanise Russian copy — «перепиши
+  по-человечески», «убери то, что палится», «проверь на признаки нейронки», «читается
+  как отчёт», «слишком канцелярит», «разнообразь шаблонные тексты». Any genre and any
+  volume: лендинги, статьи, посты, письма и рассылки, ТЗ, карточки товаров, one piece
+  or thirty at once. The skill already knows the Russian-specific giveaways — канцелярит
+  and nominalisation, genitive chains, the «является» parasite, calques from English,
+  rule of three, negative parallelisms («не просто X, а Y»), promotional language,
+  filler, chatbot artefacts, dash-as-connector and stray semicolons — so the request
+  only has to say the text is Russian and sounds machine-made. Works in both modes:
+  report the tells, or fix them in place. Facts, numbers, dates, sums and terms stay
+  untouched. English text goes to the upstream blader/humanizer; invisible Unicode or a
+  general pre-publish proofread goes to clean-user-facing-text; file metadata goes to
+  remove-ai-marks. Not for spellcheck alone or writing fresh copy.
 license: MIT
 compatibility: claude-code opencode
 allowed-tools:

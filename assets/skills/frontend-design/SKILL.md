@@ -1,6 +1,16 @@
 ---
 name: frontend-design
-description: Guidance for distinctive, intentional visual design when building new UI or reshaping an existing one. Helps with aesthetic direction, typography, and making choices that don't read as templated defaults.
+description: >
+  Guidance for distinctive, intentional visual design when building new UI or reshaping
+  an existing one. Reach for it whenever the work touches how an interface looks: a new
+  page or screen, a redesign, «сделай красиво», «выглядит шаблонно», «подбери шрифты»,
+  colour and type decisions, spacing and hierarchy, component styling, hero and landing
+  sections, dark mode, motion. Covers aesthetic direction, typography pairing, palette,
+  layout rhythm and the judgement calls that separate a considered interface from
+  framework defaults. Worth consulting even when the ask is just "build the page" — the
+  design choices are the part that decides whether it reads as templated. Not for
+  generating images (use the image skill), not for diagrams (diagram-design), not for
+  backend or data-layer work.
 ---
 
 # Frontend Design
