@@ -5,11 +5,6 @@ import { topLevelDocsDirs } from "./docs.js";
 export function renderClaudeMd(ctx: BootstrapContext): string {
   const topDirs = topLevelDocsDirs(ctx.profile);
   const dirs = topDirs.map((d) => `\`docs/${d}/\``).join(", ");
-  // The playbook ships with `architecture/`, which profile S doesn't create — no dead
-  // row in the map for it.
-  const playbookRow = topDirs.includes("architecture")
-    ? "\n| `docs/architecture/context-playbook.md` | rules for docs, memory and context budgets |"
-    : "";
 
   return `# ${ctx.name}
 
@@ -33,7 +28,8 @@ Read by file, never a whole folder:
 | File | When to read |
 |---|---|
 | \`docs/_dev/tracker.md\` | what we are doing now and in what order |
-| \`docs/decisions/\` | **before touching a subsystem** — see below |${playbookRow}
+| \`docs/decisions/\` | **before touching a subsystem** — see below |
+| \`docs/context-playbook.md\` | how docs, memory, rules and context budgets work here |
 
 ## Decision log — read it before you dig
 \`docs/decisions/\` holds what was learned the hard way: why a thing is built this way, the
@@ -50,8 +46,9 @@ Operational log — what was done, how many tests, which commit — goes nowhere
 ## Context budgets
 Documentation grows with the project, context does not. Anything read "just in case" costs
 the task real room. Budgets, in tokens: \`CLAUDE.md\` ≤4k · HANDOFF ≤5k · tracker ≤4k
-(a plan, not an archive) · any doc ≤8k. The docs guard warns on bloat; \`/context\` in an
-interactive terminal gives the exact figure.
+(a plan, not an archive) · any doc ≤8k. Measure with \`/context\` in an interactive terminal —
+that is the only exact figure here; the docs guard only warns that a file grew, from a rough
+estimate that is off by 15% on average. Mechanics, probes and the reasoning: the playbook.
 
 ## Conventions
 - Code, identifiers, comments, commit messages: English.
@@ -72,7 +69,8 @@ line, not a retelling. 4. Rewrite \`.claude/HANDOFF.md\` — one screen. 5. Comm
 
 ### Closing a phase
 Its own pass: collapse the phase to one status row, move durable to \`docs/decisions/\`,
-then run the docs guard.
+run the docs guard, then re-measure cold start and the second wave with \`/context\` — a
+rebuild nobody measured cannot be shown to have helped.
 `;
 }
 

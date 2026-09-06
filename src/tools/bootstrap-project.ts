@@ -126,10 +126,19 @@ export async function runBootstrap(ctx: BootstrapContext) {
   for (const doc of docsPlan(ctx.profile, ctx.name)) {
     await s.writeFile(path.join(root, doc.relPath), doc.content);
   }
-  // Bundle the bootstrap methodology as reference where architecture/ exists.
+  // The playbook goes to every profile: CLAUDE.md, the memory protocol and the seeded
+  // tracker all point at it as the source of the rules they summarize, and a pointer at
+  // a file the profile never receives is worse than no pointer at all. It sits at the
+  // top of docs/ so the path is the same everywhere — S has no architecture/.
+  await s.copyFile(
+    assetPath("bootstrap", "docs", "architecture", "context-playbook.md"),
+    path.join(root, "docs", "context-playbook.md"),
+  );
+  // The bootstrap methodology itself is reference for the scaffolder, not rules for the
+  // work — it ships only where there is an architecture/ to hold it.
   if (topLevelDocsDirs(ctx.profile).includes("architecture")) {
     const arch = path.join(root, "docs", "architecture");
-    for (const file of ["INSTALL.md", "PROJECT-BOOTSTRAP.md", "context-playbook.md"]) {
+    for (const file of ["INSTALL.md", "PROJECT-BOOTSTRAP.md"]) {
       await s.copyFile(
         assetPath("bootstrap", "docs", "architecture", file),
         path.join(arch, file),

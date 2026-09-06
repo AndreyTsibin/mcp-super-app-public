@@ -26,7 +26,7 @@ const EXCLUDED = [
   { match: /(^|\/)_dev\/archive\//, why: "архив: цитировать умершие пути — его работа" },
   { match: /(^|\/)CHANGELOG\.md$/, why: "история: путь назывался так на момент релиза" },
   {
-    match: /^docs\/architecture\/(INSTALL|PROJECT-BOOTSTRAP|context-playbook)\.md$/,
+    match: /^docs\/(architecture\/(INSTALL|PROJECT-BOOTSTRAP)|context-playbook)\.md$/,
     why: "методички: говорят о механизме и о любых проектах, а не о файлах этого",
   },
   {

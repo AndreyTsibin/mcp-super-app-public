@@ -44,9 +44,11 @@ test("карта документации в CLAUDE.md не ссылается �
   for (const profile of PROFILES) {
     const created = new Set(docsPlan(profile, "demo").map((d) => d.relPath));
     const dirs = new Set(topLevelDocsDirs(profile).map((d) => `docs/${d}/`));
-    // Методички кладутся отдельно от docsPlan, только там, где есть architecture/.
+    // Методички кладутся отдельно от docsPlan: плейбук — всем, каркасные — где есть
+    // architecture/ (см. bootstrap-project.ts).
+    created.add("docs/context-playbook.md");
     if (dirs.has("docs/architecture/")) {
-      for (const f of ["INSTALL.md", "PROJECT-BOOTSTRAP.md", "context-playbook.md"]) {
+      for (const f of ["INSTALL.md", "PROJECT-BOOTSTRAP.md"]) {
         created.add(`docs/architecture/${f}`);
       }
     }
@@ -62,7 +64,28 @@ test("карта документации в CLAUDE.md не ссылается �
   }
 });
 
-test("профиль S не обещает плейбук — architecture/ у него нет", () => {
-  assert.doesNotMatch(renderClaudeMd(ctx("S")), /context-playbook/);
-  assert.match(renderClaudeMd(ctx("M")), /context-playbook/);
+test("плейбук лежит по одному пути во всех профилях", () => {
+  // У S нет architecture/, поэтому путь общий — docs/context-playbook.md. Разойдётся
+  // с bootstrap-project.ts — карта документации начнёт врать именно у S.
+  for (const profile of PROFILES) {
+    assert.match(renderClaudeMd(ctx(profile)), /`docs\/context-playbook\.md`/);
+    assert.doesNotMatch(renderClaudeMd(ctx(profile)), /architecture\/context-playbook/);
+  }
+});
+
+test("замер контекста называет /context, а не страж", () => {
+  // BST-4: эвристика стража — сигнал «файл вырос», а не цифра. Правило «бюджеты в
+  // токенах» без выполнимого способа померить возвращает нас к спору о вкусе.
+  const md = renderClaudeMd(ctx("M"));
+  assert.match(md, /\/context/);
+  assert.match(md, /Closing a phase[\s\S]*\/context/);
+});
+
+test("трекер заводит одноразовую проверку механики", () => {
+  const tracker = docsPlan("S", "demo").find((f) => f.relPath === "docs/_dev/tracker.md")!.content;
+  // Правило без момента срабатывания помнится до следующей фазы (плейбук §8.7):
+  // зонд и поломка стража приезжают строкой очереди, а не пожеланием в методичке.
+  assert.match(tracker, /Зонд `\.claude\/rules\/`/);
+  assert.match(tracker, /check-docs\.mjs/);
+  assert.match(tracker, /docs\/context-playbook\.md/);
 });
