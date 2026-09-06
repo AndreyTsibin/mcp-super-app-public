@@ -1,5 +1,5 @@
 /**
- * Three start-up self-checks whose result is prepended to the server's MCP
+ * Four start-up self-checks whose result is prepended to the server's MCP
  * instructions, so the agent reads them in its system context and tells the
  * user before anything else happens:
  *
@@ -11,14 +11,17 @@
  *    by hand; nothing told them there was anything to pull.
  *  - **environment gap** — a key `.env.example` marks as required is missing from
  *    the user's `.env`. See `env-check.ts`.
+ *  - **stale CLAUDE.md rule** — the user's global `CLAUDE.md` still carries the
+ *    hand-written `## mcp-super-app` block the old INSTALL.md asked for. It now
+ *    duplicates the skill and can contradict it. See `SRV-13`.
  *
  * The remote check asks `git ls-remote`, not a hosting API: it reuses whatever
  * credentials the checkout already has (the private copy 404s on GitHub's API
  * without a token), spends no rate limit, and works with any remote. Its answer
  * is cached for a day.
  *
- * Both fail open: no git, no network, no remote, unreadable cache — the server
- * starts silently. A diagnostic must never be able to break a start.
+ * All fail open: no git, no network, no remote, unreadable cache or config — the
+ * server starts silently. A diagnostic must never be able to break a start.
  */
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
@@ -259,6 +262,27 @@ export async function clearUpdateCache(): Promise<void> {
 }
 
 /**
+ * True when the user's global `CLAUDE.md` still holds the pre-skill
+ * `## mcp-super-app` block that INSTALL.md used to dictate.
+ *
+ * Read-only, deliberately: that file is the user's own, anything can live around
+ * the block, and a server that silently rewrites a personal config is a worse
+ * problem than 150 duplicated tokens. Same rule as the `.env` check — say it,
+ * don't fix it.
+ *
+ * `os.homedir()`, not `$HOME`: on Windows the shell's `$HOME` and the client's
+ * home directory can be two different places (`DLV-14`).
+ */
+export async function hasLegacyClaudeMdBlock(home: string = os.homedir()): Promise<boolean> {
+  try {
+    const text = await fs.readFile(path.join(home, ".claude", "CLAUDE.md"), "utf8");
+    return /^##[ \t]+mcp-super-app[ \t]*$/m.test(text);
+  } catch {
+    return false; // нет файла, нет прав — считаем, что блока нет
+  }
+}
+
+/**
  * The banner prepended to the server instructions. Written at the agent, in the
  * imperative: a warning the agent reads and does not pass on is a warning that
  * did not happen.
@@ -267,10 +291,12 @@ export function renderSelfCheckBanner({
   staleBuild,
   update,
   env,
+  legacyClaudeMd = false,
 }: {
   staleBuild: boolean;
   update: UpdateStatus | null;
   env: EnvStatus | null;
+  legacyClaudeMd?: boolean;
 }): string {
   const lines: string[] = [];
   if (staleBuild) {
@@ -292,7 +318,7 @@ export function renderSelfCheckBanner({
       `⚠️ ДОСТУПНО ОБНОВЛЕНИЕ: ${what}. СРАЗУ скажи это пользователю и предложи вызвать ` +
         "`update_server` — он подтянет обновление сам. После этого нужен перезапуск сессии. " +
         "Если пользователь просит «запусти mcp-super-app» — добавь обновление отдельным " +
-        "пунктом в то же меню AskUserQuestion (см. «Точки входа»).",
+        "пунктом в то же меню AskUserQuestion (скилл `mcp-super-app`).",
     );
   }
   if (env) {
@@ -307,6 +333,13 @@ export function renderSelfCheckBanner({
             "нужны, откажут в работе. СРАЗУ скажи это пользователю и предложи скопировать " +
             "`.env.example` в `.env` рядом с ним и вписать ключи — где их взять, написано " +
             "в самом образце. Ключи пользователь вписывает сам, ты их не видишь.",
+    );
+  }
+  if (legacyClaudeMd) {
+    lines.push(
+      "⚠️ УСТАРЕВШЕЕ ПРАВИЛО: в `~/.claude/CLAUDE.md` есть блок `## mcp-super-app` — он " +
+        "дублирует скилл `mcp-super-app` и стоит ~150 токенов в каждой сессии. СРАЗУ скажи " +
+        "это пользователю и предложи удалить блок (только его, файл не переписывать).",
     );
   }
   return lines.join("\n\n");

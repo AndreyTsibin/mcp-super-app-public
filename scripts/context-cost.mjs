@@ -60,6 +60,44 @@ const BUDGETS = [
   },
 ];
 
+/**
+ * Budgets on source, not documents: these two strings are the only things this
+ * repo puts into EVERY session in EVERY project, whether the server is wanted
+ * there or not. The MCP instructions grew 450 → 681 tokens unnoticed precisely
+ * because nothing measured them (`SRV-13`); the skill's frontmatter is what a
+ * skill costs while its body sits unread.
+ */
+const SOURCE_BUDGETS = [
+  {
+    label: "MCP instructions (src/index.ts)",
+    budget: 200,
+    read() {
+      const src = readFileSync(join(ROOT, "src/index.ts"), "utf8");
+      const m = src.match(/const INSTRUCTIONS = `([\s\S]*?)`;/);
+      return m ? m[1] : null;
+    },
+  },
+  {
+    label: "router skill frontmatter (assets/router/SKILL.md)",
+    budget: 120,
+    read() {
+      const path = join(ROOT, "assets/router/SKILL.md");
+      if (!existsSync(path)) return null;
+      const m = readFileSync(path, "utf8").match(/^---\n([\s\S]*?)\n---/);
+      return m ? m[1] : null;
+    },
+  },
+  {
+    label: "router skill body — loaded on demand, not always",
+    budget: null,
+    read() {
+      const path = join(ROOT, "assets/router/SKILL.md");
+      if (!existsSync(path)) return null;
+      return readFileSync(path, "utf8").replace(/^---\n[\s\S]*?\n---\n/, "");
+    },
+  },
+];
+
 /** Per-file ceilings, checked across all of docs/ and .claude/. */
 const FILE_BUDGETS = [
   { match: /\.claude\/CLAUDE\.md$/, budget: 4_000, label: "CLAUDE.md" },
@@ -118,6 +156,21 @@ for (const group of BUDGETS) {
   console.log(
     `${String(total).padStart(7)} TOTAL  (budget ${group.budget}) ${over ? "OVER BUDGET" : "ok"}`,
   );
+}
+
+console.log("\nALWAYS IN CONTEXT — every session, every project");
+for (const rule of SOURCE_BUDGETS) {
+  const text = rule.read();
+  if (text === null) {
+    failed++;
+    console.log(`${"MISSING".padStart(7)}       ${rule.label}`);
+    continue;
+  }
+  const tokens = encode(text).length;
+  const over = rule.budget !== null && tokens > rule.budget;
+  if (over) failed++;
+  const verdict = rule.budget === null ? "" : `  (budget ${rule.budget}) ${over ? "OVER BUDGET" : "ok"}`;
+  console.log(`${String(tokens).padStart(7)} tok  ${rule.label}${verdict}`);
 }
 
 console.log("\nPER-FILE BUDGETS");

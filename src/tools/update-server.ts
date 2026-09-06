@@ -18,6 +18,7 @@ import { ToolError, toolError } from "../lib/errors.js";
 import { PKG_ROOT } from "../lib/scaffold.js";
 import { checkEnv } from "../lib/env-check.js";
 import { clearUpdateCache } from "../lib/self-check.js";
+import { syncRouterSkill } from "../lib/router-skill.js";
 
 const execFileP = promisify(execFile);
 
@@ -60,6 +61,9 @@ export const updateServerOutputSchema = {
   commits: z.array(z.string()).describe("Commits pulled in, newest first."),
   reinstalled: z.boolean().describe("Whether npm install ran (manifest changed)."),
   rebuilt: z.boolean(),
+  router_skill: z
+    .enum(["updated", "current", "failed"])
+    .describe("State of the global mcp-super-app skill after the update."),
   missing_env: z
     .array(z.string())
     .describe("Required .env keys the update introduced that the user has not set yet."),
@@ -73,8 +77,20 @@ type Result = {
   commits: string[];
   reinstalled: boolean;
   rebuilt: boolean;
+  router_skill: "updated" | "current" | "failed";
   missing_env: string[];
 };
+
+/**
+ * Refresh the global entry-point skill right here, not at the next server start:
+ * the user is told "обновлено" now, and a menu that arrives one session later is
+ * a menu they will hit the old version of first.
+ */
+async function routerSkillState(): Promise<Result["router_skill"]> {
+  const result = await syncRouterSkill();
+  if (result.error) return "failed";
+  return result.changed ? "updated" : "current";
+}
 
 /** Split a CHANGELOG into `## …` sections, keyed by heading. */
 function sectionsOf(text: string): Map<string, string> {
@@ -153,6 +169,7 @@ async function runUpdate(): Promise<Result> {
       changelog: [],
       reinstalled: false,
       rebuilt: false,
+      router_skill: await routerSkillState(),
       missing_env: [],
     };
   }
@@ -181,6 +198,7 @@ async function runUpdate(): Promise<Result> {
   }
 
   await clearUpdateCache();
+  const router_skill = await routerSkillState();
   // An update may add a mandatory key to .env.example. pull/install/build all pass
   // without it and the gap only shows up later, inside a tool — say it here, at the
   // one moment the user is already looking at the update.
@@ -193,6 +211,7 @@ async function runUpdate(): Promise<Result> {
     changelog: await changelogSince(from),
     reinstalled,
     rebuilt: true,
+    router_skill,
     missing_env: env?.missing ?? [],
   };
 }
@@ -205,6 +224,15 @@ function formatReport(r: Result): string {
     `Сервер обновлён: ${r.from} → ${r.to} (${r.commits.length} коммит(ов)).`,
     r.reinstalled ? "Зависимости переустановлены (менялся манифест)." : "Зависимости не менялись.",
     "Сборка прошла.",
+    ...(r.router_skill === "updated"
+      ? ["Глобальный скилл `mcp-super-app` обновлён (появится после перезапуска)."]
+      : r.router_skill === "failed"
+        ? [
+            "⚠️ Не удалось обновить глобальный скилл `mcp-super-app` в `~/.claude/skills/` — " +
+              "скажи это пользователю: до починки прав меню точек входа работает по " +
+              "сокращённому фолбэку сервера.",
+          ]
+        : []),
     "",
     // CHANGELOG написан для пользователя, коммиты — для разработчика. Есть первое —
     // показываем его, второе уходит в structuredContent и в отчёт не лезет.

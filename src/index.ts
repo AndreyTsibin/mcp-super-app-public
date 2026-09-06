@@ -17,11 +17,11 @@ import { registerUpdateServer } from "./tools/update-server.js";
 import { checkEnv } from "./lib/env-check.js";
 import {
   checkForUpdate,
+  hasLegacyClaudeMdBlock,
   isBuildStale,
   renderSelfCheckBanner,
-  type UpdateStatus,
 } from "./lib/self-check.js";
-import { hasMagnificKey } from "./lib/magnific.js";
+import { syncRouterSkill } from "./lib/router-skill.js";
 
 // Load OPENROUTER_API_KEY from the package-root .env (best-effort; create_image
 // surfaces an actionable error if the key is missing). dist/index.js → ../.env.
@@ -50,92 +50,48 @@ const SERVER_VERSION: string = (() => {
 })();
 
 /**
- * Server instructions — the client puts this in the agent's system context.
+ * Server instructions — the client puts this in the agent's system context of
+ * every session in every project, whether this server is wanted there or not.
  *
- * The entry-point menu used to live only in the owner's personal `~/.claude/
- * CLAUDE.md`, so anyone else running this server got eight bare tool names and
- * no idea a menu was meant to exist. Shipping it here means the rule travels
- * with the server itself. In Russian on purpose: the trigger phrases are
- * Russian and the tools' own reports already are.
+ * So it is a pointer, not the menu. The menu itself lives in the global skill
+ * `mcp-super-app` (`assets/router/SKILL.md`), which the server installs and
+ * refreshes itself — a skill costs its `name` + `description` until it is used,
+ * where this text costs its full length every time. See `SRV-13`; the ceiling is
+ * 200 tokens and `scripts/context-cost.mjs` enforces it.
  *
- * Keep it short — it is paid for in every session. The create_image line
- * follows the same Magnific gate as the tool's own schema: an install without
- * MAGNIFIC_API_KEY is never told about a provider it cannot run.
+ * The fallback is not optional. Between installing the skill and the next
+ * session start Claude Code cannot see it yet, and without those three lines the
+ * server is mute in that window — back to the eight bare tool names `SRV-1` was
+ * written to end. In Russian on purpose: the trigger phrases are Russian and the
+ * tools' own reports already are.
  */
-const createImageLine = (magnific: boolean): string =>
-  magnific
-    ? `- create_image — генерация картинок; provider=openrouter по умолчанию, magnific — только
-  если пользователь сам назвал Magnific (жжёт кредиты Business-плана).`
-    : "- create_image — генерация картинок через OpenRouter (GPT-5.4 Image 2, Seedream 5.0 Lite, Gemini 3).";
+const INSTRUCTIONS = `mcp-super-app — личный сервер: каркас проектов, скиллы, сайты, картинки, иконки.
 
-/**
- * Четвёртый пункт меню появляется только когда обновление реально есть: постоянная
- * строка «обновиться» приучила бы и агента, и пользователя её пролистывать.
- */
-const updateLine = (update: UpdateStatus | null): string => {
-  if (!update) return "";
-  const what = update.version
-    ? `Обновить сервер до v${update.version} (сейчас v${update.current})`
-    : "Обновить сервер (в origin есть свежие коммиты)";
-  return `\n- ⚠️ ${what} — вызвать update_server, потом попросить перезапуск сессии.
-  Ставь этот пункт ПОСЛЕДНИМ, но обязательно: пользователь иначе о нём не узнает.`;
-};
+Пользователь просит запустить сервер, новый проект, сайт или картинку — вызови скилл
+\`mcp-super-app\`: в нём точки входа, правила выбора и вспомогательные тулы.
 
-const instructions = (magnific: boolean, update: UpdateStatus | null): string => `mcp-super-app — личный сервер: каркас проектов, скиллы, сайты, картинки, иконки.
-
-## Точки входа
-Пользователь сказал «запусти mcp-super-app» (или похожее, без названия конкретного тула) —
-НЕ перечисляй все инструменты. Задай один AskUserQuestion с опциями:
-- bootstrap_project — каркас нового проекта (спроси бриф в чате: название, стек, что строим,
-  профиль S/M/L, путь);
-- create_website — среда сайта; дальше kind: landing (лендинг из библиотеки секций) или
-  multipage (перенос существующего сайта на Astro — свой сайт с конструктора, макет
-  из Figma или чужой сайт-донор; точная копия или редизайн, режим выбирает человек);
-${createImageLine(magnific)}${updateLine(update)}
-
-Пользователь описывает новую работу своими словами, сервер не называя («хочу сделать
-приложение», «нам нужен сайт», «с чего начать проект») — НЕ начинай с чистого листа:
-одной фразой предложи подходящую точку входа (новый проект → bootstrap_project, сайт →
-create_website, картинка → create_image) и дождись согласия. Он мог просто не знать,
-что она есть.
-
-Остальные тулы вспомогательные, их зовут по ходу дела, в меню не выносить:
-install_skill, install_guard, search_icons, get_icon, optimize_images, update_server.
-
-## Скиллы
-Каталог из девяти скиллов с назначением каждого — в описании параметра \`skill\` у
-install_skill; читай его, а не гадай. Ориентиры: диаграммы и схемы → diagram-design
-(несёт свои слэш-команды); чистка текста от невидимого юникода и следов AI →
-clean-user-facing-text; снятие C2PA/EXIF/метаданных с файлов → remove-ai-marks (нужен
-внешний сервис, см. описание); дизайн, анимации, русский копирайт, промпты картинок →
-по каталогу.
-
-## Всегда помнить
-- Спрашивают «что умеет сервер», «какие есть инструменты» — дай ссылку на карту
-  инструментов (\`docs/TOOLS.md\` в папке сервера, она же
-  <https://github.com/AndreyTsibin/mcp-super-app-public/blob/main/docs/TOOLS.md>)
-  и ответь по сути вопроса; каталог целиком в чат не пересказывай.
-- Скиллы, команды и хуки грузятся ТОЛЬКО при старте сессии. После install_skill,
-  bootstrap_project и create_website остановись и попроси перезапустить сессию.
-- create_image требует промпт, написанный скиллом \`image\` (аргумент prompt_source).
-  Без него тул откажет и денег не потратит.
-- Тулы идемпотентны: существующие файлы не затираются, а репортятся как пропущенные.`;
+Скилла нет — предложи через AskUserQuestion три точки входа: bootstrap_project (каркас
+проекта), create_website (сайт), create_image (картинки). Не перечисляй все инструменты.`;
 
 /**
  * Self-checks run before `connect` because their findings ride along in
- * `instructions`, which the client reads exactly once, at initialize. Both are
- * cheap (the network one is cached for a day) and both fail open, so a slow or
- * offline check costs a start-up moment at worst.
+ * `instructions`, which the client reads exactly once, at initialize. All of
+ * them are cheap (the network one is cached for a day, the skill sync writes
+ * only when the content moved) and all of them fail open, so a slow, offline or
+ * read-only check costs a start-up moment at worst.
  */
 async function buildInstructions(): Promise<string> {
-  const [staleBuild, update, env] = await Promise.all([
+  const [staleBuild, update, env, legacyClaudeMd] = await Promise.all([
     isBuildStale(import.meta.url),
     checkForUpdate(),
     checkEnv(),
+    hasLegacyClaudeMdBlock(),
+    // Not awaited for a value: the skill either lands or it doesn't, and the
+    // fallback in INSTRUCTIONS covers the gap either way.
+    syncRouterSkill(),
   ]);
-  const banner = renderSelfCheckBanner({ staleBuild, update, env });
-  const text = instructions(hasMagnificKey(), update);
-  return banner ? `${banner}\n\n${text}` : text;
+  const banner = renderSelfCheckBanner({ staleBuild, update, env, legacyClaudeMd });
+  return banner ? `${banner}\n\n${INSTRUCTIONS}` : INSTRUCTIONS;
 }
 
 async function main(): Promise<void> {
