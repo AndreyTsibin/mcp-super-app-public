@@ -59,7 +59,7 @@ ID = префикс файла + номер внутри него. Сквозн�
 списки файлов, структуру модулей, «что было сделано».
 `,
   architecture:
-    "# architecture\n\nКак система устроена сейчас + ADR. Здесь же методички Project Bootstrap\n(`PROJECT-BOOTSTRAP.md`, `INSTALL.md`) и `context-playbook.md` — свод правил о том,\nкак вести документацию, память и бюджеты контекста.\n",
+    "# architecture\n\nКак система устроена сейчас + ADR. Здесь же методички Project Bootstrap\n(`PROJECT-BOOTSTRAP.md`, `INSTALL.md`). Свод правил о том, как вести документацию,\nпамять и бюджеты контекста — уровнем выше, в `docs/context-playbook.md`.\n",
   design: "# design\n\nUI/UX: палитры, шрифты, wireframes, референсы.\n",
   api: "# api\n\nВнешние интеграции: спеки эндпоинтов, форматы запросов/ответов, аутентификация.\n",
   services:
