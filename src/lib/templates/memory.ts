@@ -59,7 +59,7 @@ ${list}
 
 **Бюджеты контекста** (в токенах, не в строках): \`CLAUDE.md\` ≤4k · HANDOFF ≤5k ·
 трекер ≤4k · любой документ ≤8k. Проверка — \`node .claude/scripts/check-docs.mjs\`.
-Полный свод правил — \`docs/architecture/context-playbook.md\`.
+Полный свод правил — \`docs/context-playbook.md\`.
 `;
 }
 

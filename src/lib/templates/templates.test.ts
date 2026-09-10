@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import type { BootstrapContext, Profile } from "./context.js";
 import { docsPlan, topLevelDocsDirs } from "./docs.js";
 import { renderClaudeMd } from "./claude-md.js";
+import { renderDocsProtocol } from "./memory.js";
 
 const PROFILES: Profile[] = ["S", "M", "L"];
 
@@ -70,6 +71,28 @@ test("плейбук лежит по одному пути во всех про�
   for (const profile of PROFILES) {
     assert.match(renderClaudeMd(ctx(profile)), /`docs\/context-playbook\.md`/);
     assert.doesNotMatch(renderClaudeMd(ctx(profile)), /architecture\/context-playbook/);
+  }
+});
+
+test("ни один шаблон не ссылается на старый architecture/context-playbook.md", () => {
+  // Регрессия: плейбук переехал в docs/context-playbook.md (единый путь для всех
+  // профилей), но docs-protocol.md и architecture/README.md продолжали звать его
+  // по старому пути — предыдущий тест смотрит только CLAUDE.md и эту щель не ловит.
+  for (const profile of PROFILES) {
+    assert.doesNotMatch(renderDocsProtocol(ctx(profile)), /architecture\/context-playbook/);
+    assert.match(renderDocsProtocol(ctx(profile)), /`docs\/context-playbook\.md`/);
+  }
+
+  for (const profile of ["M", "L"] as Profile[]) {
+    const architectureReadme = docsPlan(profile, "demo").find(
+      (f) => f.relPath === "docs/architecture/README.md",
+    )!.content;
+    assert.doesNotMatch(architectureReadme, /architecture\/context-playbook/);
+    assert.doesNotMatch(
+      architectureReadme,
+      /Здесь же[^.]*context-playbook/,
+      "architecture/README.md не должен утверждать, что context-playbook.md лежит в этой папке",
+    );
   }
 });
 
