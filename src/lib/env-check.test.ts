@@ -26,16 +26,16 @@ const EXAMPLE = `# Заголовок файла, к ключу не относ�
 # Обязателен для create_image.
 OPENROUTER_API_KEY=
 
-# Второй движок, нужен платный план.
+# Необязательная интеграция.
 # optional
-MAGNIFIC_API_KEY=
+EXTRA_API_KEY=
 `;
 
 test("parseEnvExample: required by default, opt out with the optional tag", () => {
   const keys = parseEnvExample(EXAMPLE);
-  assert.deepEqual([...keys.keys()], ["OPENROUTER_API_KEY", "MAGNIFIC_API_KEY"]);
+  assert.deepEqual([...keys.keys()], ["OPENROUTER_API_KEY", "EXTRA_API_KEY"]);
   assert.equal(keys.get("OPENROUTER_API_KEY")?.optional, false);
-  assert.equal(keys.get("MAGNIFIC_API_KEY")?.optional, true);
+  assert.equal(keys.get("EXTRA_API_KEY")?.optional, true);
 });
 
 test("parseEnvExample: a blank line ends the comment block", () => {
@@ -66,7 +66,7 @@ test("checkEnv: reports a required key the user has not set", async () => {
 test("checkEnv: an optional key stays silent when missing", async () => {
   const root = await makeRoot(EXAMPLE, "OPENROUTER_API_KEY=sk-test\n");
   const status = await checkEnv(root, {});
-  assert.equal(status, null, "MAGNIFIC_API_KEY is tagged optional");
+  assert.equal(status, null, "EXTRA_API_KEY is tagged optional");
 });
 
 test("checkEnv: a key added by an update is caught", async () => {

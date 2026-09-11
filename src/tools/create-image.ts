@@ -3,153 +3,72 @@ import { z } from "zod";
 
 import { toolError } from "../lib/errors.js";
 import { PROMPT_SOURCE_DESCRIPTION, assertPromptSkill } from "../lib/image-skill.js";
-import { hasMagnificKey } from "../lib/magnific.js";
 import {
   formatOpenrouterReport,
   openrouterInputShape,
   runGenerateImage,
   type OpenrouterArgs,
 } from "./generate-image.js";
-import {
-  formatMagnificReport,
-  magnificInputShape,
-  runMagnificGenerate,
-  type MagnificArgs,
-} from "./magnific-generate.js";
 
 /**
- * Single entry point for "make me an image". Two providers behind one tool:
- * OpenRouter (GPT-5.4 Image 2 / Seedream / Gemini — the everyday path, paid per frame) and
- * Magnific Mystic (direct API, burns Business-plan credits).
+ * Single entry point for "make me an image". The engine (`generate-image.ts`,
+ * OpenRouter: GPT-5.4 Image 2 / Seedream / Gemini, paid per frame) is not
+ * registered on its own — routing through one tool keeps the prompt-skill gate
+ * in one place: `prompt` and `prompt_source` are checked here, once, and the
+ * engine may not spend money before that check has passed.
  *
- * The OpenRouter knobs sit at the top level because that is the default path
- * and the 'image' skill's pattern files quote those argument names verbatim.
- * Mystic's knobs are nested under `magnific` instead of sharing them: the value
- * spaces genuinely collide (aspect_ratio '16:9' vs 'widescreen_16_9',
- * resolution '2K' vs '2k', model free-form vs enum), and a flat merge would
- * make an invalid combination look valid in the schema.
- *
- * The prompt-skill gate lives here, once, ahead of the dispatch: `prompt` and
- * `prompt_source` are router-level arguments, and neither engine may spend
- * money before it has passed.
- *
- * Magnific is gated on MAGNIFIC_API_KEY being present: without it neither
- * `provider` nor `magnific` appears in the schema and the description never
- * mentions Mystic, so an install that could not generate on it is not told
- * about it (and pays no tokens for the copy).
+ * The OpenRouter knobs sit at the top level because the 'image' skill's pattern
+ * files quote those argument names verbatim.
  */
 
 /** Default output dir (relative to the server's cwd = the project). */
 const DEFAULT_SAVE_DIR = "./generated";
 
-function buildInputSchema(magnificEnabled: boolean) {
-  return {
-    prompt: z
-      .string()
-      .min(1)
-      .describe(
-        "What to generate. ОБЯЗАТЕЛЬНО собери его скиллом 'image' — у каждой модели свой синтаксис промпта. Тул откажет, если скилла нет в проекте или не заполнен prompt_source.",
-      ),
-    prompt_source: z.string().min(1).describe(PROMPT_SOURCE_DESCRIPTION),
-    ...(magnificEnabled
-      ? {
-          provider: z
-            .enum(["openrouter", "magnific"])
-            .optional()
-            .describe(
-              "Which engine to generate on. Default 'openrouter' — GPT-5.4 Image 2 / Seedream / Gemini, the everyday path. " +
-                "Pick 'magnific' only when the user asked for Magnific/Mystic by name: it goes to the direct " +
-                "Magnific API and burns Business-plan credits rather than per-frame API money.",
-            ),
-        }
-      : {}),
-    ...openrouterInputShape,
-    ...(magnificEnabled
-      ? {
-          magnific: z
-            .object(magnificInputShape)
-            .optional()
-            .describe(
-              "Mystic-only settings, used when provider='magnific'. Kept in their own object because the " +
-                "value spaces differ from the top-level (OpenRouter) ones: aspect_ratio is 'widescreen_16_9' " +
-                "here and '16:9' up there, resolution is '2k' here and '2K' up there. Ignored for OpenRouter.",
-            ),
-        }
-      : {}),
-    save_dir: z
-      .string()
-      .optional()
-      .describe(
-        `Where to save (absolute, or relative to the project cwd). Default: ${DEFAULT_SAVE_DIR}.`,
-      ),
-    filename: z
-      .string()
-      .optional()
-      .describe(
-        "Base filename (extension added automatically). Default: slug of the prompt + timestamp.",
-      ),
-    project_path: z
-      .string()
-      .optional()
-      .describe(
-        "Project root where the 'image' prompt skill is checked/installed. Default: the server cwd.",
-      ),
-  };
-}
+const inputSchema = {
+  prompt: z
+    .string()
+    .min(1)
+    .describe(
+      "What to generate. ОБЯЗАТЕЛЬНО собери его скиллом 'image' — у каждой модели свой синтаксис промпта. Тул откажет, если скилла нет в проекте или не заполнен prompt_source.",
+    ),
+  prompt_source: z.string().min(1).describe(PROMPT_SOURCE_DESCRIPTION),
+  ...openrouterInputShape,
+  save_dir: z
+    .string()
+    .optional()
+    .describe(
+      `Where to save (absolute, or relative to the project cwd). Default: ${DEFAULT_SAVE_DIR}.`,
+    ),
+  filename: z
+    .string()
+    .optional()
+    .describe(
+      "Base filename (extension added automatically). Default: slug of the prompt + timestamp.",
+    ),
+  project_path: z
+    .string()
+    .optional()
+    .describe(
+      "Project root where the 'image' prompt skill is checked/installed. Default: the server cwd.",
+    ),
+};
 
-function buildOutputSchema(magnificEnabled: boolean) {
-  return {
-    provider: magnificEnabled
-      ? z.enum(["openrouter", "magnific"]).describe("Engine the frames came from.")
-      : z.literal("openrouter").describe("Engine the frames came from."),
-    paths: z.array(z.string()).describe("Absolute paths of the saved image files."),
-    count: z.number(),
-    save_dir: z.string(),
-    model: z
-      .string()
-      .optional()
-      .describe(magnificEnabled ? "openrouter only: the model that ran." : "The model that ran."),
-    cost: z
-      .number()
-      .optional()
-      .describe(
-        magnificEnabled
-          ? "openrouter only: total cost in USD, when reported."
-          : "Total cost in USD, when reported.",
-      ),
-    ...(magnificEnabled
-      ? { task_id: z.string().optional().describe("magnific only: Mystic task id, for reference.") }
-      : {}),
-  };
-}
+const outputSchema = {
+  provider: z.literal("openrouter").describe("Engine the frames came from."),
+  paths: z.array(z.string()).describe("Absolute paths of the saved image files."),
+  count: z.number(),
+  save_dir: z.string(),
+  model: z.string().optional().describe("The model that ran."),
+  cost: z.number().optional().describe("Total cost in USD, when reported."),
+};
 
-const OPENROUTER_DESCRIPTION =
-  "GPT-5.4 Image 2 / Seedream 5.0 Lite / Gemini 3 via OpenRouter. Returns the image inline in chat plus the saved paths and the measured cost. Model choice starts with one question: is the frame going into production (a landing, a client site, anything shipped)? If yes — google/gemini-3.1-flash-image with `resolution:'2K'` ($0.101, 2752x1536), the whole series on it. If no (drafts, references, experiments) — the schema default openai/gpt-5.4-image-2: $0.035 at 16:9 (1536x864), cheapest frame and best single-shot realism of the cheap tier; control framing with `aspect_ratio` alone, it has no resolution tiers, ignores `size`, and tops out at 1.3MP. A draft the user disliked, or a job that will be edited or extended into a series, goes to bytedance-seed/seedream-5-0-lite ($0.035 flat, 7.5MP, best editor). Read the `model` description before overriding — it carries the measured decision table. EDITING: pass the source image via `reference_images` (local paths or URLs) plus an instruction in the prompt ('remove the sign', 'make the background lighter'); every model here accepts image input. BUT an edit on the default model costs ~$0.140 (measured), 4x a fresh frame and 4x the same edit on seedream, because the source is billed as input tokens — so when editing is part of the plan, run the whole job on seedream from the start. Name what must stay unchanged explicitly ('keeping its pose unchanged') — the vendor-documented way to avoid drift. Mask-based inpainting is NOT supported. Sizing is model-specific: the default GPT model and Seedream take `aspect_ratio` alone; Gemini needs `aspect_ratio` + `resolution:'2K'`. Requires OPENROUTER_API_KEY in the server .env.";
-
-const TAIL_DESCRIPTION =
+const DESCRIPTION =
+  "Generate or edit image(s) and save them into the project. GPT-5.4 Image 2 / Seedream 5.0 Lite / Gemini 3 via OpenRouter. Returns the image inline in chat plus the saved paths and the measured cost. Model choice starts with one question: is the frame going into production (a landing, a client site, anything shipped)? If yes — google/gemini-3.1-flash-image with `resolution:'2K'` ($0.101, 2752x1536), the whole series on it. If no (drafts, references, experiments) — the schema default openai/gpt-5.4-image-2: $0.035 at 16:9 (1536x864), cheapest frame and best single-shot realism of the cheap tier; control framing with `aspect_ratio` alone, it has no resolution tiers, ignores `size`, and tops out at 1.3MP. A draft the user disliked, or a job that will be edited or extended into a series, goes to bytedance-seed/seedream-5-0-lite ($0.035 flat, 7.5MP, best editor). Read the `model` description before overriding — it carries the measured decision table. EDITING: pass the source image via `reference_images` (local paths or URLs) plus an instruction in the prompt ('remove the sign', 'make the background lighter'); every model here accepts image input. BUT an edit on the default model costs ~$0.140 (measured), 4x a fresh frame and 4x the same edit on seedream, because the source is billed as input tokens — so when editing is part of the plan, run the whole job on seedream from the start. Name what must stay unchanged explicitly ('keeping its pose unchanged') — the vendor-documented way to avoid drift. Mask-based inpainting is NOT supported. Sizing is model-specific: the default GPT model and Seedream take `aspect_ratio` alone; Gemini needs `aspect_ratio` + `resolution:'2K'`. Requires OPENROUTER_API_KEY in the server .env.\n\n" +
+  "MANDATORY FIRST STEP: the prompt must be written with the bundled 'image' skill — each model needs its own prompt syntax, and Seedream in particular treats comma-separated tags as an anti-pattern. The tool refuses to generate when the skill is missing from the project (it installs it and tells you to read .claude/skills/image/SKILL.md from disk, then call again) or when `prompt_source` is empty.\n\n" +
   "Files land in save_dir (default ./generated, relative to the project). AFTER GENERATING: raw output is full-resolution and the wrong format for production — run `optimize_images` on save_dir before shipping (resize/webp/srcset). In a landing build (create_website kind='landing') this is the mandatory last step of the image stage: generate the whole series first (hero → reference_images for the rest, same 'photoshoot'), then one `optimize_images` call on assets/img at the end — never optimize between individual generations.";
-
-function buildDescription(magnificEnabled: boolean): string {
-  if (!magnificEnabled) {
-    return (
-      `Generate or edit image(s) and save them into the project. ${OPENROUTER_DESCRIPTION}\n\n` +
-      "MANDATORY FIRST STEP: the prompt must be written with the bundled 'image' skill — each model needs its own prompt syntax, and Seedream in particular treats comma-separated tags as an anti-pattern. The tool refuses to generate when the skill is missing from the project (it installs it and tells you to read .claude/skills/image/SKILL.md from disk, then call again) or when `prompt_source` is empty.\n\n" +
-      TAIL_DESCRIPTION
-    );
-  }
-  return (
-    "Generate or edit image(s) and save them into the project. One entry point, two engines — pick with `provider`:\n\n" +
-    `• provider='openrouter' (DEFAULT, use it unless told otherwise) — ${OPENROUTER_DESCRIPTION}\n\n` +
-    "• provider='magnific' — Magnific's Mystic (direct Magnific API, NOT OpenRouter): strong photographic realism, structure/style references, hdr/creative_detailing sliders. Async under the hood — submits and polls up to 5 min, then downloads the result. All its settings go in the `magnific` object, never at the top level; the top-level OpenRouter knobs are ignored for this provider. Costs Business-plan credits, not per-frame API money, so choose it only when the user asked for Magnific/Mystic by name. Requires MAGNIFIC_API_KEY in the server .env.\n\n" +
-    "MANDATORY FIRST STEP for both: the prompt must be written with the bundled 'image' skill — each model needs its own prompt syntax (Seedream treats comma-separated tags as an anti-pattern; Mystic has its own flavor/engine/slider vocabulary in references/mystic.md). The tool refuses to generate when the skill is missing from the project (it installs it and tells you to read .claude/skills/image/SKILL.md from disk, then call again) or when `prompt_source` is empty.\n\n" +
-    TAIL_DESCRIPTION
-  );
-}
 
 type Args = OpenrouterArgs & {
   prompt_source: string;
-  provider?: "openrouter" | "magnific";
-  magnific?: MagnificArgs;
   save_dir?: string;
   filename?: string;
   project_path?: string;
@@ -168,39 +87,21 @@ function baseName(filename: string | undefined, prompt: string): string {
 }
 
 export function registerCreateImage(server: McpServer): void {
-  // Read once, at registration: the schema and the description are what the
-  // client caches, and the key cannot appear mid-process anyway.
-  const magnificEnabled = hasMagnificKey();
-
   server.registerTool(
     "create_image",
     {
       title: "Create image",
-      description: buildDescription(magnificEnabled),
-      inputSchema: buildInputSchema(magnificEnabled),
-      outputSchema: buildOutputSchema(magnificEnabled),
+      description: DESCRIPTION,
+      inputSchema,
+      outputSchema,
     },
     async (args: Args) => {
       try {
-        // Gate first: neither engine spends money until the prompt went through
-        // the skill.
+        // Gate first: no money is spent until the prompt went through the skill.
         await assertPromptSkill(args.project_path?.trim() || process.cwd(), args.prompt_source);
 
         const saveDir = args.save_dir?.trim() || DEFAULT_SAVE_DIR;
         const base = baseName(args.filename, args.prompt);
-
-        if (args.provider === "magnific" && magnificEnabled) {
-          const result = await runMagnificGenerate(
-            args.prompt,
-            args.magnific ?? {},
-            saveDir,
-            base,
-          );
-          return {
-            content: [{ type: "text" as const, text: formatMagnificReport(result) }],
-            structuredContent: { provider: "magnific" as const, ...result, save_dir: saveDir },
-          };
-        }
 
         const { result, images } = await runGenerateImage(args, saveDir, base);
         return {

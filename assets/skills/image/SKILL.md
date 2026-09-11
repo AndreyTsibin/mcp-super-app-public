@@ -1,13 +1,12 @@
 ---
 name: image
 description: >
-  Image prompting skill for GPT-5.4 Image 2, Seedream 5.0 Lite and Gemini 3 (Nano Banana 2 / Pro)
-  and for Magnific Mystic — all generated through the create_image tool (`provider` picks the engine).
+  Image prompting skill for GPT-5.4 Image 2, Seedream 5.0 Lite and Gemini 3 (Nano Banana 2 / Pro),
+  all generated through the create_image tool.
   Writes ready-to-use prompts plus the model and sizing arguments to pass with them.
   Use when: "нарисуй", "сгенерируй картинку", "image prompt", "промпт для картинки", hero
   covers, blog covers, slides, posters, product shots, UI mockups, storyboards, character
-  sheets, edit/colorize, style transfer, image-to-image, gpt-image, seedream, nano banana, nb2,
-  magnific, mystic.
+  sheets, edit/colorize, style transfer, image-to-image, gpt-image, seedream, nano banana, nb2.
   Do NOT use for: video, 3D models, audio, non-image tasks.
 ---
 
@@ -71,17 +70,6 @@ placed on clothing came out clean, face/pose/interior untouched), so it is worth
 one-off rescue. **But if the brief already implies generate-then-edit, or a series built off
 one reference image, run the whole job on seedream from the first frame.** The default is a
 single-shot model; seedream is the workhorse for iteration.
-
-**Magnific Mystic is a separate engine**, not a row in this table. It runs through
-`create_image` with `provider: 'magnific'` (direct Magnific API, plan credits — not OpenRouter),
-with its own args (nested in the `magnific` object) and its own prompt syntax. Reach for it only
-when the brief wants the Magnific look specifically (photographic texture, cinematic light,
-structure/style references). Everything about it — sizing, model flavours, engines, sliders,
-prompting — lives in [mystic.md](references/mystic.md).
-
-**Магнифик есть не у всех.** Провайдер включается только при `MAGNIFIC_API_KEY` в `.env`
-сервера. Нет ключа — у `create_image` нет ни параметра `provider`, ни объекта `magnific`:
-значит эта установка работает через OpenRouter, и весь раздел Mystic к ней не относится.
 
 Deliberately absent: `x-ai/grok-imagine-image-2.0` (1280×720 = 0.9 MP for \$0.060 — the worst
 price per pixel measured, and it silently ignores `size`) and `gemini-3.1-flash-lite-image`
@@ -170,9 +158,6 @@ comma-separated tags as an anti-pattern, while a prompt tuned for one reads as m
 - **Gemini 3 (flash / pro)** → [gemini.md](references/gemini.md)
   Google's official templates, positive-framing rule, camera control, step-by-step for
   complex scenes.
-- **Magnific Mystic** (via `create_image` with `provider: 'magnific'`) → [mystic.md](references/mystic.md).
-  Its own sizing enums, base-model flavours, engines and sliders. Magnific's written prompt
-  guidance is thin, so mystic.md borrows the seedream prose pattern as its base.
 
 ---
 

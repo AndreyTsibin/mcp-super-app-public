@@ -5,10 +5,10 @@ import { ToolError } from "./errors.js";
 import { runInstall } from "./skills-install.js";
 
 /**
- * Gate shared by the image tools: a prompt written "from the head" wastes money
- * and produces generic frames, because every model needs its own prompt syntax
- * (Seedream treats comma-separated tags as an anti-pattern, Mystic has its own
- * flavor/engine/slider vocabulary). So generation is only allowed once the
+ * Gate in front of image generation: a prompt written "from the head" wastes
+ * money and produces generic frames, because every model needs its own prompt
+ * syntax (Seedream treats comma-separated tags as an anti-pattern, GPT and
+ * Gemini each have their own rules). So generation is only allowed once the
  * bundled 'image' skill is in the project AND the caller states which part of
  * the guide the prompt came from.
  */
@@ -20,10 +20,10 @@ export function skillManifest(root: string): string {
   return path.join(root, ".claude", "skills", PROMPT_SKILL_ID, "SKILL.md");
 }
 
-/** Обязательное поле-подтверждение: описание для схемы обоих тулов. */
+/** Обязательное поле-подтверждение: описание для схемы create_image. */
 export const PROMPT_SOURCE_DESCRIPTION =
   "ОБЯЗАТЕЛЬНО. Какой раздел скилла 'image' использован при составлении промпта — " +
-  "например 'SKILL.md → Seedream' или 'references/mystic.md'. Заполняй только если " +
+  "например 'SKILL.md → Seedream' или 'references/gemini.md'. Заполняй только если " +
   "ты действительно прочитал гайд и собрал промпт по нему: промпт «из головы» здесь " +
   "не принимается — у каждой модели свой синтаксис, и без гайда кадр выходит " +
   "шаблонным, а деньги тратятся впустую.";

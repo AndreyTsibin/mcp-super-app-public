@@ -13,6 +13,10 @@
  * deleted or stale copy heals itself) and right after `update_server` rebuilds
  * (so the new menu does not wait one more session).
  *
+ * The asset is copied byte for byte: no templating, so nothing here depends on
+ * the file's line endings (a marker regex keyed on `\n` once broke on a Windows
+ * checkout with CRLF — see `DLV-16`).
+ *
  * Fail open, like every other start-up check: a diagnostic that cannot break a
  * start is worth more than one that guarantees delivery.
  */
@@ -21,21 +25,6 @@ import os from "node:os";
 import path from "node:path";
 
 import { assetPath } from "./scaffold.js";
-import { hasMagnificKey } from "./magnific.js";
-
-/**
- * The asset carries both variants of the `create_image` line, each in a marked
- * block, and the installed copy keeps exactly one. Same gate as the tool's own
- * schema (`SRV-4`): an install without MAGNIFIC_API_KEY is never told about a
- * provider it cannot run.
- */
-export function renderRouterSkill(template: string, magnific: boolean): string {
-  const keep = magnific ? "magnific" : "no-magnific";
-  const drop = magnific ? "no-magnific" : "magnific";
-  return template
-    .replace(new RegExp(`<!-- ${drop}:start -->\\n[\\s\\S]*?<!-- ${drop}:end -->\\n`, "g"), "")
-    .replace(new RegExp(`<!-- ${keep}:(?:start|end) -->\\n`, "g"), "");
-}
 
 export type RouterSyncResult = {
   /** Where the skill lives, or would have lived. */
@@ -57,12 +46,11 @@ export type RouterSyncResult = {
  */
 export async function syncRouterSkill({
   home = os.homedir(),
-  magnific = hasMagnificKey(),
   source = assetPath("router", "SKILL.md"),
-}: { home?: string; magnific?: boolean; source?: string } = {}): Promise<RouterSyncResult> {
+}: { home?: string; source?: string } = {}): Promise<RouterSyncResult> {
   const target = path.join(home, ".claude", "skills", "mcp-super-app", "SKILL.md");
   try {
-    const wanted = renderRouterSkill(await fs.readFile(source, "utf8"), magnific);
+    const wanted = await fs.readFile(source, "utf8");
     const current = await fs.readFile(target, "utf8").catch(() => null);
     if (current === wanted) return { path: target, changed: false };
     await fs.mkdir(path.dirname(target), { recursive: true });

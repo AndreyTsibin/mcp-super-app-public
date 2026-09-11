@@ -1,0 +1,18 @@
+# Один формат переводов строк на всех ОС: скиллы, хуки и шаблоны сравниваются
+# побайтово, а Git for Windows по умолчанию переписал бы их в CRLF (DLV-16).
+* text=auto eol=lf
+
+# Бинарники нормализации не подлежат.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.zip binary
+*.skill binary
+*.pdf binary

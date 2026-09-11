@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { after, test } from "node:test";
 
-import { renderRouterSkill, syncRouterSkill } from "./router-skill.js";
+import { syncRouterSkill } from "./router-skill.js";
 import { assetPath } from "./scaffold.js";
 
 const made: string[] = [];
@@ -22,38 +22,19 @@ async function makeHome(): Promise<string> {
 const skillFile = (home: string): string =>
   path.join(home, ".claude", "skills", "mcp-super-app", "SKILL.md");
 
-const TEMPLATE = `---
-name: mcp-super-app
----
-<!-- magnific:start -->
-- с ключом
-<!-- magnific:end -->
-<!-- no-magnific:start -->
-- без ключа
-<!-- no-magnific:end -->
-конец
-`;
-
-test("renderRouterSkill: keeps exactly one create_image variant", () => {
-  assert.equal(renderRouterSkill(TEMPLATE, true), "---\nname: mcp-super-app\n---\n- с ключом\nконец\n");
-  assert.equal(renderRouterSkill(TEMPLATE, false), "---\nname: mcp-super-app\n---\n- без ключа\nконец\n");
-});
-
-test("renderRouterSkill: the shipped asset leaves no markers behind", async () => {
-  const template = await fs.readFile(assetPath("router", "SKILL.md"), "utf8");
-  for (const magnific of [true, false]) {
-    const rendered = renderRouterSkill(template, magnific);
-    assert.equal(/<!--/.test(rendered), false, `markers left with magnific=${magnific}`);
-    assert.match(rendered, /^---\nname: mcp-super-app\n/);
-    assert.match(rendered, /create_image/);
+test("the shipped asset is a well-formed skill with the three entry points", async () => {
+  const asset = await fs.readFile(assetPath("router", "SKILL.md"), "utf8");
+  assert.match(asset, /^---\r?\nname: mcp-super-app\r?\n/);
+  for (const tool of ["bootstrap_project", "create_website", "create_image"]) {
+    assert.match(asset, new RegExp(tool), `menu is missing ${tool}`);
   }
-  assert.match(renderRouterSkill(template, true), /Magnific/);
-  assert.equal(/Magnific/.test(renderRouterSkill(template, false)), false);
+  // No templating left: the file is installed byte for byte.
+  assert.equal(/<!--/.test(asset), false, "HTML comment markers left in the asset");
 });
 
 test("syncRouterSkill: installs into an empty home", async () => {
   const home = await makeHome();
-  const result = await syncRouterSkill({ home, magnific: false });
+  const result = await syncRouterSkill({ home });
   assert.equal(result.changed, true);
   assert.equal(result.error, undefined);
   assert.equal(result.path, skillFile(home));
@@ -61,11 +42,20 @@ test("syncRouterSkill: installs into an empty home", async () => {
   assert.match(written, /name: mcp-super-app/);
 });
 
+test("syncRouterSkill: the installed copy is the asset, byte for byte", async () => {
+  const home = await makeHome();
+  await syncRouterSkill({ home });
+  assert.equal(
+    await fs.readFile(skillFile(home), "utf8"),
+    await fs.readFile(assetPath("router", "SKILL.md"), "utf8"),
+  );
+});
+
 test("syncRouterSkill: a second call is a no-op", async () => {
   const home = await makeHome();
-  await syncRouterSkill({ home, magnific: false });
+  await syncRouterSkill({ home });
   const before = await fs.stat(skillFile(home));
-  const result = await syncRouterSkill({ home, magnific: false });
+  const result = await syncRouterSkill({ home });
   assert.equal(result.changed, false);
   // Untouched, not merely identical: a rewrite every start would churn mtimes.
   assert.equal((await fs.stat(skillFile(home))).mtimeMs, before.mtimeMs);
@@ -75,25 +65,16 @@ test("syncRouterSkill: a stale copy is brought up to the asset", async () => {
   const home = await makeHome();
   await fs.mkdir(path.dirname(skillFile(home)), { recursive: true });
   await fs.writeFile(skillFile(home), "устаревшая версия\n", "utf8");
-  const result = await syncRouterSkill({ home, magnific: false });
+  const result = await syncRouterSkill({ home });
   assert.equal(result.changed, true);
   assert.match(await fs.readFile(skillFile(home), "utf8"), /name: mcp-super-app/);
-});
-
-test("syncRouterSkill: the magnific gate decides which variant lands", async () => {
-  const home = await makeHome();
-  await syncRouterSkill({ home, magnific: true });
-  assert.match(await fs.readFile(skillFile(home), "utf8"), /Magnific/);
-  // Losing the key rewrites the installed copy, it does not leave the old one.
-  assert.equal((await syncRouterSkill({ home, magnific: false })).changed, true);
-  assert.equal(/Magnific/.test(await fs.readFile(skillFile(home), "utf8")), false);
 });
 
 test("syncRouterSkill: fails open when the target cannot be written", async () => {
   const home = await makeHome();
   // `~/.claude` is a file, so mkdir of the skills path cannot succeed.
   await fs.writeFile(path.join(home, ".claude"), "not a directory", "utf8");
-  const result = await syncRouterSkill({ home, magnific: false });
+  const result = await syncRouterSkill({ home });
   assert.equal(result.changed, false);
   assert.equal(typeof result.error, "string");
 });
@@ -102,7 +83,6 @@ test("syncRouterSkill: a missing asset is reported, not thrown", async () => {
   const home = await makeHome();
   const result = await syncRouterSkill({
     home,
-    magnific: false,
     source: path.join(home, "nope", "SKILL.md"),
   });
   assert.equal(result.changed, false);

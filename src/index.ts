@@ -101,11 +101,11 @@ async function main(): Promise<void> {
   );
 
   // Three entry points: bootstrap_project (new project), create_website (landing
-  // or donor redesign), create_image (OpenRouter or Magnific). The scaffolders and
-  // image engines behind the routers are not registered on purpose — routing
-  // through one tool per area keeps the mode choice a question to the user,
-  // keeps both site flows behind the same one-task-per-session tracker protocol,
-  // and keeps both image engines behind the prompt-skill gate.
+  // or donor redesign), create_image (OpenRouter). The scaffolders and the image
+  // engine behind the routers are not registered on purpose — routing through
+  // one tool per area keeps the mode choice a question to the user, keeps both
+  // site flows behind the same one-task-per-session tracker protocol, and keeps
+  // image generation behind the prompt-skill gate.
   registerBootstrapProject(server);
   registerInstallSkill(server);
   registerCreateWebsite(server);
