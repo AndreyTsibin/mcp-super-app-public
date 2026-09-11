@@ -7,8 +7,8 @@ import { runInstall } from "./skills-install.js";
 /**
  * Gate in front of image generation: a prompt written "from the head" wastes
  * money and produces generic frames, because every model needs its own prompt
- * syntax (Seedream treats comma-separated tags as an anti-pattern, GPT and
- * Gemini each have their own rules). So generation is only allowed once the
+ * syntax (Seedream treats comma-separated tags as an anti-pattern, Gemini has
+ * its own templates and positive-framing rule). So generation is only allowed once the
  * bundled 'image' skill is in the project AND the caller states which part of
  * the guide the prompt came from.
  */

@@ -5,7 +5,7 @@ analysis boards. Each pattern uses `{variables}` for customization.
 
 **Which model?** Step 1 of SKILL.md decides that, not this file: production frames
 (landing, client site, anything shipped) go to `google/gemini-3.1-flash-image` with
-`resolution:'2K'`; drafts and experiments go to the default `openai/gpt-5.4-image-2`.
+`resolution:'2K'`; drafts and experiments go to `google/gemini-3.1-flash-lite-image` with `resolution:'1K'`.
 The "Best fit for this pattern" line under each pattern below says which model holds *this
 particular layout* best — read it as a tie-breaker inside your category, and as a reason to
 override step 1 only when the pattern's own demand (exact object counts, dense on-image text,

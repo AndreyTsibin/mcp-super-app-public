@@ -1,6 +1,7 @@
 # Gemini 3 Image — prompt syntax
 
-`google/gemini-3.1-flash-image` (Nano Banana 2) · `google/gemini-3-pro-image` (Nano Banana Pro).
+`google/gemini-3.1-flash-image` (Nano Banana 2) · `google/gemini-3.1-flash-lite-image` (Nano
+Banana 2 Lite) · `google/gemini-3-pro-image` (Nano Banana Pro).
 
 The code names are current and official — Google states "Nano Banana is the name for Gemini's
 native image generation capabilities". Both are GA, not preview.
@@ -12,7 +13,8 @@ and the [Gemini 3 developer guide](https://ai.google.dev/gemini-api/docs/gemini-
 Marked *(vendor)* below. Ours marked *(measured)*.
 
 **Sizing: always pass `resolution`** — omitting it silently gives you 1K. See SKILL.md step 2.
-`2K` is the working tier on both models; never ask pro for `1K` (same price as `2K`).
+`2K` is the working tier on flash and pro; never ask pro for `1K` (same price as `2K`). Flash
+Lite has `1K` only — `2K` returns an error, not a frame.
 
 ---
 
@@ -22,11 +24,16 @@ Marked *(vendor)* below. Ours marked *(measured)*.
 client site, a deck — goes here, and the whole series stays here (SKILL.md step 1). Reasons:
 
 - **Skin and material fidelity.** Flash renders pores, stray hairs and worn fabric; seedream
-  smooths them into a slightly "rendered" finish and the cheap default is softer still
-  *(measured)*.
-- **Enough pixels for a first screen.** 4.2 MP at `2K` (2752×1536 at 16:9) against 1.3 MP on
-  the default model — which is why a hero cannot live on the cheap tier.
+  smooths them into a slightly "rendered" finish and flash-lite loses the fine detail
+  altogether *(measured)*.
+- **Enough pixels for a first screen.** 4.2 MP at `2K` (2752×1536 at 16:9) against 1.1 MP on
+  the 1K tier — which is why a hero cannot live on flash-lite.
 - **Banner strips.** `1:4`, `4:1`, `1:8`, `8:1` exist on flash and on nothing else here.
+
+**`gemini-3.1-flash-lite-image` is the draft model.** Same prompt syntax as flash, one tier
+(`1K`), \$0.034 and the fastest return of the set. Fine detail is weaker — fingers, nails and
+small hardware went wrong in the July 2026 comparison *(measured)* — so it is for judging a
+composition or a mood, never for shipping.
 
 **`gemini-3-pro-image` stays a special case** — genuinely hard scenes only (many interacting
 subjects, tricky physics). It is ~7x seedream per pixel, and on an identical prompt it came

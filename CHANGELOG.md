@@ -8,6 +8,17 @@
 
 ## Не выпущено
 
+## 0.13.0 — 2026-09-11
+
+- **Модели картинок — те же пять, что в генераторе лендингов.** `create_image` теперь
+  принимает только `google/gemini-3.1-flash-image` (по умолчанию, продакшен),
+  `google/gemini-3.1-flash-lite-image` (черновики, `resolution:'1K'`),
+  `bytedance-seed/seedream-5-0-lite` (правки и серии), `google/gemini-3-pro-image` (сложные
+  сцены) и `bytedance-seed/seedream-5-0-pro`. Модели OpenAI (`gpt-5.4-image-2`, `gpt-image-2`)
+  убраны, любой другой слаг инструмент отклонит до генерации. Скилл `image` переписан под этот
+  набор — как и в прошлый раз, уже установленную в проект копию нужно удалить
+  (`.claude/skills/image`), чтобы получить свежую.
+
 ## 0.12.0 — 2026-09-11
 
 - **Картинки — только через OpenRouter.** Второй движок, Magnific Mystic, из `create_image`

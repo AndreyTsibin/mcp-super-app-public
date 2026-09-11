@@ -1,16 +1,16 @@
 ---
 name: image
 description: >
-  Image prompting skill for GPT-5.4 Image 2, Seedream 5.0 Lite and Gemini 3 (Nano Banana 2 / Pro),
+  Image prompting skill for Gemini 3.1 Flash / Flash Lite / 3 Pro (Nano Banana) and Seedream 5.0 Lite / Pro,
   all generated through the create_image tool.
   Writes ready-to-use prompts plus the model and sizing arguments to pass with them.
   Use when: "нарисуй", "сгенерируй картинку", "image prompt", "промпт для картинки", hero
   covers, blog covers, slides, posters, product shots, UI mockups, storyboards, character
-  sheets, edit/colorize, style transfer, image-to-image, gpt-image, seedream, nano banana, nb2.
+  sheets, edit/colorize, style transfer, image-to-image, seedream, nano banana, nb2.
   Do NOT use for: video, 3D models, audio, non-image tasks.
 ---
 
-# Image Prompting — GPT-5.4 Image 2 · Seedream 5.0 Lite · Gemini 3
+# Image Prompting — Gemini 3.1 Flash / Flash Lite / 3 Pro · Seedream 5.0 Lite / Pro
 
 This skill writes image prompts. It does not generate images — `create_image` does.
 Your output is: **model + sizing arguments + the prompt text**.
@@ -29,52 +29,52 @@ produced this skill — tokenisation differs per vendor. Do not "correct" these 
 **Ask one question first: is this frame going into production?** Production means a landing
 page, a client site, a deck, anything a real audience will see. Everything else — a reference
 to look at, a mood test, a throwaway idea, "just draw me something" — is a draft. That answer
-picks the model; the rest is detail. And if the user explicitly names a model, that wins.
+picks the model; the rest is detail. If the user names a model, that wins — as long as it is one
+of the five below: `create_image` refuses any other slug, so say so and pick the closest row.
 
 | Situation | Model | \$/frame |
 |---|---|---|
-| **Production: landing, client site, anything shipped** | **`google/gemini-3.1-flash-image`** + `resolution:'2K'` | \$0.101 |
-| **Drafts, references, experiments, one-off fun (default)** | **`openai/gpt-5.4-image-2`** | **\$0.035** |
+| **Production: landing, client site, anything shipped (default)** | **`google/gemini-3.1-flash-image`** + `resolution:'2K'` | **\$0.101** |
+| Drafts, references, mood tests, one-off fun | `google/gemini-3.1-flash-lite-image` + `resolution:'1K'` | \$0.034 |
 | The user disliked a draft frame, **or** editing / a series is planned | `bytedance-seed/seedream-5-0-lite` | \$0.035 |
 | Hardest scenes: many interacting subjects, tricky physics | `google/gemini-3-pro-image` + `resolution:'2K'` | \$0.137 |
+| Only when the user names it | `bytedance-seed/seedream-5-0-pro` | \$0.045+ (follows pixels) |
 
-**Production goes to `gemini-3.1-flash-image`, and cost is not an argument against it.**
-It gives the best skin and material fidelity of the set (visible pores, stray hairs, worn
-fabric), 4.2 MP, and the only banner-strip ratios. A whole landing page is 3–5 frames —
-\$0.30–0.51 for the entire site. There is nothing to save here, and a cheap frame on a first
-screen is visible to everyone. Keep the **whole** series on it: hero first, then the rest with
-the hero as `reference_images`. Mixing models inside one series breaks the shared style.
+**Production goes to `gemini-3.1-flash-image`, it is the default, and cost is not an argument
+against it.** It gives the best skin and material fidelity of the set (visible pores, stray
+hairs, worn fabric), 4.2 MP, and the only banner-strip ratios. A whole landing page is 3–5
+frames — \$0.30–0.51 for the entire site. There is nothing to save here, and a cheap frame on
+a first screen is visible to everyone. Keep the **whole** series on it: hero first, then the
+rest with the hero as `reference_images`. Mixing models inside one series breaks the shared
+style.
 
-**Everything not shipped goes to the default, `gpt-5.4-image-2`.** Cheapest frame we measure
-and the most believable one-shot realism of the cheap tier — lived-in interiors, working
-hands, plausible clutter, no obvious anatomy failures *(measured on a technician-in-a-bathroom
-scene, 6-model comparison, 2026-08-19)*. Its cost is **not** flat: it scales with pixels
-(16:9 = 1536×864 for \$0.035, 1:1 = 1024×1024 for \$0.024). No resolution tiers, `size`
-ignored, hard ceiling 1.3 MP — which is the other reason production does not live here.
-
-**Its one hard limit is pixels: 1.3 MP.** Fine for a draft, a reference, a card in a chat.
-Not enough for a hero slot or anything that has to hold up on a retina screen.
+**Drafts go to `gemini-3.1-flash-lite-image`.** Cheapest and fastest frame of the set, \$0.034,
+and it has exactly one size: `resolution:'1K'` — there is no 2K tier, asking for one returns an
+error instead of a frame. Fine detail is weaker than flash: in the July 2026 comparison on
+people it merged fingers, skipped nails and once held a screwdriver by the blade *(measured)*.
+Enough to judge a composition, a mood or a layout; not enough to ship.
 
 **`seedream-5-0-lite` is the fallback and the editor.** It wins on pixels (7.5 MP flat
 \$0.035, ~\$0.0047/MP — unbeatable) and it is the strongest **editor** of the set. But in
 one-shot generation its people and hardware go wrong more often: in the comparison run it put
 a hand through the glass of a washing-machine door and a control board where the tank sits
-*(measured)*. Switch to it when the user rejects a draft frame, or when the job is
-edit-heavy from the start. For production work the answer is flash, not seedream.
+*(measured)*, and it is the slowest model here. Switch to it when the user rejects a draft
+frame, or when the job is edit-heavy from the start. For production work the answer is flash,
+not seedream.
 
-**Editing is priced separately — read this before planning a job.** An edit on
-`gpt-5.4-image-2` (`reference_images` + an instruction) costs **~\$0.140** *(measured)* —
-4x a fresh frame on the same model, and 4x the same edit on seedream — because the source
-image is billed as input tokens. The edit quality is genuinely excellent (Cyrillic lettering
-placed on clothing came out clean, face/pose/interior untouched), so it is worth paying as a
-one-off rescue. **But if the brief already implies generate-then-edit, or a series built off
-one reference image, run the whole job on seedream from the first frame.** The default is a
-single-shot model; seedream is the workhorse for iteration.
+**Editing is flat on seedream — plan iteration there.** An edit (`reference_images` + an
+instruction) costs the same \$0.035 as a fresh frame, and seedream is the strongest editor of
+the set. If the brief already implies generate-then-edit, or a series built off one reference
+image, run the whole job on seedream from the first frame. Edits on Gemini were not priced in
+the audit — fine for a one-off rescue of a production frame, wrong for a loop.
 
-Deliberately absent: `x-ai/grok-imagine-image-2.0` (1280×720 = 0.9 MP for \$0.060 — the worst
-price per pixel measured, and it silently ignores `size`) and `gemini-3.1-flash-lite-image`
-(failed quality testing). `openai/gpt-image-2` is the default's older sibling: same size, same
-price, weaker frame — use it only if 5.4 is unavailable. Do not suggest any of these otherwise.
+**`seedream-5-0-pro` is not an upgrade by the numbers.** Its price follows pixels (~\$0.019/MP,
+four times lite per pixel), its ceiling is 4,624,220 px — less than lite returns at 16:9 by
+default — and without `size` it hands back 2.4 MP for \$0.045 *(measured)*. Quality was not
+compared frame by frame. Use it only when the user asks for it by name.
+
+**These five are the whole list** — the same catalogue the landing-page generator offers, kept
+identical in both apps so one measurement serves both. Nothing else is accepted.
 
 ---
 
@@ -85,18 +85,17 @@ trap that costs money while silently giving you less.
 
 | Model | Pass | Never pass | Result at 16:9 | $/frame | $/MP |
 |---|---|---|---|---|---|
-| `gpt-5.4-image-2` | `aspect_ratio` | `resolution`, `size` (both ignored) | 1536×864 (1.3 MP) | **\$0.035** | \$0.026 |
-| `seedream-5-0-lite` | `aspect_ratio` | `size` (web work) | 3642×2048 (7.5 MP) | \$0.035 | **\$0.0047** |
 | `gemini-3.1-flash-image` | `aspect_ratio` + `resolution:'2K'` | *omitting* `resolution` | 2752×1536 (4.2 MP) | \$0.101 | \$0.024 |
+| `gemini-3.1-flash-lite-image` | `aspect_ratio` + `resolution:'1K'` | `resolution:'2K'` (no such tier — error) | 1K tier (1376×768 on flash) | \$0.034 | ~\$0.03 |
+| `seedream-5-0-lite` | `aspect_ratio` | `size` (web work) | 3642×2048 (7.5 MP) | \$0.035 | **\$0.0047** |
 | `gemini-3-pro-image` | `aspect_ratio` + `resolution:'2K'` | `resolution:'1K'` | 2752×1536 (4.2 MP) | \$0.137 | \$0.032 |
+| `seedream-5-0-pro` | `aspect_ratio` (+ `size` up to 4.6 MP) | `resolution` | 2.4 MP without `size` | \$0.045+ | ~\$0.019 |
 
 ### The traps, explicitly
 
-0. **The default model has no size knobs.** `gpt-5.4-image-2` takes `aspect_ratio` and nothing
-   else — `resolution` and `size` are ignored silently. The ratio *is* the price lever, because
-   cost scales with pixels: 16:9 → 1536×864 for \$0.035, 1:1 → 1024×1024 for \$0.024
-   *(measured)*. Two consequences: a square frame is genuinely cheaper here, and 1.3 MP is the
-   ceiling — need more pixels, change the model, not the argument.
+0. **Flash Lite has one tier.** `resolution:'1K'` and nothing else — `'2K'` buys an error. Write
+   the argument out even though 1K is also the fallback, so the size decision is visible in
+   the call. Need more pixels — change the model, not the argument.
 
 1. **Seedream: for web work, pass `aspect_ratio` and leave `size` alone.** The price is flat
    \$0.035 whatever you ask for, and `aspect_ratio` alone already returns 7.5 MP at 16:9 —
@@ -116,17 +115,16 @@ trap that costs money while silently giving you less.
 argument. But 16.9 MP is print territory: **do not use `4K` for web work.** It costs 50–75%
 more for pixels a screen will never show. Mentioned here only so the number is on record.
 
-**Ratio moves pixels on two models, but in opposite money directions.** On seedream a wider
+**Ratio moves pixels on seedream, but only lite gets them free.** On seedream lite a wider
 ratio buys pixels **for free**: 7.5 MP at 16:9 vs 4.2 MP at 1:1 (2048×2048), \$0.035 either
 way — and its 16.8 MP print maximum costs nothing extra, so there it is a file-size decision,
-not a money one. On the default GPT model the same move **costs**: 1.3 MP at 16:9 for \$0.035
-vs 1.0 MP at 1:1 for \$0.024. On Gemini the ratio does not move the price; the `resolution`
-tier does.
+not a money one. On seedream pro the same move **costs**, because its price follows the
+pixels. On Gemini the ratio does not move the price; the `resolution` tier does.
 
 ### Which ratio?
 
-Pick by destination. Price note: on Gemini and seedream the ratio does not change what you
-pay; on the default GPT model it does (see trap 0 above).
+Pick by destination. Price note: on Gemini and seedream lite the ratio does not change what
+you pay; on seedream pro it does.
 
 | Destination | Ratio |
 |---|---|
@@ -146,16 +144,12 @@ third is an empty wall"), or the headline lands on a face.
 **Do not write a prompt without this.** The models do not share a syntax — seedream treats
 comma-separated tags as an anti-pattern, while a prompt tuned for one reads as mush to another.
 
-- **GPT-5.4 Image 2** (the default) → [gpt.md](references/gpt.md)
-  What it is good at, the 1.3 MP ceiling, the \$0.140 edit price, and why it reuses the
-  seedream prose pattern unchanged. Short file — read it, then write the prompt the
-  seedream way.
 - **Seedream 5.0 Lite** → [seedream.md](references/seedream.md)
   The vendor publishes a real prompt guide; this file follows it. Coherent prose, quoted text,
   explicit fixed elements when editing, visual cue markers. It also carries the **anti-polish
-  worked example** — the house pattern for lived-in realism, and the one the default model
-  wants too, so read it even when you are prompting GPT.
-- **Gemini 3 (flash / pro)** → [gemini.md](references/gemini.md)
+  worked example** — the house pattern for lived-in realism, and the one Gemini wants too,
+  so read it even when you are prompting flash.
+- **Gemini 3.1 Flash / Flash Lite / 3 Pro** → [gemini.md](references/gemini.md)
   Google's official templates, positive-framing rule, camera control, step-by-step for
   complex scenes.
 
@@ -221,8 +215,8 @@ Things we established by testing that no vendor documents:
 # Output format
 
 ```
-Model: <openai/gpt-5.4-image-2 | google/gemini-3.1-flash-image | bytedance-seed/seedream-5-0-lite | google/gemini-3-pro-image>
-Args: aspect_ratio: '<16:9|1:1|…>'[, resolution: '2K'][, reference_images: ['<path>']]
+Model: <google/gemini-3.1-flash-image | google/gemini-3.1-flash-lite-image | bytedance-seed/seedream-5-0-lite | google/gemini-3-pro-image | bytedance-seed/seedream-5-0-pro>
+Args: aspect_ratio: '<16:9|1:1|…>'[, resolution: '2K'|'1K'][, reference_images: ['<path>']]
 Cost: ~$<measured $/frame>
 
 Prompt:
@@ -232,11 +226,12 @@ Notes:
 - <anything you inferred because the user did not specify>
 ```
 
-`resolution` only for Gemini — the default GPT model and seedream take `aspect_ratio` alone.
+`resolution` only for Gemini ('2K' on flash and pro, '1K' on flash-lite) — seedream takes
+`aspect_ratio` alone.
 `reference_images` takes local absolute paths or http(s) URLs.
 
 State the model choice and why in one line, every time — including the default. One clause is
-enough: "production frame, so flash" / "quick draft, so the cheap default".
+enough: "production frame, so flash" / "quick draft, so flash-lite".
 
 **When a source image is involved, first decide which of the two branches you are in** — they
 have different contracts, and picking the wrong one is the most common mistake here:

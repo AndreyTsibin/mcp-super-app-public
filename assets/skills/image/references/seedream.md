@@ -1,8 +1,8 @@
 # Seedream 5.0 Lite — prompt syntax
 
 **Fallback and editing workhorse.** `bytedance-seed/seedream-5-0-lite` · \$0.035 flat ·
-7.5 MP at 16:9. Not the default any more — the default is `openai/gpt-5.4-image-2`
-(drafts) and production goes to `gemini-3.1-flash-image`; see SKILL.md step 1. Come here
+7.5 MP at 16:9. Not the default — production (and the default) is `gemini-3.1-flash-image`,
+drafts go to `gemini-3.1-flash-lite-image`; see SKILL.md step 1. Come here
 when a draft frame disappointed the user, when the job will be edited or extended into a
 series off one reference, or when raw pixel count is the point.
 

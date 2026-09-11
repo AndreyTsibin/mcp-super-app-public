@@ -16,8 +16,8 @@ description: Запуск mcp-super-app — выбор точки входа ч�
 - create_website — среда сайта; дальше kind: landing (лендинг из библиотеки секций) или
   multipage (перенос существующего сайта на Astro — свой сайт с конструктора, макет
   из Figma или чужой сайт-донор; точная копия или редизайн, режим выбирает человек);
-- create_image — генерация картинок через OpenRouter (GPT-5.4 Image 2, Seedream 5.0 Lite,
-  Gemini 3).
+- create_image — генерация картинок через OpenRouter (Gemini 3.1 Flash / Flash Lite / 3 Pro,
+  Seedream 5.0 Lite / Pro — те же пять моделей, что в генераторе лендингов).
 
 Сервер сообщил в своих instructions о доступном обновлении — добавь в то же меню ПОСЛЕДНИМ
 пунктом «Обновить сервер до vX.Y.Z» (вызвать update_server, потом попросить перезапуск

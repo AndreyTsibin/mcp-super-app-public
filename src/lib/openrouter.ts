@@ -3,17 +3,37 @@ import { ToolError } from "./errors.js";
 const IMAGES_ENDPOINT = "https://openrouter.ai/api/v1/images";
 
 /**
- * Default image model — GPT-5.4 Image 2. $0.035 for 1536x864 (1.3MP) at 16:9: the cheapest
- * frame we measure and the strongest single-shot realism of the cheap tier, which is what
- * most calls need. Its price is NOT flat — it scales with pixels (1:1 = 1024x1024 for
- * $0.024) — and an edit with `reference_images` costs ~$0.14, 4x a fresh frame, so plan
- * edit-heavy work on seedream instead.
- * Fallbacks: bytedance-seed/seedream-5-0-lite when a frame disappoints or editing is
- * planned (flat $0.035, 7.5MP, best editor), google/gemini-3.1-flash-image for website
- * heroes and anything where quality outranks cost.
- * See docs/_dev/image-cost-audit.md for the measured matrix.
+ * The models `create_image` may draw with — the same five the landing-page
+ * generator offers its operators, kept as ONE list on purpose: a vendor retires
+ * a model when it ships the next one, and a short list shared by both apps is a
+ * list that can actually be kept true (IMG-8). The schema turns this into an
+ * enum, so a slug outside it is refused before any money is spent.
+ *
+ * Order is the decision order: production first (the default), then drafts,
+ * then the editor. Prices are measured `usage.cost` per frame at 16:9.
  */
-export const DEFAULT_IMAGE_MODEL = "openai/gpt-5.4-image-2";
+export const IMAGE_MODELS = [
+  /** Production. $0.101 at 2K (2752x1536): best skin/material fidelity, banner ratios. */
+  "google/gemini-3.1-flash-image",
+  /** Drafts. $0.034, 1K tier only — it has no 2K to sell. Fastest frame of the set. */
+  "google/gemini-3.1-flash-lite-image",
+  /** Editing and series. $0.035 flat at any size, 7.5MP at 16:9, best editor. Slowest. */
+  "bytedance-seed/seedream-5-0-lite",
+  /** Hardest scenes only. $0.137 at 2K; cleaner but more sterile than flash. */
+  "google/gemini-3-pro-image",
+  /** Only when the user names it: price follows pixels (~$0.019/MP), 4.6MP ceiling. */
+  "bytedance-seed/seedream-5-0-pro",
+] as const;
+
+export type ImageModel = (typeof IMAGE_MODELS)[number];
+
+/**
+ * Default — Gemini 3.1 Flash, the production model. It is the one measured on
+ * our own frames (skin, materials, hardware) and the one the generator defaults
+ * to; a draft is the exception the agent opts into, not the other way round.
+ * Pass `resolution:'2K'` with it — omitted, the API falls back to 1K.
+ */
+export const DEFAULT_IMAGE_MODEL: ImageModel = IMAGE_MODELS[0];
 
 export interface GenerateImageParams {
   prompt: string;
