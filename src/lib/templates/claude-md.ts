@@ -45,10 +45,11 @@ Operational log — what was done, how many tests, which commit — goes nowhere
 
 ## Context budgets
 Documentation grows with the project, context does not. Anything read "just in case" costs
-the task real room. Budgets, in tokens: \`CLAUDE.md\` ≤4k · HANDOFF ≤5k · tracker ≤4k
-(a plan, not an archive) · any doc ≤8k. Measure with \`/context\` in an interactive terminal —
-that is the only exact figure here; the docs guard only warns that a file grew, from a rough
-estimate that is off by 15% on average. Mechanics, probes and the reasoning: the playbook.
+the task real room. Budgets are in CHARACTERS — line counts lie, density varies several-fold:
+\`CLAUDE.md\` ≤12 000 (≈4k tokens) · HANDOFF ≤3 000, one screen · tracker ≤12 000, a plan and
+not an archive · \`.claude/rules/*\` ≤4 000 · any other doc ≤24 000. The docs guard counts
+characters; the only exact token figure is \`/context\` in an interactive terminal. Mechanics,
+probes and the reasoning: the playbook.
 
 ## Conventions
 - Code, identifiers, comments, commit messages: English.
@@ -62,6 +63,19 @@ estimate that is off by 15% on average. Mechanics, probes and the reasoning: the
 ## Working method
 Architect–implementer: the user designs and specifies, Claude Code implements.
 One session = one atomic task. Full session protocol: memory \`work-protocol\`.
+
+### Starting a session
+The hook injects \`.claude/HANDOFF.md\` — follow it and read only the entry points it names.
+No fan-out reading of \`docs/\` or memory: not in the handoff → Grep or the Explore subagent,
+in fragments rather than whole files.
+
+### During a session
+Noticed one of these → one line at the end of the answer, fact plus suggestion; fix once
+agreed. A file over budget · the same truth in two places (a status in both memory and the
+tracker) · a stale path or link in a doc you just read · a doc nothing links to · a durable
+finding worth an entry in \`docs/decisions/\` — offer it right away, not "at the end" · being
+switched to another feature mid-session → propose closing the session and opening a new one.
+\`.claude/HANDOFF.md\` is the exception: it is yours, rewrite it without asking.
 
 ### Closing a session
 1. Tests, if code changed. 2. Durable findings → \`docs/decisions/\`. 3. Tracker: status

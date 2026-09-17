@@ -101,7 +101,9 @@ const SOURCE_BUDGETS = [
 /** Per-file ceilings, checked across all of docs/ and .claude/. */
 const FILE_BUDGETS = [
   { match: /\.claude\/CLAUDE\.md$/, budget: 4_000, label: "CLAUDE.md" },
-  { match: /\.claude\/HANDOFF\.md$/, budget: 5_000, label: "SessionStart injection" },
+  // One screen, not the 5k ceiling the hook injection itself allows: a handoff that grows
+  // past this has started retelling the session instead of handing it over.
+  { match: /\.claude\/HANDOFF\.md$/, budget: 1_500, label: "HANDOFF, one screen" },
   { match: /_dev\/tracker\.md$/, budget: 4_000, label: "tracker" },
   { match: /docs\/.*\.md$/, budget: 8_000, label: "doc" },
 ];

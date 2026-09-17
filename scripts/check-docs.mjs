@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Docs guard: broken markdown links + stale code paths in backticks.
+ * Docs guard: broken markdown links, stale code paths in backticks, handoff lag.
  *
  *   node scripts/check-docs.mjs           # exit 1 on findings
  *   node scripts/check-docs.mjs --verbose # also list what was skipped and why
@@ -15,6 +15,7 @@
  * that, skipped — otherwise the guard reports 100+ false findings and stops being read.
  */
 
+import { execFileSync } from "node:child_process";
 import { readFileSync, existsSync, globSync, statSync } from "node:fs";
 import { dirname, join, resolve, relative } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -139,6 +140,24 @@ for (const file of files) {
   });
 }
 
+/**
+ * Handoff lag: commits landed after the last one that touched HANDOFF.md. The closing
+ * protocol rewrites it before committing — when it lags, the next session starts from a
+ * description the code has already moved past. Threshold 3: checkpoint commits inside a
+ * session are normal, three in a row without a rewrite means the protocol was skipped.
+ */
+function handoffLag(relPath) {
+  const git = (...args) =>
+    execFileSync("git", args, { cwd: ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+  try {
+    const touched = git("log", "-1", "--format=%H", "--", relPath);
+    if (!touched) return 0; // never committed — nothing to say
+    return Number(git("rev-list", "--count", touched + "..HEAD")) || 0;
+  } catch {
+    return 0; // not a git repo, or git unavailable
+  }
+}
+
 const report = (title, items) => {
   if (!items.length) return;
   console.log(`\n${title} (${items.length}):`);
@@ -147,6 +166,11 @@ const report = (title, items) => {
 
 report("BROKEN MARKDOWN LINKS", brokenLinks);
 report("STALE CODE PATHS", stalePaths);
+
+const lag = handoffLag(".claude/HANDOFF.md");
+if (lag >= 3) {
+  console.log(`\nHANDOFF LAG: ${lag} commits since .claude/HANDOFF.md was last updated.`);
+}
 
 if (VERBOSE) {
   console.log(`\nskipped ${skipped.length} (templates and documented exclusions):`);

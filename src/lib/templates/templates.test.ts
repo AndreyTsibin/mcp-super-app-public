@@ -112,3 +112,24 @@ test("трекер заводит одноразовую проверку мех
   assert.match(tracker, /check-docs\.mjs/);
   assert.match(tracker, /docs\/context-playbook\.md/);
 });
+
+test("бюджеты в шаблонах — в символах, не в токенах", () => {
+  // Плейбук §4: чужой проект может быть на любом стеке, токенизатора в нём нет, и
+  // правило «≤4k токенов» там непроверяемо (BST-11). Символы считает любая ОС.
+  const md = renderClaudeMd(ctx("M"));
+  assert.match(md, /CHARACTERS/);
+  assert.match(md, /≤12 000/);
+  assert.doesNotMatch(md, /Budgets, in tokens/);
+  const protocol = renderDocsProtocol(ctx("M"));
+  assert.match(protocol, /в символах/);
+  assert.doesNotMatch(protocol, /\(в токенах, не в строках\)/);
+});
+
+test("CLAUDE.md несёт постоянный режим, а не только старт и финал", () => {
+  // §6 плейбука: без «что отслеживать по ходу» правила живут до первого аврала —
+  // файл над бюджетом и вторая правда замечаются только на закрытии фазы, то есть поздно.
+  const md = renderClaudeMd(ctx("M"));
+  assert.match(md, /### During a session/);
+  assert.match(md, /### Starting a session/);
+  assert.match(md, /docs\/decisions\//);
+});
